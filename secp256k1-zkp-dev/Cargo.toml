@@ -1,0 +1,16 @@
+[package]
+name = "secp256k1-zkp-dev"
+version = "0.1.0"
+authors = ["Jonas Nick <jonasd.nick@gmail.com>"]
+
+license = "CC0-1.0"
+homepage = "https://github.com/ElementsProject/rust-secp256k1-zkp/"
+repository = "https://github.com/ElementsProject/rust-secp256k1-zkp/"
+description = "dev-dependencies for secp256k1-zkp-sys and secp256k1-zkp."
+keywords = [ "crypto", "ECDSA", "Schnorr", "secp256k1", "libsecp256k1", "secp256k1-zkp", "libsecp256k1-zkp", "bitcoin" ]
+
+[dependencies]
+rand = "0.6"
+
+[dependencies.secp256k1]
+version = "0.13"
