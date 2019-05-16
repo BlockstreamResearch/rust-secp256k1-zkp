@@ -18,12 +18,12 @@
 
 mod ffi;
 
-use core::{fmt, ptr};
+use core::{fmt, ptr, str};
 
 use secp256k1::key::{PublicKey, SecretKey};
 use secp256k1::{self, Message, Secp256k1, Signing, Verification};
 
-use super::ScratchSpace;
+use super::{from_hex, ScratchSpace};
 
 /// A Schnorrsig error. This does not implement `std:error::Error` because it's not available with
 /// `no_std`.
@@ -61,14 +61,16 @@ impl fmt::Display for Error {
 }
 
 /// A Schnorr signature
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Signature(ffi::SchnorrSignature);
 impl Signature {
     #[inline]
-    /// Converts a DER-encoded byte slice to a signature
+    /// Converts a byte slice to a signature
     pub fn parse(data: &[u8]) -> Result<Signature, Error> {
+        if data.len() != 64 {
+            return Err(Error::InvalidSignature);
+        }
         let mut ret = unsafe { ffi::SchnorrSignature::blank() };
-
         unsafe {
             if ffi::secp256k1_zkp_schnorrsig_parse(
                 secp256k1::ffi::secp256k1_context_no_precomp,
@@ -116,6 +118,53 @@ impl From<ffi::SchnorrSignature> for Signature {
     #[inline]
     fn from(sig: ffi::SchnorrSignature) -> Signature {
         Signature(sig)
+    }
+}
+
+impl fmt::Debug for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
+impl fmt::Display for Signature {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let v = self.serialize();
+        for ch in &v[..] {
+            write!(f, "{:02x}", *ch)?;
+        }
+        Ok(())
+    }
+}
+
+impl str::FromStr for Signature {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Signature, Error> {
+        let mut res = [0; 64];
+        if s.len() != 64 * 2 {
+            return Err(Error::InvalidSignature);
+        }
+        match from_hex(s, &mut res) {
+            Ok(x) => Signature::parse(&res[0..x]),
+            _ => Err(Error::InvalidSignature),
+        }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for Signature {
+    fn serialize<S: ::serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_bytes(&self.serialize())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> ::serde::Deserialize<'de> for Signature {
+    fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Signature, D::Error> {
+        use serde::de::Error;
+
+        let sl: &[u8] = ::serde::Deserialize::deserialize(d)?;
+        Signature::parse(sl).map_err(D::Error::custom)
     }
 }
 
@@ -227,6 +276,7 @@ impl<C: Verification> Verify for Secp256k1<C> {
 #[cfg(test)]
 mod tests {
     use super::{Error, ScratchSpace, Sign, Signature, Verify};
+    use core::str::FromStr;
     use rand::{thread_rng, RngCore};
     use secp256k1::{Message, Secp256k1};
     use secp256k1_zkp_dev::GenerateKeypair;
@@ -253,7 +303,37 @@ mod tests {
             0xA1, 0xA6, 0x4D, 0xC5, 0x9F, 0x70, 0x13, 0xFD,
         ];
         // Shouldn't return error right now
-        Signature::parse(&ser_sig).unwrap();
+        let sig = Signature::parse(&ser_sig).unwrap();
+        // Parsing wrong number of bytes results in Error
+        assert_eq!(Signature::parse(&[]), Err(Error::InvalidSignature));
+
+        let hex_sig = format!("{}", sig);
+        assert_eq!(sig, Signature::from_str(&hex_sig).unwrap());
+        let hex_sig = "";
+        assert_eq!(Signature::from_str(&hex_sig), Err(Error::InvalidSignature));
+        let hex_sig = "x";
+        assert_eq!(Signature::from_str(&hex_sig), Err(Error::InvalidSignature));
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_signature_serde() {
+        use secp256k1::SecretKey;
+        use serde_test::{assert_tokens, Token};
+
+        let s = Secp256k1::new();
+
+        let msg = Message::from_slice(&[1; 32]).unwrap();
+        let sk = SecretKey::from_slice(&[2; 32]).unwrap();
+        let sig = s.schnorrsig_sign(&msg, &sk);
+        static SIG_BYTES: [u8; 64] = [
+            0x9D, 0x0B, 0xAD, 0x57, 0x67, 0x19, 0xD3, 0x2A, 0xE7, 0x6B, 0xED, 0xB3, 0x4C, 0x77,
+            0x48, 0x66, 0x67, 0x3C, 0xBD, 0xE3, 0xF4, 0xE1, 0x29, 0x51, 0x55, 0x5C, 0x94, 0x08,
+            0xE6, 0xCE, 0x77, 0x4B, 0xA2, 0x9B, 0x2E, 0x41, 0x74, 0x30, 0x82, 0x17, 0x1E, 0x35,
+            0xD5, 0x63, 0xC9, 0x9D, 0x0F, 0xCE, 0xB6, 0xC4, 0x0B, 0x9A, 0xC2, 0x80, 0x77, 0x33,
+            0x59, 0xE7, 0xB5, 0x6C, 0x09, 0x41, 0x8D, 0x6D,
+        ];
+        assert_tokens(&sig, &[Token::BorrowedBytes(&SIG_BYTES[..])]);
     }
 
     #[test]

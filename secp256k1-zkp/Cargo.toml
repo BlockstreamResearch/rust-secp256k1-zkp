@@ -10,6 +10,9 @@ description = "Rust bindings for the Elements Project's `libsecp256k1-zkp` libra
 keywords = [ "crypto", "ECDSA", "Schnorr", "secp256k1", "libsecp256k1", "secp256k1-zkp", "libsecp256k1-zkp", "bitcoin" ]
 readme = "README.md"
 
+[features]
+serde = ["secp256k1-zkp-sys/serde"]
+
 [dev-dependencies]
 rand = "0.6"
 
