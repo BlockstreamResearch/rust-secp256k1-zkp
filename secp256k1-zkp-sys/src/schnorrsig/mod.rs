@@ -103,6 +103,12 @@ impl Signature {
     pub fn as_ptr(&self) -> *const ffi::SchnorrSignature {
         &self.0 as *const _
     }
+
+    /// Obtains a raw mutable pointer suitable for use with FFI functions
+    #[inline]
+    pub fn as_mut_ptr(&mut self) -> *mut ffi::SchnorrSignature {
+        &mut self.0 as *mut _
+    }
 }
 
 /// Creates a new signature from a FFI signature
