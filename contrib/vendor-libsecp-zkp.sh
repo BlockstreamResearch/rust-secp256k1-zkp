@@ -4,10 +4,12 @@ set -e
 
 if [ -z "$1" ]; then
   echo "\$1 parameter must be the rust-secp256k1-zkp-sys depend directory"
+  echo "\$2 parameter (optional) can be the revision to check out"
   exit 1
 fi
 
 PARENT_DIR=$1
+REV=$2
 DIR=secp256k1-zkp
 
 while true; do
@@ -23,9 +25,12 @@ cd "$PARENT_DIR"
 rm -rf "$DIR"
 git clone git@github.com:ElementsProject/secp256k1-zkp.git
 cd "$DIR"
+if [ -n "$REV" ]; then
+    git checkout "$REV"
+fi
 HEAD=$(git rev-parse HEAD)
 cd ..
-echo "\# This file was automatically created by contrib/$0" > ./secp256k1-zkp-HEAD-revision.txt
+echo "\# This file was automatically created by $0" > ./secp256k1-zkp-HEAD-revision.txt
 echo "$HEAD" >> ./secp256k1-zkp-HEAD-revision.txt
 
 find "$DIR" -not -path '*/\.*' -type f -print0 | xargs -0 sed -i '/^#include/! s/secp256k1_/secp256k1_zkp_/g'

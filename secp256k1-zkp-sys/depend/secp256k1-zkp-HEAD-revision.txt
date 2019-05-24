@@ -1,2 +1,2 @@
-\# This file was automatically created by contrib/./vendor-libsecp-zkp.sh
+\# This file was automatically created by ./contrib/vendor-libsecp-zkp.sh
 1c830b4c9ac30aa32e246ea3ab8ef9ef99acf664
