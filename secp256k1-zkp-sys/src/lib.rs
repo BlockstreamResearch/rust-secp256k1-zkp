@@ -79,6 +79,9 @@ impl Drop for ScratchSpace {
     }
 }
 
+unsafe impl Send for ScratchSpace {}
+unsafe impl Sync for ScratchSpace {}
+
 /// Utility function used to parse hex into a target u8 buffer. Returns
 /// the number of bytes converted or an error if it encounters an invalid
 /// character or unexpected end of string.
