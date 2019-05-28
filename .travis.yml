@@ -1,0 +1,37 @@
+language: rust
+cache: cargo
+
+rust:
+  - stable
+  - beta
+  - nightly
+os:
+ - linux
+ - windows
+
+# Include rust 1.22 explicitly to be able to set the RUST122 env variable.
+matrix:
+  include:
+  - rust: 1.22.0
+    env: RUST122=1
+    os: linux
+
+before_script:
+  - if [ -z "$RUST122" ]; then rustup component add rustfmt; fi
+
+script:
+  - if [ -z "$RUST122" ]; then cargo fmt --all -- --check; fi
+
+  - cargo build --verbose
+  - cargo test --verbose
+
+  - cd secp256k1-zkp-sys
+  - cargo test --verbose --features="serde"
+  - cd ..
+
+  - cd secp256k1-zkp
+  - cargo test --verbose --features="serde"
+  - cd ..
+
+  - cargo build --release
+  - cargo test --release
