@@ -12,11 +12,11 @@
 // If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
-/// The functions in this module are copied from secp256k1 because they can only be used when
-/// compiled with the `rand` feature. But the other libraries need them as a dev-dependency for
-/// `cargo test` also when `rand` is not enabled. Currently with cargo we can't have a `rand`
-/// dev-dependency and a non-`rand` dependency at the same time (see
-/// https://github.com/rust-lang/cargo/issues/1796).
+//! The functions in this module are copied from secp256k1 because they can only be used when
+//! compiled with the `rand` feature. But the other libraries need them as a dev-dependency for
+//! `cargo test` also when `rand` is not enabled. Currently with cargo we can't have a `rand`
+//! dev-dependency and a non-`rand` dependency at the same time (see
+//! https://github.com/rust-lang/cargo/issues/1796).
 pub extern crate rand;
 pub extern crate secp256k1;
 

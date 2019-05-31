@@ -12,8 +12,9 @@
 // If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
-//! # Secp256k1-zkp
-//! Rust bindings for the secp256k1-zkp library.
+//! # Secp256k1-zkp-sys
+//! Low-level (`no_std`) rust bindings for the secp256k1-zkp library.
+//! See the `secp256k1-zkp` crate for higher level abstractions.
 
 #![crate_type = "lib"]
 #![crate_type = "rlib"]
