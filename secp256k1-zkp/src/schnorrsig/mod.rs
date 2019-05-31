@@ -84,7 +84,8 @@ impl fmt::Display for Error {
     }
 }
 
-type Signature = schnorrsig_sys::Signature;
+/// A Schnorr signature
+pub type Signature = schnorrsig_sys::Signature;
 
 /// Schnorrsig verification trait
 pub trait Verify {
