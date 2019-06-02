@@ -15,6 +15,30 @@
 //! # Schnorrsig
 //! Support for bip-schnorr compliant signatures
 //!
+//! ```rust
+//! extern crate secp256k1;
+//! extern crate secp256k1_zkp_dev;
+//! extern crate rand;
+//!
+//! #
+//! # fn main() {
+//! # use secp256k1_zkp_dev::GenerateKeypair;
+//! use rand::rngs::OsRng;
+//! use secp256k1::{Secp256k1, Message};
+//!
+//! let secp = Secp256k1::new();
+//! let mut rng = OsRng::new().expect("OsRng");
+//! let (secret_key, public_key) = secp.generate_keypair(&mut rng);
+//! let message = Message::from_slice(&[0xab; 32]).expect("32 bytes");
+//!
+//! let sig = secp.sign(&message, &secret_key);
+//! assert!(secp.verify(&message, &sig, &public_key).is_ok());
+//! # }
+//! ```
+//!
+//! The above code requires `secp256k1` to be compiled with the `rand`
+//! feature enabled, to get access to [`generate_keypair`](struct.Secp256k1.html#method.generate_keypair)
+//! Alternately, keys can be parsed from slices.
 
 use std::{error, fmt};
 
@@ -60,7 +84,8 @@ impl fmt::Display for Error {
     }
 }
 
-type Signature = schnorrsig_sys::Signature;
+/// A Schnorr signature
+pub type Signature = schnorrsig_sys::Signature;
 
 /// Schnorrsig verification trait
 pub trait Verify {
