@@ -12,6 +12,11 @@ Modules currently supported:
 
 * `schnorrsig` which allows creating and (batch-) verifying bip-schnorr compatible signatures
 
+### Documentation
+
+- [secp256k1-zkp](https://docs.rs/secp256k1-zkp/)
+- [secp256k1-zkp-sys](https://docs.rs/secp256k1-zkp-sys/)
+
 ### Contributing
 
 Contributions to this library are welcome. A few guidelines:
