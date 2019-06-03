@@ -6,9 +6,9 @@ authors = ["Jonas Nick <jonasd.nick@gmail.com>"]
 license = "CC0-1.0"
 homepage = "https://github.com/ElementsProject/rust-secp256k1-zkp/"
 repository = "https://github.com/ElementsProject/rust-secp256k1-zkp/"
-description = "Rust bindings for the Elements Project's `libsecp256k1-zkp` library. Implements various cryptographic schemes for the SECG elliptic curve group secp256k1 and related utilities. This is a low-level, no_std library. There is also w higher level library called secp256k1-zkp."
+description = "Rust bindings for the Elements Project's `libsecp256k1-zkp` library. Implements various cryptographic schemes for the SECG elliptic curve group secp256k1 and related utilities. This is a low-level, no_std library. There is also a higher level library called secp256k1-zkp."
 keywords = [ "crypto", "Schnorr", "secp256k1", "secp256k1-zkp", "bitcoin" ]
-readme = "README.md"
+readme = "../README.md"
 build = "build.rs"
 
 [package.metadata.docs.rs]
