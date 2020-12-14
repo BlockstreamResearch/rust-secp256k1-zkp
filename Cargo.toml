@@ -14,15 +14,14 @@ autoexamples = false # Remove when edition 2018 https://github.com/rust-lang/car
 
 # Should make docs.rs show all functions, even those behind non-default features
 [package.metadata.docs.rs]
-features = [ "rand", "rand-std", "serde", "recovery", "endomorphism" ]
+features = [ "rand", "rand-std", "serde", "recovery" ]
 
 [features]
 unstable = ["recovery", "rand-std"]
 default = ["std"]
 std = ["secp256k1-zkp-sys/std"]
 rand-std = ["rand/std"]
-recovery = ["secp256k1-zkp-sys/recovery"]
-endomorphism = ["secp256k1-zkp-sys/endomorphism"]
+recovery = ["secp256k1-zkp-sys/recovery", "secp256k1/recovery"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory"]
 global-context = ["std", "rand-std", "secp256k1/global-context"]
 
