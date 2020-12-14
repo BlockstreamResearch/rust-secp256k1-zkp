@@ -122,8 +122,8 @@
 #![cfg_attr(all(test, feature = "unstable"), feature(test))]
 
 #[macro_use]
-pub extern crate secp256k1_sys;
-pub use secp256k1_sys as ffi;
+pub extern crate secp256k1_zkp_sys;
+pub use secp256k1_zkp_sys as ffi;
 
 #[cfg(feature = "bitcoin_hashes")] pub extern crate bitcoin_hashes;
 #[cfg(all(test, feature = "unstable"))] extern crate test;

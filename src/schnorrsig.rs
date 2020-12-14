@@ -292,7 +292,7 @@ impl PublicKey {
                 return Err(Error::InvalidTweak);
             }
 
-            let mut parity: ::secp256k1_sys::types::c_int = 0;
+            let mut parity: ::secp256k1_zkp_sys::types::c_int = 0;
             err = ffi::secp256k1_xonly_pubkey_from_pubkey(
                 secp.ctx,
                 &mut self.0,

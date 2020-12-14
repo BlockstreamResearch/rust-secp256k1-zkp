@@ -19,22 +19,22 @@ features = [ "rand", "rand-std", "serde", "recovery", "endomorphism" ]
 [features]
 unstable = ["recovery", "rand-std"]
 default = ["std"]
-std = ["secp256k1-sys/std"]
+std = ["secp256k1-zkp-sys/std"]
 rand-std = ["rand/std"]
-recovery = ["secp256k1-sys/recovery"]
-endomorphism = ["secp256k1-sys/endomorphism"]
-lowmemory = ["secp256k1-sys/lowmemory"]
+recovery = ["secp256k1-zkp-sys/recovery"]
+endomorphism = ["secp256k1-zkp-sys/endomorphism"]
+lowmemory = ["secp256k1-zkp-sys/lowmemory"]
 global-context = ["std", "rand-std"]
 
 # Use this feature to not compile the bundled libsecp256k1 C symbols,
 # but use external ones. Use this only if you know what you are doing!
-external-symbols = ["secp256k1-sys/external-symbols"]
+external-symbols = ["secp256k1-zkp-sys/external-symbols"]
 
 # Do not use this feature! HAZMAT. (meant for Fuzzing only. this is *BROKEN CRYPTOGRAPHY*)
-fuzztarget = ["secp256k1-sys/fuzztarget"]
+fuzztarget = ["secp256k1-zkp-sys/fuzztarget"]
 
 [dependencies]
-secp256k1-sys = { version = "0.3.1", default-features = false, path = "./secp256k1-zkp-sys" }
+secp256k1-zkp-sys = { version = "0.3.1", default-features = false, path = "./secp256k1-zkp-sys" }
 bitcoin_hashes = { version = "0.9", optional = true }
 rand = { version = "0.6", default-features = false, optional = true }
 serde = { version = "1.0", default-features = false, optional = true }

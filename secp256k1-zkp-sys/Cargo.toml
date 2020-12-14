@@ -1,5 +1,5 @@
 [package]
-name = "secp256k1-sys"
+name = "secp256k1-zkp-sys"
 version = "0.3.1"
 authors = [ "Dawid Ciężarkiewicz <dpc@ucore.info>",
             "Andrew Poelstra <apoelstra@wpsoftware.net>",

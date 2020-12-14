@@ -21,7 +21,7 @@ use core::ops::{FnMut, Deref};
 
 use key::{SecretKey, PublicKey};
 use ffi::{self, CPtr};
-use secp256k1_sys::types::{c_int, c_uchar, c_void};
+use secp256k1_zkp_sys::types::{c_int, c_uchar, c_void};
 
 /// A tag used for recovering the public key from a compact signature
 #[derive(Copy, Clone)]
