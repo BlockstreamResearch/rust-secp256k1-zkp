@@ -49,15 +49,3 @@ bitcoin_hashes = "0.9"
 [target.wasm32-unknown-unknown.dev-dependencies]
 wasm-bindgen-test = "0.3"
 rand = { version = "0.6", features = ["wasm-bindgen"] }
-
-
-[[example]]
-name = "sign_verify_recovery"
-required-features = ["recovery"]
-
-[[example]]
-name = "sign_verify"
-
-[[example]]
-name = "generate_keys"
-required-features = ["rand"]
