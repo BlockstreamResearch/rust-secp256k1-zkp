@@ -13,11 +13,12 @@ then
 fi
 
 ./configure \
-    --enable-experimental="$EXPERIMENTAL" --enable-endomorphism="$ENDOMORPHISM" \
+    --enable-experimental="$EXPERIMENTAL" \
     --with-test-override-wide-multiply="$WIDEMUL" --with-bignum="$BIGNUM" --with-asm="$ASM" \
     --enable-ecmult-static-precomputation="$STATICPRECOMPUTATION" --with-ecmult-gen-precision="$ECMULTGENPRECISION" \
     --enable-module-ecdh="$ECDH" --enable-module-recovery="$RECOVERY" \
-    --enable-module-schnorrsig="$SCHNORRSIG" \
+    --enable-module-rangeproof="$RANGEPROOF" --enable-module-whitelist="$WHITELIST" --enable-module-generator="$GENERATOR" \
+    --enable-module-schnorrsig="$SCHNORRSIG"  --enable-module-musig="$MUSIG"\
     --with-valgrind="$WITH_VALGRIND" \
     --host="$HOST" $EXTRAFLAGS
 

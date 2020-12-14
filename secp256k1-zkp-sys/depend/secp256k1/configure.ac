@@ -116,25 +116,40 @@ AC_ARG_ENABLE(exhaustive_tests,
     [use_exhaustive_tests=$enableval],
     [use_exhaustive_tests=yes])
 
-AC_ARG_ENABLE(endomorphism,
-    AS_HELP_STRING([--enable-endomorphism],[enable endomorphism [default=no]]),
-    [use_endomorphism=$enableval],
-    [use_endomorphism=no])
-
 AC_ARG_ENABLE(ecmult_static_precomputation,
     AS_HELP_STRING([--enable-ecmult-static-precomputation],[enable precomputed ecmult table for signing [default=auto]]),
     [use_ecmult_static_precomputation=$enableval],
     [use_ecmult_static_precomputation=auto])
 
 AC_ARG_ENABLE(module_ecdh,
-    AS_HELP_STRING([--enable-module-ecdh],[enable ECDH shared secret computation (experimental)]),
+    AS_HELP_STRING([--enable-module-ecdh],[enable ECDH shared secret computation]),
     [enable_module_ecdh=$enableval],
     [enable_module_ecdh=no])
+
+AC_ARG_ENABLE(module_musig,
+    AS_HELP_STRING([--enable-module-musig],[enable MuSig module (experimental)]),
+    [enable_module_musig=$enableval],
+    [enable_module_musig=no])
 
 AC_ARG_ENABLE(module_recovery,
     AS_HELP_STRING([--enable-module-recovery],[enable ECDSA pubkey recovery module [default=no]]),
     [enable_module_recovery=$enableval],
     [enable_module_recovery=no])
+
+AC_ARG_ENABLE(module_generator,
+    AS_HELP_STRING([--enable-module-generator],[enable NUMS generator module [default=no]]),
+    [enable_module_generator=$enableval],
+    [enable_module_generator=no])
+
+AC_ARG_ENABLE(module_rangeproof,
+    AS_HELP_STRING([--enable-module-rangeproof],[enable Pedersen / zero-knowledge range proofs module [default=no]]),
+    [enable_module_rangeproof=$enableval],
+    [enable_module_rangeproof=no])
+
+AC_ARG_ENABLE(module_whitelist,
+    AS_HELP_STRING([--enable-module-whitelist],[enable key whitelisting module [default=no]]),
+    [enable_module_whitelist=$enableval],
+    [enable_module_whitelist=no])
 
 AC_ARG_ENABLE(module_extrakeys,
     AS_HELP_STRING([--enable-module-extrakeys],[enable extrakeys module (experimental)]),
@@ -151,6 +166,16 @@ AC_ARG_ENABLE(external_default_callbacks,
     [use_external_default_callbacks=$enableval],
     [use_external_default_callbacks=no])
 
+AC_ARG_ENABLE(module_surjectionproof,
+    AS_HELP_STRING([--enable-module-surjectionproof],[enable surjection proof module [default=no]]),
+    [enable_module_surjectionproof=$enableval],
+    [enable_module_surjectionproof=no])
+
+AC_ARG_ENABLE(reduced_surjection_proof_size,
+    AS_HELP_STRING([--enable-reduced-surjection-proof-size],[use reduced surjection proof size (disabling parsing and verification) [default=no]]),
+    [use_reduced_surjection_proof_size=$enableval],
+    [use_reduced_surjection_proof_size=no])
+
 dnl Test-only override of the (autodetected by the C code) "widemul" setting.
 dnl Legal values are int64 (for [u]int64_t), int128 (for [unsigned] __int128), and auto (the default).
 AC_ARG_WITH([test-override-wide-multiply], [] ,[set_widemul=$withval], [set_widemul=auto])
@@ -164,8 +189,7 @@ AC_ARG_WITH([asm], [AS_HELP_STRING([--with-asm=x86_64|arm|no|auto],
 AC_ARG_WITH([ecmult-window], [AS_HELP_STRING([--with-ecmult-window=SIZE|auto],
 [window size for ecmult precomputation for verification, specified as integer in range [2..24].]
 [Larger values result in possibly better performance at the cost of an exponentially larger precomputed table.]
-[The table will store 2^(SIZE-2) * 64 bytes of data but can be larger in memory due to platform-specific padding and alignment.]
-[If the endomorphism optimization is enabled, two tables of this size are used instead of only one.]
+[The table will store 2^(SIZE-1) * 64 bytes of data but can be larger in memory due to platform-specific padding and alignment.]
 ["auto" is a reasonable setting for desktop machines (currently 15). [default=auto]]
 )],
 [req_ecmult_window=$withval], [req_ecmult_window=auto])
@@ -202,6 +226,12 @@ if test x"$enable_coverage" = x"yes"; then
 else
     CFLAGS="-O2 $CFLAGS"
 fi
+
+AC_MSG_CHECKING([for __builtin_popcount])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[void myfunc() {__builtin_popcount(0);}]])],
+    [ AC_MSG_RESULT([yes]);AC_DEFINE(HAVE_BUILTIN_POPCOUNT,1,[Define this symbol if __builtin_popcount is available]) ],
+    [ AC_MSG_RESULT([no])
+    ])
 
 if test x"$use_ecmult_static_precomputation" != x"no"; then
   # Temporarily switch to an environment for the native compiler
@@ -257,6 +287,12 @@ if test x"$use_ecmult_static_precomputation" != x"no"; then
 else
   set_precomp=no
 fi
+
+AC_MSG_CHECKING([for  __builtin_clzll])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[void myfunc() { __builtin_clzll(1);}]])],
+    [ AC_MSG_RESULT([yes]);AC_DEFINE(HAVE_BUILTIN_CLZLL,1,[Define this symbol if  __builtin_clzll is available]) ],
+    [ AC_MSG_RESULT([no])
+    ])
 
 if test x"$req_asm" = x"auto"; then
   SECP_64BIT_ASM_CHECK
@@ -401,8 +437,8 @@ esac
 
 if test x"$use_tests" = x"yes"; then
   SECP_OPENSSL_CHECK
-  if test x"$has_openssl_ec" = x"yes"; then
-    if test x"$enable_openssl_tests" != x"no"; then
+  if test x"$enable_openssl_tests" != x"no" && test x"$has_openssl_ec" = x"yes"; then
+      enable_openssl_tests=yes
       AC_DEFINE(ENABLE_OPENSSL_TESTS, 1, [Define this symbol if OpenSSL EC functions are available])
       SECP_TEST_INCLUDES="$SSL_CFLAGS $CRYPTO_CFLAGS $CRYPTO_CPPFLAGS"
       SECP_TEST_LIBS="$CRYPTO_LIBS"
@@ -412,25 +448,22 @@ if test x"$use_tests" = x"yes"; then
         SECP_TEST_LIBS="$SECP_TEST_LIBS -lgdi32"
         ;;
       esac
-    fi
   else
     if test x"$enable_openssl_tests" = x"yes"; then
       AC_MSG_ERROR([OpenSSL tests requested but OpenSSL with EC support is not available])
     fi
+    enable_openssl_tests=no
   fi
 else
   if test x"$enable_openssl_tests" = x"yes"; then
     AC_MSG_ERROR([OpenSSL tests requested but tests are not enabled])
   fi
+  enable_openssl_tests=no
 fi
 
 if test x"$set_bignum" = x"gmp"; then
   SECP_LIBS="$SECP_LIBS $GMP_LIBS"
   SECP_INCLUDES="$SECP_INCLUDES $GMP_CPPFLAGS"
-fi
-
-if test x"$use_endomorphism" = x"yes"; then
-  AC_DEFINE(USE_ENDOMORPHISM, 1, [Define this symbol to use endomorphism optimization])
 fi
 
 if test x"$set_precomp" = x"yes"; then
@@ -441,8 +474,28 @@ if test x"$enable_module_ecdh" = x"yes"; then
   AC_DEFINE(ENABLE_MODULE_ECDH, 1, [Define this symbol to enable the ECDH module])
 fi
 
+if test x"$enable_module_musig" = x"yes"; then
+  AC_DEFINE(ENABLE_MODULE_MUSIG, 1, [Define this symbol to enable the MuSig module])
+fi
+
 if test x"$enable_module_recovery" = x"yes"; then
   AC_DEFINE(ENABLE_MODULE_RECOVERY, 1, [Define this symbol to enable the ECDSA pubkey recovery module])
+fi
+
+if test x"$enable_module_generator" = x"yes"; then
+  AC_DEFINE(ENABLE_MODULE_GENERATOR, 1, [Define this symbol to enable the NUMS generator module])
+fi
+
+if test x"$enable_module_rangeproof" = x"yes"; then
+  AC_DEFINE(ENABLE_MODULE_RANGEPROOF, 1, [Define this symbol to enable the Pedersen / zero knowledge range proof module])
+fi
+
+if test x"$enable_module_whitelist" = x"yes"; then
+  AC_DEFINE(ENABLE_MODULE_WHITELIST, 1, [Define this symbol to enable the key whitelisting module])
+fi
+
+if test x"$enable_module_surjectionproof" = x"yes"; then
+  AC_DEFINE(ENABLE_MODULE_SURJECTIONPROOF, 1, [Define this symbol to enable the surjection proof module])
 fi
 
 if test x"$enable_module_schnorrsig" = x"yes"; then
@@ -464,17 +517,47 @@ if test x"$use_external_default_callbacks" = x"yes"; then
   AC_DEFINE(USE_EXTERNAL_DEFAULT_CALLBACKS, 1, [Define this symbol if an external implementation of the default callbacks is used])
 fi
 
+if test x"$use_reduced_surjection_proof_size" = x"yes"; then
+  AC_DEFINE(USE_REDUCED_SURJECTION_PROOF_SIZE, 1, [Define this symbol to reduce SECP256K1_SURJECTIONPROOF_MAX_N_INPUTS to 16, disabling parsing and verification])
+fi
+
 if test x"$enable_experimental" = x"yes"; then
   AC_MSG_NOTICE([******])
   AC_MSG_NOTICE([WARNING: experimental build])
   AC_MSG_NOTICE([Experimental features do not have stable APIs or properties, and may not be safe for production use.])
-  AC_MSG_NOTICE([Building ECDH module: $enable_module_ecdh])
+  AC_MSG_NOTICE([Building NUMS generator module: $enable_module_generator])
+  AC_MSG_NOTICE([Building range proof module: $enable_module_rangeproof])
+  AC_MSG_NOTICE([Building key whitelisting module: $enable_module_whitelist])
+  AC_MSG_NOTICE([Building surjection proof module: $enable_module_surjectionproof])
+  AC_MSG_NOTICE([Building MuSig module: $enable_module_musig])
   AC_MSG_NOTICE([Building extrakeys module: $enable_module_extrakeys])
   AC_MSG_NOTICE([Building schnorrsig module: $enable_module_schnorrsig])
   AC_MSG_NOTICE([******])
+
+
+  if test x"$enable_module_schnorrsig" != x"yes"; then
+    if test x"$enable_module_musig" = x"yes"; then
+      AC_MSG_ERROR([MuSig module requires the schnorrsig module. Use --enable-module-schnorrsig to allow.])
+    fi
+  fi
+
+  if test x"$enable_module_generator" != x"yes"; then
+    if test x"$enable_module_rangeproof" = x"yes"; then
+      AC_MSG_ERROR([Rangeproof module requires the generator module. Use --enable-module-generator to allow.])
+    fi
+  fi
+
+  if test x"$enable_module_rangeproof" != x"yes"; then
+    if test x"$enable_module_whitelist" = x"yes"; then
+      AC_MSG_ERROR([Whitelist module requires the rangeproof module. Use --enable-module-rangeproof to allow.])
+    fi
+    if test x"$enable_module_surjectionproof" = x"yes"; then
+      AC_MSG_ERROR([Surjection proof module requires the rangeproof module. Use --enable-module-rangeproof to allow.])
+    fi
+  fi
 else
-  if test x"$enable_module_ecdh" = x"yes"; then
-    AC_MSG_ERROR([ECDH module is experimental. Use --enable-experimental to allow.])
+  if test x"$enable_module_musig" = x"yes"; then
+    AC_MSG_ERROR([MuSig module is experimental. Use --enable-experimental to allow.])
   fi
   if test x"$enable_module_extrakeys" = x"yes"; then
     AC_MSG_ERROR([extrakeys module is experimental. Use --enable-experimental to allow.])
@@ -484,6 +567,18 @@ else
   fi
   if test x"$set_asm" = x"arm"; then
     AC_MSG_ERROR([ARM assembly optimization is experimental. Use --enable-experimental to allow.])
+  fi
+  if test x"$enable_module_generator" = x"yes"; then
+    AC_MSG_ERROR([NUMS generator module is experimental. Use --enable-experimental to allow.])
+  fi
+  if test x"$enable_module_rangeproof" = x"yes"; then
+    AC_MSG_ERROR([Range proof module is experimental. Use --enable-experimental to allow.])
+  fi
+  if test x"$enable_module_whitelist" = x"yes"; then
+    AC_MSG_ERROR([Key whitelisting module is experimental. Use --enable-experimental to allow.])
+  fi
+  if test x"$enable_module_surjectionproof" = x"yes"; then
+    AC_MSG_ERROR([Surjection proof module is experimental. Use --enable-experimental to allow.])
   fi
 fi
 
@@ -499,11 +594,17 @@ AM_CONDITIONAL([USE_EXHAUSTIVE_TESTS], [test x"$use_exhaustive_tests" != x"no"])
 AM_CONDITIONAL([USE_BENCHMARK], [test x"$use_benchmark" = x"yes"])
 AM_CONDITIONAL([USE_ECMULT_STATIC_PRECOMPUTATION], [test x"$set_precomp" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_ECDH], [test x"$enable_module_ecdh" = x"yes"])
+AM_CONDITIONAL([ENABLE_MODULE_MUSIG], [test x"$enable_module_musig" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_RECOVERY], [test x"$enable_module_recovery" = x"yes"])
+AM_CONDITIONAL([ENABLE_MODULE_GENERATOR], [test x"$enable_module_generator" = x"yes"])
+AM_CONDITIONAL([ENABLE_MODULE_RANGEPROOF], [test x"$enable_module_rangeproof" = x"yes"])
+AM_CONDITIONAL([ENABLE_MODULE_WHITELIST], [test x"$enable_module_whitelist" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_EXTRAKEYS], [test x"$enable_module_extrakeys" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_SCHNORRSIG], [test x"$enable_module_schnorrsig" = x"yes"])
 AM_CONDITIONAL([USE_EXTERNAL_ASM], [test x"$use_external_asm" = x"yes"])
 AM_CONDITIONAL([USE_ASM_ARM], [test x"$set_asm" = x"arm"])
+AM_CONDITIONAL([ENABLE_MODULE_SURJECTIONPROOF], [test x"$enable_module_surjectionproof" = x"yes"])
+AM_CONDITIONAL([USE_REDUCED_SURJECTION_PROOF_SIZE], [test x"$use_reduced_surjection_proof_size" = x"yes"])
 
 dnl make sure nothing new is exported so that we don't break the cache
 PKGCONFIG_PATH_TEMP="$PKG_CONFIG_PATH"
@@ -514,10 +615,11 @@ AC_OUTPUT
 
 echo
 echo "Build Options:"
-echo "  with endomorphism       = $use_endomorphism"
 echo "  with ecmult precomp     = $set_precomp"
 echo "  with external callbacks = $use_external_default_callbacks"
 echo "  with benchmarks         = $use_benchmark"
+echo "  with tests              = $use_tests"
+echo "  with openssl tests      = $enable_openssl_tests"
 echo "  with coverage           = $enable_coverage"
 echo "  module ecdh             = $enable_module_ecdh"
 echo "  module recovery         = $enable_module_recovery"
