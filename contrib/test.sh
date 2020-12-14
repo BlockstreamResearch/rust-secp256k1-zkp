@@ -1,6 +1,6 @@
 #!/bin/sh -ex
 
-FEATURES="bitcoin_hashes global-context lowmemory rand rand-std recovery serde"
+FEATURES="hashes global-context lowmemory use-rand rand-std recovery use-serde"
 
 # Use toolchain if explicitly specified
 if [ -n "$TOOLCHAIN" ]
@@ -33,8 +33,8 @@ if [ "$DO_FEATURE_MATRIX" = true ]; then
     # Other combos 
     cargo test --no-run --verbose --features="fuzztarget"
     cargo test --no-run --verbose --features="fuzztarget recovery"
-    cargo test --verbose --features="rand rand-std"
-    cargo test --verbose --features="rand serde"
+    cargo test --verbose --features="use-rand rand-std"
+    cargo test --verbose --features="use-rand use-serde"
 fi
 
 # Docs
