@@ -21,12 +21,12 @@
 #![deny(non_camel_case_types)]
 #![deny(non_snake_case)]
 #![deny(unused_mut)]
-
 #![cfg_attr(all(not(test), not(feature = "std")), no_std)]
 #[cfg(any(test, feature = "std"))]
 extern crate core;
-
 #[macro_use]
 extern crate secp256k1_sys;
 pub use secp256k1_sys::*;
 
+mod zkp;
+pub use zkp::*;

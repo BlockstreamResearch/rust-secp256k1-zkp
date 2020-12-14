@@ -116,8 +116,6 @@
 #![deny(non_snake_case)]
 #![deny(unused_mut)]
 #![warn(missing_docs)]
-
-
 #![cfg_attr(all(not(test), not(feature = "std")), no_std)]
 #![cfg_attr(all(test, feature = "unstable"), feature(test))]
 
@@ -126,26 +124,82 @@ pub use secp256k1_zkp_sys as ffi;
 
 extern crate secp256k1;
 
-#[cfg(feature = "bitcoin_hashes")] pub extern crate bitcoin_hashes;
-#[cfg(all(test, feature = "unstable"))] extern crate test;
-#[cfg(any(test, feature = "rand"))] pub extern crate rand;
-#[cfg(any(test))] extern crate rand_core;
-#[cfg(feature = "serde")] pub extern crate serde;
-#[cfg(all(test, feature = "serde"))] extern crate serde_test;
-#[cfg(any(test, feature = "std"))] extern crate core;
+#[cfg(feature = "bitcoin_hashes")]
+pub extern crate bitcoin_hashes;
+#[cfg(any(test, feature = "std"))]
+extern crate core;
+#[cfg(any(test, feature = "rand"))]
+pub extern crate rand;
+#[cfg(any(test))]
+extern crate rand_core;
+#[cfg(feature = "serde")]
+pub extern crate serde;
+#[cfg(all(test, feature = "serde"))]
+extern crate serde_test;
+#[cfg(all(test, feature = "unstable"))]
+extern crate test;
 
 use core::{fmt, str};
 
 pub use secp256k1::constants;
 pub use secp256k1::ecdh;
 pub use secp256k1::key;
-pub use secp256k1::schnorrsig;
 #[cfg(feature = "recovery")]
 pub use secp256k1::recovery;
+pub use secp256k1::schnorrsig;
 
 pub use key::{PublicKey, SecretKey};
 
 pub use secp256k1::*;
+
+mod zkp;
+pub use zkp::*;
+
+pub use secp256k1::Error as UpstreamError;
+
+/// An ECDSA error
+#[derive(Copy, PartialEq, Eq, Clone, Debug)]
+pub enum Error {
+    Upstream(UpstreamError),
+    /// Failed to produce a surjection proof because of an internal error within `libsecp256k1-zkp`
+    CannotProveSurjection,
+    /// Given bytes don't represent a valid surjection proof
+    InvalidSurjectionProof,
+    /// Given bytes don't represent a valid pedersen commitment
+    InvalidPedersenCommitment,
+    /// Failed to produce a range proof because of an internal error within `libsecp256k1-zkp`
+    CannotMakeRangeProof,
+    /// Given range proof does not prove that the commitment is within a range
+    InvalidRangeProof,
+    /// Bad generator
+    InvalidGenerator,
+}
+
+// Passthrough Debug to Display, since errors should be user-visible
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        let str = match *self {
+            Error::CannotProveSurjection => "failed to prove surjection",
+            Error::InvalidSurjectionProof => "malformed surjection proof",
+            Error::InvalidPedersenCommitment => "malformed pedersen commitment",
+            Error::CannotMakeRangeProof => "failed to generate range proof",
+            Error::InvalidRangeProof => "failed to verify range proof",
+            Error::InvalidGenerator => "malformed generator",
+            Error::Upstream(inner) => return write!(f, "{}", inner),
+        };
+
+        f.write_str(str)
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for Error {}
+
+impl From<UpstreamError> for Error {
+    fn from(e: UpstreamError) -> Self {
+        Error::Upstream(e)
+    }
+}
 
 /// Utility function used to parse hex into a target u8 buffer. Returns
 /// the number of bytes converted or an error if it encounters an invalid
