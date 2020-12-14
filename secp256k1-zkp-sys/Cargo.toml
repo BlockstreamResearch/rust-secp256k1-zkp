@@ -21,11 +21,14 @@ features = [ "recovery", "endomorphism", "lowmemory" ]
 [build-dependencies]
 cc = "1.0.28"
 
+[dependencies]
+secp256k1-sys = { git = "https://github.com/rust-bitcoin/rust-secp256k1" }
+
 [features]
 default = ["std"]
-recovery = []
-endomorphism = []
-lowmemory = []
+recovery = ["secp256k1-sys/recovery"]
+endomorphism = ["secp256k1-sys/endomorphism"]
+lowmemory = ["secp256k1-sys/lowmemory"]
 std = []
 
 # Use this feature to not compile the bundled libsecp256k1 C symbols,
