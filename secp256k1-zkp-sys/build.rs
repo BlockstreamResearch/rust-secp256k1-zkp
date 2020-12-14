@@ -27,7 +27,7 @@ use std::env;
 
 fn main() {
     if cfg!(feature = "external-symbols") {
-        println!("cargo:rustc-link-lib=static=secp256k1");
+        println!("cargo:rustc-link-lib=static=secp256k1zkp");
         return;
     }
 
@@ -39,14 +39,15 @@ fn main() {
                .flag_if_supported("-Wno-unused-function") // some ecmult stuff is defined but not used upstream
                .define("SECP256K1_BUILD", Some("1"))
                .define("ENABLE_MODULE_ECDH", Some("1"))
-               .define("ENABLE_MODULE_SCHNORRSIG", Some("1"))
-               .define("ENABLE_MODULE_EXTRAKEYS", Some("1"))
+               .define("ENABLE_MODULE_SURJECTIONPROOF", Some("1"))
+               .define("ENABLE_MODULE_GENERATOR", Some("1"))
+               .define("ENABLE_MODULE_RANGEPROOF", Some("1"))
                .define("ECMULT_GEN_PREC_BITS", Some("4"))
                // TODO these three should be changed to use libgmp, at least until secp PR 290 is merged
                .define("USE_NUM_NONE", Some("1"))
                .define("USE_FIELD_INV_BUILTIN", Some("1"))
                .define("USE_SCALAR_INV_BUILTIN", Some("1"));
-    
+
     if cfg!(feature = "lowmemory") {
         base_config.define("ECMULT_WINDOW_SIZE", Some("4")); // A low-enough value to consume neglible memory
     } else {
@@ -73,6 +74,5 @@ fn main() {
     // secp256k1
     base_config.file("depend/secp256k1/contrib/lax_der_parsing.c")
                .file("depend/secp256k1/src/secp256k1.c")
-               .compile("libsecp256k1.a");
+               .compile("libsecp256k1zkp.a");
 }
-
