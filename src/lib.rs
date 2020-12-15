@@ -13,28 +13,21 @@
 // If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
 
-//! # Secp256k1
-//! Rust bindings for Pieter Wuille's secp256k1 library, which is used for
-//! fast and accurate manipulation of ECDSA signatures on the secp256k1
-//! curve. Such signatures are used extensively by the Bitcoin network
-//! and its derivatives.
+//! # Secp256k1-zkp
 //!
-//! To minimize dependencies, some functions are feature-gated. To generate
-//! random keys or to re-randomize a context object, compile with the "rand"
-//! feature. To de/serialize objects with serde, compile with "serde".
+//! Rust bindings for libsecp256k1-zkp, a fork of Pieter Wuille's secp256k1 library.
 //!
-//! Where possible, the bindings use the Rust type system to ensure that
-//! API usage errors are impossible. For example, the library uses context
-//! objects that contain precomputation tables which are created on object
-//! construction. Since this is a slow operation (10+ milliseconds, vs ~50
-//! microseconds for typical crypto operations, on a 2.70 Ghz i7-6820HQ)
-//! the tables are optional, giving a performance boost for users who only
-//! care about signing, only care about verification, or only care about
-//! parsing. In the upstream library, if you attempt to sign a message using
-//! a context that does not support this, it will trigger an assertion
-//! failure and terminate the program. In `rust-secp256k1`, this is caught
-//! at compile-time; in fact, it is impossible to compile code that will
-//! trigger any assertion failures in the upstream library.
+//! This library re-exports everything from `secp256k1` and adds bindings for the following modules:
+//!
+//! - generators
+//! - range proofs
+//! - pedersen commitments
+//!
+//! As such, it can be used as a drop-in replacement for `secp256k1`. All types are interoperable
+//! (as long as you are dependening on the correct version) which means [`SecretKey`]s and the [`Context`]
+//! are interoperable.
+//!
+//! ## Examples
 //!
 //! ```rust
 //! # #[cfg(all(feature="use-rand", feature="hashes"))] {

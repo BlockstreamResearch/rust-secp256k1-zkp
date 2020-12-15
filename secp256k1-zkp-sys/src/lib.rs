@@ -12,7 +12,7 @@
 // along with this software.
 // If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //
-//! # secp256k1-sys FFI bindings
+//! # secp256k1-zkp-sys FFI bindings
 //! Direct bindings to the underlying C library functions. These should
 //! not be needed for most users.
 

@@ -2,13 +2,14 @@
 name = "secp256k1-zkp"
 version = "0.1.0"
 authors = [ "Dawid Ciężarkiewicz <dpc@ucore.info>",
-            "Andrew Poelstra <apoelstra@wpsoftware.net>" ]
+            "Andrew Poelstra <apoelstra@wpsoftware.net>",
+            "Lucas Soriano <lucas@comit.network>",
+            "Thomas Eizinger <thomas@comit.network>" ]
 license = "CC0-1.0"
-homepage = "https://github.com/rust-bitcoin/rust-secp256k1/"
-repository = "https://github.com/rust-bitcoin/rust-secp256k1/"
-documentation = "https://docs.rs/secp256k1/"
-description = "Rust bindings for Pieter Wuille's `libsecp256k1` library. Implements ECDSA for the SECG elliptic curve group secp256k1 and related utilities."
-keywords = [ "crypto", "ECDSA", "secp256k1", "libsecp256k1", "bitcoin" ]
+homepage = "https://github.com/comit-network/rust-secp256k1-zkp/"
+repository = "https://github.com/comit-network/rust-secp256k1-zkp/"
+description = "Rust bindings for the `libsecp256k1-zkp` library."
+keywords = [ "crypto", "ECDSA", "secp256k1-zkp", "libsecp256k1-zkp", "elements" ]
 readme = "README.md"
 autoexamples = false # Remove when edition 2018 https://github.com/rust-lang/cargo/issues/5330
 
@@ -41,7 +42,6 @@ secp256k1-zkp-sys = { version = "0.1.0", default-features = false, path = "./sec
 bitcoin_hashes = { version = "0.9", optional = true }
 rand = { version = "0.6", default-features = false, optional = true }
 serde = { version = "1.0", default-features = false, optional = true }
-
 
 [dev-dependencies]
 rand = "0.6"
