@@ -1,3 +1,6 @@
+#ifndef WASM_SYSROOT_STDIO_H
+#define WASM_SYSROOT_STDIO_H
+
 #include <stddef.h>
 #define alignof(type) offsetof (struct { char c; type member; }, member)
 
@@ -15,3 +18,5 @@ extern const unsigned char WASM32_UNSIGNED_CHAR_ALIGN = alignof(unsigned char);
 
 extern const unsigned char WASM32_PTR_SIZE = sizeof(void*);
 extern const unsigned char WASM32_PTR_ALIGN = alignof(void*);
+
+#endif

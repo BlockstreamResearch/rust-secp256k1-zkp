@@ -28,5 +28,7 @@ extern crate core;
 extern crate secp256k1_sys;
 pub use secp256k1_sys::*;
 
+mod error_callbacks;
 mod zkp;
+
 pub use zkp::*;

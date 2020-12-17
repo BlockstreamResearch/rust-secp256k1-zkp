@@ -43,6 +43,8 @@ echo "$HEAD" >> ./secp256k1-HEAD-revision.txt
 patch "$DIR/include/secp256k1.h" "./secp256k1.h.patch"
 patch "$DIR/src/secp256k1.c" "./secp256k1.c.patch"
 patch "$DIR/src/util.h" "./util.h.patch"
+git apply "./surjection_impl.h.patch"
+git apply "./surjection_main_impl.h.patch"
 
 # Make sure none of the includes have a space
 find "$DIR" -not -path '*/\.*' -type f -print0 | xargs -0 sed -i "s/# include/#include/g"
