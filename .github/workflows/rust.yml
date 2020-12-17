@@ -29,7 +29,7 @@ jobs:
           DO_BENCH: true
         run: ./contrib/test.sh
 
-  wasm: 
+  wasm_pack:
     name: Stable - Docs / WebAssembly Build
     runs-on: ubuntu-latest
     strategy:
@@ -53,6 +53,16 @@ jobs:
         env:
           DO_WASM: true
         run: ./contrib/test.sh
+
+  build_wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+      - run: cargo build --target wasm32-unknown-unknown --features global-context,use-serde,use-rand
 
   Tests:
     name: Tests
