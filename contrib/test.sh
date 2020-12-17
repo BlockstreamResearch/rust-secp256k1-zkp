@@ -45,7 +45,6 @@ fi
 # Webassembly stuff
 if [ "$DO_WASM" = true ]; then
     clang --version &&
-    printf '\n[lib]\ncrate-type = ["cdylib", "rlib"]\n' >> Cargo.toml &&
     CC=clang-9 wasm-pack build &&
     CC=clang-9 wasm-pack test --node;
 fi
