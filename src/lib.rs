@@ -131,6 +131,9 @@ pub extern crate serde;
 extern crate serde_test;
 #[cfg(all(test, feature = "unstable"))]
 extern crate test;
+#[cfg(all(test, target_arch = "wasm32"))]
+#[macro_use]
+extern crate wasm_bindgen_test;
 
 use core::{fmt, str};
 

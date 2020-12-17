@@ -175,6 +175,9 @@ mod tests {
     use rand::thread_rng;
     use {SecretKey, Tag, SECP256K1};
 
+    #[cfg(target_arch = "wasm32")]
+    use wasm_bindgen_test::wasm_bindgen_test as test;
+
     #[test]
     fn test_create_and_verify_surjection_proof() {
         // create three random tags

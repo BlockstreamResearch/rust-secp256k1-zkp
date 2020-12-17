@@ -284,6 +284,9 @@ mod tests {
     use SECP256K1;
     use {CommitmentSecrets, Tag};
 
+    #[cfg(target_arch = "wasm32")]
+    use wasm_bindgen_test::wasm_bindgen_test as test;
+
     #[test]
     fn create_and_verify_range_proof() {
         let value = 1_000;
