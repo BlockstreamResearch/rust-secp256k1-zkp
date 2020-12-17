@@ -7,7 +7,6 @@
 #ifndef _SECP256K1_SURJECTION_IMPL_H_
 #define _SECP256K1_SURJECTION_IMPL_H_
 
-#include <assert.h>
 #include <string.h>
 
 #include "eckey.h"

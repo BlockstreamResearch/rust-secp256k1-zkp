@@ -6,7 +6,6 @@
 #ifndef SECP256K1_MODULE_SURJECTION_MAIN
 #define SECP256K1_MODULE_SURJECTION_MAIN
 
-#include <assert.h>
 #include <string.h>
 
 #if defined HAVE_CONFIG_H
