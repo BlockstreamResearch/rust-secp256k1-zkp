@@ -10,31 +10,6 @@
 #include "util.h"
 #include "scratch.h"
 
-static rustsecp256k1zkp_v0_1_0_scratch* rustsecp256k1zkp_v0_1_0_scratch_create(const rustsecp256k1zkp_v0_1_0_callback* error_callback, size_t size) {
-    const size_t base_alloc = ROUND_TO_ALIGN(sizeof(rustsecp256k1zkp_v0_1_0_scratch));
-    void *alloc = checked_malloc(error_callback, base_alloc + size);
-    rustsecp256k1zkp_v0_1_0_scratch* ret = (rustsecp256k1zkp_v0_1_0_scratch *)alloc;
-    if (ret != NULL) {
-        memset(ret, 0, sizeof(*ret));
-        memcpy(ret->magic, "scratch", 8);
-        ret->data = (void *) ((char *) alloc + base_alloc);
-        ret->max_size = size;
-    }
-    return ret;
-}
-
-static void rustsecp256k1zkp_v0_1_0_scratch_destroy(const rustsecp256k1zkp_v0_1_0_callback* error_callback, rustsecp256k1zkp_v0_1_0_scratch* scratch) {
-    if (scratch != NULL) {
-        VERIFY_CHECK(scratch->alloc_size == 0); /* all checkpoints should be applied */
-        if (rustsecp256k1zkp_v0_1_0_memcmp_var(scratch->magic, "scratch", 8) != 0) {
-            rustsecp256k1zkp_v0_1_0_callback_call(error_callback, "invalid scratch space");
-            return;
-        }
-        memset(scratch->magic, 0, sizeof(scratch->magic));
-        free(scratch);
-    }
-}
-
 static size_t rustsecp256k1zkp_v0_1_0_scratch_checkpoint(const rustsecp256k1zkp_v0_1_0_callback* error_callback, const rustsecp256k1zkp_v0_1_0_scratch* scratch) {
     if (rustsecp256k1zkp_v0_1_0_memcmp_var(scratch->magic, "scratch", 8) != 0) {
         rustsecp256k1zkp_v0_1_0_callback_call(error_callback, "invalid scratch space");
