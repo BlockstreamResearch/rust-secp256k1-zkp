@@ -1,5 +1,4 @@
 use core::{fmt, hash};
-
 use {types::*, Context, PublicKey};
 
 /// Rangeproof maximum length
@@ -308,7 +307,7 @@ impl PartialEq for SurjectionProof {
     fn eq(&self, other: &Self) -> bool {
         self.n_inputs == other.n_inputs
             && self.used_inputs == other.used_inputs
-            && &self.data[..] == &other.data[..]
+            && self.data[..] == other.data[..]
     }
 }
 
@@ -351,7 +350,6 @@ impl RangeProof {
 }
 
 #[repr(C)]
-#[derive(Hash)]
 pub struct Tag([c_uchar; 32]);
 impl_array_newtype!(Tag, c_uchar, 32);
 impl_raw_debug!(Tag);
@@ -365,6 +363,12 @@ impl Tag {
 impl Default for Tag {
     fn default() -> Self {
         Tag::new()
+    }
+}
+
+impl hash::Hash for Tag {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.0.hash(state)
     }
 }
 

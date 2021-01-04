@@ -269,11 +269,15 @@ impl<'de> ::serde::Deserialize<'de> for RangeProof {
     }
 }
 
-// TODO: Could model PedersenCommitmentOpening separately
-// TODO: Use generic `M` for message (so that we can use it with `RangeProofMessage`)
+/// The result of rewinding a range proof.
+///
+/// Rewinding a range proof reveals ("opens") the stored information and allows us to access information the prover embedded in the proof.
 pub struct Opening {
+    /// The value that the prover originally committed to in the Pedersen commitment.
     pub value: u64,
+    /// The blinding factor that was used to create the Pedersen commitment of above value.
     pub blinding_factor: SecretKey,
+    /// The message that was embedded by the prover.
     pub message: Box<[u8]>,
 }
 
