@@ -81,6 +81,7 @@ pub use secp256k1::Error as UpstreamError;
 /// An ECDSA error
 #[derive(Copy, PartialEq, Eq, Clone, Debug)]
 pub enum Error {
+    /// Calling through to `secp256k1` resulted in an error.
     Upstream(UpstreamError),
     /// Failed to produce a surjection proof because of an internal error within `libsecp256k1-zkp`
     CannotProveSurjection,
