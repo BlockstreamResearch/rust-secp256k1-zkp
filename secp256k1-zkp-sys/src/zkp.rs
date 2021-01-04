@@ -307,7 +307,7 @@ impl PartialEq for SurjectionProof {
     fn eq(&self, other: &Self) -> bool {
         self.n_inputs == other.n_inputs
             && self.used_inputs == other.used_inputs
-            && &self.data[..] == &other.data[..]
+            && self.data[..] == other.data[..]
     }
 }
 
