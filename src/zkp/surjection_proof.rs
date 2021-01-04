@@ -1,4 +1,3 @@
-use core::mem;
 use core::mem::size_of;
 use ffi;
 use Verification;
@@ -152,7 +151,7 @@ impl SurjectionProof {
         let domain_blinded_tags = unsafe {
             debug_assert_eq!(size_of::<Generator>(), size_of::<ffi::PublicKey>());
 
-            mem::transmute::<_, &[ffi::PublicKey]>(domain)
+            &*(domain as *const [Generator] as *const [ffi::PublicKey])
         };
 
         let ret = unsafe {
