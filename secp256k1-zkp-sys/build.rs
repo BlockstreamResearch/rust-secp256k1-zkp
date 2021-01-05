@@ -38,7 +38,6 @@ fn main() {
                .include("depend/secp256k1/src")
                .flag_if_supported("-Wno-unused-function") // some ecmult stuff is defined but not used upstream
                .define("SECP256K1_BUILD", Some("1"))
-               .define("ENABLE_MODULE_ECDH", Some("1"))
                .define("ENABLE_MODULE_SURJECTIONPROOF", Some("1"))
                .define("ENABLE_MODULE_GENERATOR", Some("1"))
                .define("ENABLE_MODULE_RANGEPROOF", Some("1"))
@@ -54,8 +53,6 @@ fn main() {
         base_config.define("ECMULT_WINDOW_SIZE", Some("15")); // This is the default in the configure file (`auto`)
     }
     base_config.define("USE_EXTERNAL_DEFAULT_CALLBACKS", Some("1"));
-    #[cfg(feature = "recovery")]
-    base_config.define("ENABLE_MODULE_RECOVERY", Some("1"));
 
     if let Ok(target_endian) = env::var("CARGO_CFG_TARGET_ENDIAN") {
         if target_endian == "big" {
