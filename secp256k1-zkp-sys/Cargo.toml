@@ -7,8 +7,8 @@ authors = [ "Dawid Ciężarkiewicz <dpc@ucore.info>",
             "Lucas Soriano <lucas@comit.network>",
             "Thomas Eizinger <thomas@comit.network>" ]
 license = "CC0-1.0"
-homepage = "https://github.com/comit-network/rust-secp256k1-zkp/"
-repository = "https://github.com/comit-network/rust-secp256k1-zkp/"
+homepage = "https://github.com/ElementsProject/rust-secp256k1-zkp/"
+repository = "https://github.com/ElementsProject/rust-secp256k1-zkp/"
 description = "FFI for `libsecp256k1-zkp` library."
 keywords = [ "secp256k1", "libsecp256k1-zkp", "ffi" ]
 readme = "README.md"

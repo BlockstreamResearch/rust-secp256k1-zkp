@@ -1,4 +1,4 @@
-![Continuous integration](https://github.com/comit-network/rust-secp256k1-zkp/workflows/Continuous%20integration/badge.svg)
+![Continuous integration](https://github.com/ElementsProject/rust-secp256k1-zkp/workflows/Continuous%20integration/badge.svg)
 
 ### rust-secp256k1-zkp
 
