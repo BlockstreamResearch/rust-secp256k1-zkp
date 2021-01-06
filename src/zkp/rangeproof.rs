@@ -375,7 +375,7 @@ mod tests {
             commitment_secrets.value_blinding_factor
         );
 
-        // TODO: File bug with upstream: message length is not set correctly
         assert!(opening.message.starts_with(message));
+        assert!(opening.message.ends_with(&vec![0; opening.message.len() - message.len()]));
     }
 }
