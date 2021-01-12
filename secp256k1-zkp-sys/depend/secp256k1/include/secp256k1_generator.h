@@ -15,11 +15,11 @@ extern "C" {
  *  guaranteed to be portable between different platforms or versions. It is
  *  however guaranteed to be 64 bytes in size, and can be safely copied/moved.
  *  If you need to convert to a format suitable for storage, transmission, or
- *  comparison, use rustsecp256k1zkp_v0_1_0_generator_serialize and rustsecp256k1zkp_v0_1_0_generator_parse.
+ *  comparison, use rustsecp256k1zkp_v0_2_0_generator_serialize and rustsecp256k1zkp_v0_2_0_generator_parse.
  */
 typedef struct {
     unsigned char data[64];
-} rustsecp256k1zkp_v0_1_0_generator;
+} rustsecp256k1zkp_v0_2_0_generator;
 
 /** Parse a 33-byte generator byte sequence into a generator object.
  *
@@ -28,9 +28,9 @@ typedef struct {
  *  Out:  gen:      pointer to the output generator object
  *  In:   input:    pointer to a 33-byte serialized generator
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_1_0_generator_parse(
-    const rustsecp256k1zkp_v0_1_0_context* ctx,
-    rustsecp256k1zkp_v0_1_0_generator* gen,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_2_0_generator_parse(
+    const rustsecp256k1zkp_v0_2_0_context* ctx,
+    rustsecp256k1zkp_v0_2_0_generator* gen,
     const unsigned char *input
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -41,10 +41,10 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_1_0_generator
  *  Out:    output:     a pointer to a 33-byte byte array
  *  In:     gen:        a pointer to a generator
  */
-SECP256K1_API int rustsecp256k1zkp_v0_1_0_generator_serialize(
-    const rustsecp256k1zkp_v0_1_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_2_0_generator_serialize(
+    const rustsecp256k1zkp_v0_2_0_context* ctx,
     unsigned char *output,
-    const rustsecp256k1zkp_v0_1_0_generator* gen
+    const rustsecp256k1zkp_v0_2_0_generator* gen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Generate a generator for the curve.
@@ -60,9 +60,9 @@ SECP256K1_API int rustsecp256k1zkp_v0_1_0_generator_serialize(
  *  known discrete logarithm with respect to any other generator produced,
  *  or to the base generator G.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_1_0_generator_generate(
-    const rustsecp256k1zkp_v0_1_0_context* ctx,
-    rustsecp256k1zkp_v0_1_0_generator* gen,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_2_0_generator_generate(
+    const rustsecp256k1zkp_v0_2_0_context* ctx,
+    rustsecp256k1zkp_v0_2_0_generator* gen,
     const unsigned char *seed32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -75,13 +75,13 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_1_0_generator
  *  In:   seed32:  a 32-byte seed
  *        blind32: a 32-byte secret value to blind the generator with.
  *
- *  The result is equivalent to first calling rustsecp256k1zkp_v0_1_0_generator_generate,
- *  converting the result to a public key, calling rustsecp256k1zkp_v0_1_0_ec_pubkey_tweak_add,
+ *  The result is equivalent to first calling rustsecp256k1zkp_v0_2_0_generator_generate,
+ *  converting the result to a public key, calling rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_add,
  *  and then converting back to generator form.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_1_0_generator_generate_blinded(
-    const rustsecp256k1zkp_v0_1_0_context* ctx,
-    rustsecp256k1zkp_v0_1_0_generator* gen,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_2_0_generator_generate_blinded(
+    const rustsecp256k1zkp_v0_2_0_context* ctx,
+    rustsecp256k1zkp_v0_2_0_generator* gen,
     const unsigned char *key32,
     const unsigned char *blind32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
