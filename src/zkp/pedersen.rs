@@ -188,9 +188,9 @@ impl fmt::Display for PedersenCommitment {
 impl str::FromStr for PedersenCommitment {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Error> {
-        let mut res = [0; 64];
+        let mut res = [0; 33];
         match from_hex(s, &mut res) {
-            Ok(64) => Self::from_slice(&res[0..64]),
+            Ok(33) => Self::from_slice(&res[0..33]),
             _ => Err(Error::InvalidPedersenCommitment),
         }
     }
@@ -264,6 +264,8 @@ impl<'de> ::serde::Deserialize<'de> for PedersenCommitment {
 
 #[cfg(all(test, feature = "global-context"))]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
     use rand::thread_rng;
     use {Tag, SECP256K1};
@@ -328,6 +330,43 @@ mod tests {
         );
 
         assert!(commitment_sums_are_equal);
+    }
+
+    #[test]
+    fn test_pedersen_from_str() {
+        let commitment = CommitmentSecrets::random(1000).commit(Tag::random());
+
+        let string = commitment.to_string();
+        let from_str = PedersenCommitment::from_str(&string);
+
+        assert_eq!(Ok(commitment), from_str)
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_pedersen_de_serialization() {
+        use serde_test::Configure;
+        use serde_test::{assert_tokens, Token};
+
+        let commitment = PedersenCommitment::from_slice(&[
+            9,7,166,63,171,227,228,157,87,19,233,218,252,171,254,202,
+            228,138,19,124,26,29,131,42,33,212,151,151,89,0,135,201,254,
+        ]).unwrap();
+
+        assert_tokens(
+            &commitment.readable(),
+            &[Token::Str("0907a63fabe3e49d5713e9dafcabfecae48a137c1a1d832a21d49797590087c9fe")]
+        );
+
+        assert_tokens(
+            &commitment.compact(),
+            &[Token::Bytes(
+                &[
+                    9,7,166,63,171,227,228,157,87,19,233,218,252,171,254,202,
+                    228,138,19,124,26,29,131,42,33,212,151,151,89,0,135,201,254,
+                ]
+            )]
+        );
     }
 
     // TODO: Test prefix of serialization
