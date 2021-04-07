@@ -1,8 +1,8 @@
-/**********************************************************************
- * Copyright (c) 2013-2015 Pieter Wuille                              *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2013-2015 Pieter Wuille                               *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
 #include "include/secp256k1.h"
 #include "include/secp256k1_preallocated.h"
@@ -13,6 +13,7 @@
 #include "field_impl.h"
 #include "scalar_impl.h"
 #include "group_impl.h"
+#include "eccommit_impl.h"
 #include "ecmult_impl.h"
 #include "ecmult_const_impl.h"
 #include "ecmult_gen_impl.h"
@@ -34,6 +35,18 @@
 #include "include/secp256k1_rangeproof.h"
 #include "modules/rangeproof/pedersen.h"
 #include "modules/rangeproof/rangeproof.h"
+#endif
+
+#ifdef ENABLE_MODULE_ECDSA_S2C
+#include "include/secp256k1_ecdsa_s2c.h"
+static void rustsecp256k1zkp_v0_2_0_ecdsa_s2c_opening_save(rustsecp256k1zkp_v0_2_0_ecdsa_s2c_opening* opening, rustsecp256k1zkp_v0_2_0_ge* ge);
+#else
+typedef void rustsecp256k1zkp_v0_2_0_ecdsa_s2c_opening;
+static void rustsecp256k1zkp_v0_2_0_ecdsa_s2c_opening_save(rustsecp256k1zkp_v0_2_0_ecdsa_s2c_opening* opening, rustsecp256k1zkp_v0_2_0_ge* ge) {
+    (void) opening;
+    (void) ge;
+    VERIFY_CHECK(0);
+}
 #endif
 
 #define ARG_CHECK(cond) do { \
@@ -393,17 +406,17 @@ int rustsecp256k1zkp_v0_2_0_ecdsa_signature_normalize(const rustsecp256k1zkp_v0_
     return ret;
 }
 
-int rustsecp256k1zkp_v0_2_0_ecdsa_verify(const rustsecp256k1zkp_v0_2_0_context* ctx, const rustsecp256k1zkp_v0_2_0_ecdsa_signature *sig, const unsigned char *msg32, const rustsecp256k1zkp_v0_2_0_pubkey *pubkey) {
+int rustsecp256k1zkp_v0_2_0_ecdsa_verify(const rustsecp256k1zkp_v0_2_0_context* ctx, const rustsecp256k1zkp_v0_2_0_ecdsa_signature *sig, const unsigned char *msghash32, const rustsecp256k1zkp_v0_2_0_pubkey *pubkey) {
     rustsecp256k1zkp_v0_2_0_ge q;
     rustsecp256k1zkp_v0_2_0_scalar r, s;
     rustsecp256k1zkp_v0_2_0_scalar m;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(rustsecp256k1zkp_v0_2_0_ecmult_context_is_built(&ctx->ecmult_ctx));
-    ARG_CHECK(msg32 != NULL);
+    ARG_CHECK(msghash32 != NULL);
     ARG_CHECK(sig != NULL);
     ARG_CHECK(pubkey != NULL);
 
-    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&m, msg32, NULL);
+    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&m, msghash32, NULL);
     rustsecp256k1zkp_v0_2_0_ecdsa_signature_load(ctx, &r, &s, sig);
     return (!rustsecp256k1zkp_v0_2_0_scalar_is_high(&s) &&
             rustsecp256k1zkp_v0_2_0_pubkey_load(ctx, &q, pubkey) &&
@@ -448,7 +461,7 @@ static int nonce_function_rfc6979(unsigned char *nonce32, const unsigned char *m
 const rustsecp256k1zkp_v0_2_0_nonce_function rustsecp256k1zkp_v0_2_0_nonce_function_rfc6979 = nonce_function_rfc6979;
 const rustsecp256k1zkp_v0_2_0_nonce_function rustsecp256k1zkp_v0_2_0_nonce_function_default = nonce_function_rfc6979;
 
-static int rustsecp256k1zkp_v0_2_0_ecdsa_sign_inner(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_scalar* r, rustsecp256k1zkp_v0_2_0_scalar* s, int* recid, const unsigned char *msg32, const unsigned char *seckey, rustsecp256k1zkp_v0_2_0_nonce_function noncefp, const void* noncedata) {
+static int rustsecp256k1zkp_v0_2_0_ecdsa_sign_inner(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_scalar* r, rustsecp256k1zkp_v0_2_0_scalar* s, int* recid, rustsecp256k1zkp_v0_2_0_sha256* s2c_sha, rustsecp256k1zkp_v0_2_0_ecdsa_s2c_opening *s2c_opening, const unsigned char* s2c_data32, const unsigned char *msg32, const unsigned char *seckey, rustsecp256k1zkp_v0_2_0_nonce_function noncefp, const void* noncedata) {
     rustsecp256k1zkp_v0_2_0_scalar sec, non, msg;
     int ret = 0;
     int is_sec_valid;
@@ -463,6 +476,11 @@ static int rustsecp256k1zkp_v0_2_0_ecdsa_sign_inner(const rustsecp256k1zkp_v0_2_
     if (noncefp == NULL) {
         noncefp = rustsecp256k1zkp_v0_2_0_nonce_function_default;
     }
+    /* sign-to-contract commitments only work with the default nonce function,
+     * because we need to ensure that s2c_data is actually hashed into the nonce and
+     * not just ignored. Otherwise an attacker can exfiltrate the secret key by
+     * signing the same message thrice with different commitments. */
+    VERIFY_CHECK(s2c_data32 == NULL || noncefp == rustsecp256k1zkp_v0_2_0_nonce_function_default);
 
     /* Fail if the secret key is invalid. */
     is_sec_valid = rustsecp256k1zkp_v0_2_0_scalar_set_b32_seckey(&sec, seckey);
@@ -478,6 +496,30 @@ static int rustsecp256k1zkp_v0_2_0_ecdsa_sign_inner(const rustsecp256k1zkp_v0_2_
         /* The nonce is still secret here, but it being invalid is is less likely than 1:2^255. */
         rustsecp256k1zkp_v0_2_0_declassify(ctx, &is_nonce_valid, sizeof(is_nonce_valid));
         if (is_nonce_valid) {
+            if (s2c_data32 != NULL) {
+                rustsecp256k1zkp_v0_2_0_gej nonce_pj;
+                rustsecp256k1zkp_v0_2_0_ge nonce_p;
+
+                /* Compute original nonce commitment/pubkey */
+                rustsecp256k1zkp_v0_2_0_ecmult_gen(&ctx->ecmult_gen_ctx, &nonce_pj, &non);
+                rustsecp256k1zkp_v0_2_0_ge_set_gej(&nonce_p, &nonce_pj);
+                if (s2c_opening != NULL) {
+                    rustsecp256k1zkp_v0_2_0_ecdsa_s2c_opening_save(s2c_opening, &nonce_p);
+                }
+
+                /* Because the nonce is valid, the nonce point isn't the point
+                 * at infinity and we can declassify that information to be able to
+                 * serialize the point. */
+                rustsecp256k1zkp_v0_2_0_declassify(ctx, &nonce_p.infinity, sizeof(nonce_p.infinity));
+
+                /* Tweak nonce with s2c commitment. */
+                ret = rustsecp256k1zkp_v0_2_0_ec_commit_seckey(&non, &nonce_p, s2c_sha, s2c_data32, 32);
+                rustsecp256k1zkp_v0_2_0_declassify(ctx, &ret, sizeof(ret)); /* may be secret that the tweak falied, but happens with negligible probability */
+                if (!ret) {
+                    break;
+                }
+            }
+
             ret = rustsecp256k1zkp_v0_2_0_ecdsa_sig_sign(&ctx->ecmult_gen_ctx, r, s, &sec, &msg, &non, recid);
             /* The final signature is no longer a secret, nor is the fact that we were successful or not. */
             rustsecp256k1zkp_v0_2_0_declassify(ctx, &ret, sizeof(ret));
@@ -504,16 +546,16 @@ static int rustsecp256k1zkp_v0_2_0_ecdsa_sign_inner(const rustsecp256k1zkp_v0_2_
     return ret;
 }
 
-int rustsecp256k1zkp_v0_2_0_ecdsa_sign(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_ecdsa_signature *signature, const unsigned char *msg32, const unsigned char *seckey, rustsecp256k1zkp_v0_2_0_nonce_function noncefp, const void* noncedata) {
+int rustsecp256k1zkp_v0_2_0_ecdsa_sign(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_ecdsa_signature *signature, const unsigned char *msghash32, const unsigned char *seckey, rustsecp256k1zkp_v0_2_0_nonce_function noncefp, const void* noncedata) {
     rustsecp256k1zkp_v0_2_0_scalar r, s;
     int ret;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(rustsecp256k1zkp_v0_2_0_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
-    ARG_CHECK(msg32 != NULL);
+    ARG_CHECK(msghash32 != NULL);
     ARG_CHECK(signature != NULL);
     ARG_CHECK(seckey != NULL);
 
-    ret = rustsecp256k1zkp_v0_2_0_ecdsa_sign_inner(ctx, &r, &s, NULL, msg32, seckey, noncefp, noncedata);
+    ret = rustsecp256k1zkp_v0_2_0_ecdsa_sign_inner(ctx, &r, &s, NULL, NULL, NULL, NULL, msghash32, seckey, noncefp, noncedata);
     rustsecp256k1zkp_v0_2_0_ecdsa_signature_save(signature, &r, &s);
     return ret;
 }
@@ -594,26 +636,26 @@ int rustsecp256k1zkp_v0_2_0_ec_pubkey_negate(const rustsecp256k1zkp_v0_2_0_conte
 }
 
 
-static int rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_add_helper(rustsecp256k1zkp_v0_2_0_scalar *sec, const unsigned char *tweak) {
+static int rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_add_helper(rustsecp256k1zkp_v0_2_0_scalar *sec, const unsigned char *tweak32) {
     rustsecp256k1zkp_v0_2_0_scalar term;
     int overflow = 0;
     int ret = 0;
 
-    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&term, tweak, &overflow);
+    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&term, tweak32, &overflow);
     ret = (!overflow) & rustsecp256k1zkp_v0_2_0_eckey_privkey_tweak_add(sec, &term);
     rustsecp256k1zkp_v0_2_0_scalar_clear(&term);
     return ret;
 }
 
-int rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_add(const rustsecp256k1zkp_v0_2_0_context* ctx, unsigned char *seckey, const unsigned char *tweak) {
+int rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_add(const rustsecp256k1zkp_v0_2_0_context* ctx, unsigned char *seckey, const unsigned char *tweak32) {
     rustsecp256k1zkp_v0_2_0_scalar sec;
     int ret = 0;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(seckey != NULL);
-    ARG_CHECK(tweak != NULL);
+    ARG_CHECK(tweak32 != NULL);
 
     ret = rustsecp256k1zkp_v0_2_0_scalar_set_b32_seckey(&sec, seckey);
-    ret &= rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_add_helper(&sec, tweak);
+    ret &= rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_add_helper(&sec, tweak32);
     rustsecp256k1zkp_v0_2_0_scalar_cmov(&sec, &rustsecp256k1zkp_v0_2_0_scalar_zero, !ret);
     rustsecp256k1zkp_v0_2_0_scalar_get_b32(seckey, &sec);
 
@@ -621,28 +663,28 @@ int rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_add(const rustsecp256k1zkp_v0_2_0_co
     return ret;
 }
 
-int rustsecp256k1zkp_v0_2_0_ec_privkey_tweak_add(const rustsecp256k1zkp_v0_2_0_context* ctx, unsigned char *seckey, const unsigned char *tweak) {
-    return rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_add(ctx, seckey, tweak);
+int rustsecp256k1zkp_v0_2_0_ec_privkey_tweak_add(const rustsecp256k1zkp_v0_2_0_context* ctx, unsigned char *seckey, const unsigned char *tweak32) {
+    return rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_add(ctx, seckey, tweak32);
 }
 
-static int rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_add_helper(const rustsecp256k1zkp_v0_2_0_ecmult_context* ecmult_ctx, rustsecp256k1zkp_v0_2_0_ge *p, const unsigned char *tweak) {
+static int rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_add_helper(const rustsecp256k1zkp_v0_2_0_ecmult_context* ecmult_ctx, rustsecp256k1zkp_v0_2_0_ge *p, const unsigned char *tweak32) {
     rustsecp256k1zkp_v0_2_0_scalar term;
     int overflow = 0;
-    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&term, tweak, &overflow);
+    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&term, tweak32, &overflow);
     return !overflow && rustsecp256k1zkp_v0_2_0_eckey_pubkey_tweak_add(ecmult_ctx, p, &term);
 }
 
-int rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_add(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_pubkey *pubkey, const unsigned char *tweak) {
+int rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_add(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_pubkey *pubkey, const unsigned char *tweak32) {
     rustsecp256k1zkp_v0_2_0_ge p;
     int ret = 0;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(rustsecp256k1zkp_v0_2_0_ecmult_context_is_built(&ctx->ecmult_ctx));
     ARG_CHECK(pubkey != NULL);
-    ARG_CHECK(tweak != NULL);
+    ARG_CHECK(tweak32 != NULL);
 
     ret = rustsecp256k1zkp_v0_2_0_pubkey_load(ctx, &p, pubkey);
     memset(pubkey, 0, sizeof(*pubkey));
-    ret = ret && rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_add_helper(&ctx->ecmult_ctx, &p, tweak);
+    ret = ret && rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_add_helper(&ctx->ecmult_ctx, &p, tweak32);
     if (ret) {
         rustsecp256k1zkp_v0_2_0_pubkey_save(pubkey, &p);
     }
@@ -650,16 +692,16 @@ int rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_add(const rustsecp256k1zkp_v0_2_0_co
     return ret;
 }
 
-int rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_mul(const rustsecp256k1zkp_v0_2_0_context* ctx, unsigned char *seckey, const unsigned char *tweak) {
+int rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_mul(const rustsecp256k1zkp_v0_2_0_context* ctx, unsigned char *seckey, const unsigned char *tweak32) {
     rustsecp256k1zkp_v0_2_0_scalar factor;
     rustsecp256k1zkp_v0_2_0_scalar sec;
     int ret = 0;
     int overflow = 0;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(seckey != NULL);
-    ARG_CHECK(tweak != NULL);
+    ARG_CHECK(tweak32 != NULL);
 
-    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&factor, tweak, &overflow);
+    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&factor, tweak32, &overflow);
     ret = rustsecp256k1zkp_v0_2_0_scalar_set_b32_seckey(&sec, seckey);
     ret &= (!overflow) & rustsecp256k1zkp_v0_2_0_eckey_privkey_tweak_mul(&sec, &factor);
     rustsecp256k1zkp_v0_2_0_scalar_cmov(&sec, &rustsecp256k1zkp_v0_2_0_scalar_zero, !ret);
@@ -670,11 +712,11 @@ int rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_mul(const rustsecp256k1zkp_v0_2_0_co
     return ret;
 }
 
-int rustsecp256k1zkp_v0_2_0_ec_privkey_tweak_mul(const rustsecp256k1zkp_v0_2_0_context* ctx, unsigned char *seckey, const unsigned char *tweak) {
-    return rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_mul(ctx, seckey, tweak);
+int rustsecp256k1zkp_v0_2_0_ec_privkey_tweak_mul(const rustsecp256k1zkp_v0_2_0_context* ctx, unsigned char *seckey, const unsigned char *tweak32) {
+    return rustsecp256k1zkp_v0_2_0_ec_seckey_tweak_mul(ctx, seckey, tweak32);
 }
 
-int rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_mul(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_pubkey *pubkey, const unsigned char *tweak) {
+int rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_mul(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_pubkey *pubkey, const unsigned char *tweak32) {
     rustsecp256k1zkp_v0_2_0_ge p;
     rustsecp256k1zkp_v0_2_0_scalar factor;
     int ret = 0;
@@ -682,9 +724,9 @@ int rustsecp256k1zkp_v0_2_0_ec_pubkey_tweak_mul(const rustsecp256k1zkp_v0_2_0_co
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(rustsecp256k1zkp_v0_2_0_ecmult_context_is_built(&ctx->ecmult_ctx));
     ARG_CHECK(pubkey != NULL);
-    ARG_CHECK(tweak != NULL);
+    ARG_CHECK(tweak32 != NULL);
 
-    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&factor, tweak, &overflow);
+    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&factor, tweak32, &overflow);
     ret = !overflow && rustsecp256k1zkp_v0_2_0_pubkey_load(ctx, &p, pubkey);
     memset(pubkey, 0, sizeof(*pubkey));
     if (ret) {
@@ -744,6 +786,14 @@ int rustsecp256k1zkp_v0_2_0_ec_pubkey_combine(const rustsecp256k1zkp_v0_2_0_cont
 
 #ifdef ENABLE_MODULE_SCHNORRSIG
 #include "modules/schnorrsig/main_impl.h"
+#endif
+
+#ifdef ENABLE_MODULE_ECDSA_S2C
+#include "modules/ecdsa_s2c/main_impl.h"
+#endif
+
+#ifdef ENABLE_MODULE_ECDSA_ADAPTOR
+#include "modules/ecdsa_adaptor/main_impl.h"
 #endif
 
 #ifdef ENABLE_MODULE_MUSIG

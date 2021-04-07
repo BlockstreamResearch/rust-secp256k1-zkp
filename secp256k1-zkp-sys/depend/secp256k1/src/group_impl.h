@@ -1,8 +1,8 @@
-/**********************************************************************
- * Copyright (c) 2013, 2014 Pieter Wuille                             *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2013, 2014 Pieter Wuille                              *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
 #ifndef SECP256K1_GROUP_IMPL_H
 #define SECP256K1_GROUP_IMPL_H
@@ -591,7 +591,7 @@ static void rustsecp256k1zkp_v0_2_0_gej_add_ge(rustsecp256k1zkp_v0_2_0_gej *r, c
     rustsecp256k1zkp_v0_2_0_fe_cmov(&n, &m, degenerate);              /* n = M^3 * Malt (2) */
     rustsecp256k1zkp_v0_2_0_fe_sqr(&t, &rr_alt);                      /* t = Ralt^2 (1) */
     rustsecp256k1zkp_v0_2_0_fe_mul(&r->z, &a->z, &m_alt);             /* r->z = Malt*Z (1) */
-    infinity = rustsecp256k1zkp_v0_2_0_fe_normalizes_to_zero(&r->z) * (1 - a->infinity);
+    infinity = rustsecp256k1zkp_v0_2_0_fe_normalizes_to_zero(&r->z) & ~a->infinity;
     rustsecp256k1zkp_v0_2_0_fe_mul_int(&r->z, 2);                     /* r->z = Z3 = 2*Malt*Z (2) */
     rustsecp256k1zkp_v0_2_0_fe_negate(&q, &q, 1);                     /* q = -Q (2) */
     rustsecp256k1zkp_v0_2_0_fe_add(&t, &q);                           /* t = Ralt^2-Q (3) */
@@ -674,7 +674,7 @@ static int rustsecp256k1zkp_v0_2_0_ge_is_in_correct_subgroup(const rustsecp256k1
     rustsecp256k1zkp_v0_2_0_gej out;
     int i;
 
-    /* A very simple EC multiplication ladder that avoids a dependecy on ecmult. */
+    /* A very simple EC multiplication ladder that avoids a dependency on ecmult. */
     rustsecp256k1zkp_v0_2_0_gej_set_infinity(&out);
     for (i = 0; i < 32; ++i) {
         rustsecp256k1zkp_v0_2_0_gej_double_var(&out, &out, NULL);

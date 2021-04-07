@@ -1,9 +1,4 @@
-# Define field size and field
-P = 2^256 - 2^32 - 977
-F = GF(P)
-BETA = F(0x7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee)
-
-assert(BETA != F(1) and BETA^3 == F(1))
+load("rustsecp256k1zkp_v0_2_0_params.sage")
 
 orders_done = set()
 results = {}

@@ -1,11 +1,11 @@
-/**********************************************************************
- * Copyright (c) 2020 Jonas Nick                                      *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2020 Jonas Nick                                       *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
-#ifndef _SECP256K1_MODULE_EXTRAKEYS_TESTS_
-#define _SECP256K1_MODULE_EXTRAKEYS_TESTS_
+#ifndef SECP256K1_MODULE_EXTRAKEYS_TESTS_H
+#define SECP256K1_MODULE_EXTRAKEYS_TESTS_H
 
 #include "secp256k1_extrakeys.h"
 
@@ -311,6 +311,7 @@ void test_xonly_pubkey_tweak_recursive(void) {
 
 void test_keypair(void) {
     unsigned char sk[32];
+    unsigned char sk_tmp[32];
     unsigned char zeros96[96] = { 0 };
     unsigned char overflows[32];
     rustsecp256k1zkp_v0_2_0_keypair keypair;
@@ -395,6 +396,28 @@ void test_keypair(void) {
     CHECK(rustsecp256k1zkp_v0_2_0_keypair_xonly_pub(none, &xonly_pk_tmp, &pk_parity_tmp, &keypair) == 1);
     CHECK(rustsecp256k1zkp_v0_2_0_memcmp_var(&xonly_pk, &xonly_pk_tmp, sizeof(pk)) == 0);
     CHECK(pk_parity == pk_parity_tmp);
+
+    /* Test keypair_seckey */
+    ecount = 0;
+    rustsecp256k1zkp_v0_2_0_testrand256(sk);
+    CHECK(rustsecp256k1zkp_v0_2_0_keypair_create(ctx, &keypair, sk) == 1);
+    CHECK(rustsecp256k1zkp_v0_2_0_keypair_sec(none, sk_tmp, &keypair) == 1);
+    CHECK(rustsecp256k1zkp_v0_2_0_keypair_sec(none, NULL, &keypair) == 0);
+    CHECK(ecount == 1);
+    CHECK(rustsecp256k1zkp_v0_2_0_keypair_sec(none, sk_tmp, NULL) == 0);
+    CHECK(ecount == 2);
+    CHECK(rustsecp256k1zkp_v0_2_0_memcmp_var(zeros96, sk_tmp, sizeof(sk_tmp)) == 0);
+
+    /* keypair returns the same seckey it got */
+    CHECK(rustsecp256k1zkp_v0_2_0_keypair_create(sign, &keypair, sk) == 1);
+    CHECK(rustsecp256k1zkp_v0_2_0_keypair_sec(none, sk_tmp, &keypair) == 1);
+    CHECK(rustsecp256k1zkp_v0_2_0_memcmp_var(sk, sk_tmp, sizeof(sk_tmp)) == 0);
+
+
+    /* Using an invalid keypair is fine for keypair_seckey */
+    memset(&keypair, 0, sizeof(keypair));
+    CHECK(rustsecp256k1zkp_v0_2_0_keypair_sec(none, sk_tmp, &keypair) == 1);
+    CHECK(rustsecp256k1zkp_v0_2_0_memcmp_var(zeros96, sk_tmp, sizeof(sk_tmp)) == 0);
 
     rustsecp256k1zkp_v0_2_0_context_destroy(none);
     rustsecp256k1zkp_v0_2_0_context_destroy(sign);
@@ -484,6 +507,7 @@ void test_keypair_add(void) {
         rustsecp256k1zkp_v0_2_0_pubkey output_pk_xy;
         rustsecp256k1zkp_v0_2_0_pubkey output_pk_expected;
         unsigned char pk32[32];
+        unsigned char sk32[32];
         int pk_parity;
 
         rustsecp256k1zkp_v0_2_0_testrand256(tweak);
@@ -501,7 +525,8 @@ void test_keypair_add(void) {
         CHECK(rustsecp256k1zkp_v0_2_0_memcmp_var(&output_pk_xy, &output_pk_expected, sizeof(output_pk_xy)) == 0);
 
         /* Check that the secret key in the keypair is tweaked correctly */
-        CHECK(rustsecp256k1zkp_v0_2_0_ec_pubkey_create(ctx, &output_pk_expected, &keypair.data[0]) == 1);
+        CHECK(rustsecp256k1zkp_v0_2_0_keypair_sec(none, sk32, &keypair) == 1);
+        CHECK(rustsecp256k1zkp_v0_2_0_ec_pubkey_create(ctx, &output_pk_expected, sk32) == 1);
         CHECK(rustsecp256k1zkp_v0_2_0_memcmp_var(&output_pk_xy, &output_pk_expected, sizeof(output_pk_xy)) == 0);
     }
     rustsecp256k1zkp_v0_2_0_context_destroy(none);
