@@ -1,8 +1,9 @@
 use core::{fmt, hash};
-use {types::*, Context, PublicKey};
+use {types::*, Context, PublicKey, Signature};
 
 /// Rangeproof maximum length
 pub const RANGEPROOF_MAX_LENGTH: size_t = 5134;
+pub const ECDSA_ADAPTOR_SIGNATURE_LENGTH: size_t = 162;
 
 extern "C" {
     #[cfg_attr(
@@ -278,6 +279,61 @@ extern "C" {
         output: *mut PublicKey,
         bytes: *const c_uchar,
     ) -> c_int;
+
+    #[cfg_attr(
+        not(feature = "external-symbols"),
+        link_name = "rustsecp256k1zkp_v0_2_0_nonce_function_ecdsa_adaptor"
+    )]
+    pub static secp256k1_nonce_function_ecdsa_adaptor: EcdsaAdaptorNonceFn;
+
+    #[cfg_attr(
+        not(feature = "external-symbols"),
+        link_name = "rustsecp256k1zkp_v0_2_0_ecdsa_adaptor_encrypt"
+    )]
+    pub fn secp256k1_ecdsa_adaptor_encrypt(
+        cx: *const Context,
+        adaptor_sig162: *mut EcdsaAdaptorSignature,
+        seckey32: *const c_uchar,
+        enckey: *const PublicKey,
+        msg32: *const c_uchar,
+        noncefp: EcdsaAdaptorNonceFn,
+        ndata: *mut c_void,
+    ) -> c_int;
+
+    #[cfg_attr(
+        not(feature = "external-symbols"),
+        link_name = "rustsecp256k1zkp_v0_2_0_ecdsa_adaptor_verify"
+    )]
+    pub fn secp256k1_ecdsa_adaptor_verify(
+        cx: *const Context,
+        adaptor_sig162: *const EcdsaAdaptorSignature,
+        pubkey: *const PublicKey,
+        msg32: *const c_uchar,
+        enckey: *const PublicKey,
+    ) -> c_int;
+
+    #[cfg_attr(
+        not(feature = "external-symbols"),
+        link_name = "rustsecp256k1zkp_v0_2_0_ecdsa_adaptor_decrypt"
+    )]
+    pub fn secp256k1_ecdsa_adaptor_decrypt(
+        cx: *const Context,
+        sig: *mut Signature,
+        deckey32: *const c_uchar,
+        adaptor_sig162: *const EcdsaAdaptorSignature,
+    ) -> c_int;
+
+    #[cfg_attr(
+        not(feature = "external-symbols"),
+        link_name = "rustsecp256k1zkp_v0_2_0_ecdsa_adaptor_recover"
+    )]
+    pub fn secp256k1_ecdsa_adaptor_recover(
+        cx: *const Context,
+        deckey32: *mut c_uchar,
+        sig: *const Signature,
+        adaptor_sig162: *const EcdsaAdaptorSignature,
+        enckey: *const PublicKey,
+    ) -> c_int;
 }
 
 #[repr(C)]
@@ -405,5 +461,40 @@ impl Default for PedersenCommitment {
 impl hash::Hash for PedersenCommitment {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         state.write(&self.0)
+    }
+}
+
+/// Same as secp256k1_nonce_function_hardened with the exception of using the
+/// compressed 33-byte encoding for the pubkey argument.
+pub type EcdsaAdaptorNonceFn = Option<
+    unsafe extern "C" fn(
+        nonce32: *mut c_uchar,
+        msg32: *const c_uchar,
+        key32: *const c_uchar,
+        pk33: *const c_uchar,
+        algo: *const c_uchar,
+        algo_len: size_t,
+        data: *mut c_void,
+    ) -> c_int,
+>;
+
+#[repr(C)]
+pub struct EcdsaAdaptorSignature([u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH]);
+impl_array_newtype!(EcdsaAdaptorSignature, u8, ECDSA_ADAPTOR_SIGNATURE_LENGTH);
+impl_raw_debug!(EcdsaAdaptorSignature);
+
+impl From<[u8; 162]> for EcdsaAdaptorSignature {
+    fn from(bytes: [u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH]) -> Self {
+        EcdsaAdaptorSignature(bytes)
+    }
+}
+
+impl EcdsaAdaptorSignature {
+    pub fn new() -> EcdsaAdaptorSignature {
+        EcdsaAdaptorSignature([0; ECDSA_ADAPTOR_SIGNATURE_LENGTH])
+    }
+
+    pub fn as_bytes(&self) -> &[u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH] {
+        &self.0
     }
 }
