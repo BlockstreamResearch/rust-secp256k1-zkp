@@ -1,3 +1,6 @@
+# 0.2.1 - 2021-04-13
+- Fix bug in Pedersen Commitment deserialization.
+
 # 0.2.0 - 2021-01-06
 
 - Completely replaced with https://github.com/comit-network/rust-secp256k1-zkp/ which has
