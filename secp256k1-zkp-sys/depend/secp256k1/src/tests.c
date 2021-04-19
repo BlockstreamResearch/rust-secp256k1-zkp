@@ -1,8 +1,8 @@
-/**********************************************************************
- * Copyright (c) 2013-2015 Pieter Wuille, Gregory Maxwell             *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2013-2015 Pieter Wuille, Gregory Maxwell              *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
 #if defined HAVE_CONFIG_H
 #include "libsecp256k1-config.h"
@@ -2120,28 +2120,6 @@ void run_field_inv_var(void) {
     }
 }
 
-void run_field_inv_all_var(void) {
-    rustsecp256k1zkp_v0_2_0_fe x[16], xi[16], xii[16];
-    int i;
-    /* Check it's safe to call for 0 elements */
-    rustsecp256k1zkp_v0_2_0_fe_inv_all_var(xi, x, 0);
-    for (i = 0; i < count; i++) {
-        size_t j;
-        size_t len = rustsecp256k1zkp_v0_2_0_testrand_int(15) + 1;
-        for (j = 0; j < len; j++) {
-            random_fe_non_zero(&x[j]);
-        }
-        rustsecp256k1zkp_v0_2_0_fe_inv_all_var(xi, x, len);
-        for (j = 0; j < len; j++) {
-            CHECK(check_fe_inverse(&x[j], &xi[j]));
-        }
-        rustsecp256k1zkp_v0_2_0_fe_inv_all_var(xii, xi, len);
-        for (j = 0; j < len; j++) {
-            CHECK(check_fe_equal(&x[j], &xii[j]));
-        }
-    }
-}
-
 void run_sqr(void) {
     rustsecp256k1zkp_v0_2_0_fe x, s;
 
@@ -2267,7 +2245,6 @@ void test_ge(void) {
      */
     rustsecp256k1zkp_v0_2_0_ge *ge = (rustsecp256k1zkp_v0_2_0_ge *)checked_malloc(&ctx->error_callback, sizeof(rustsecp256k1zkp_v0_2_0_ge) * (1 + 4 * runs));
     rustsecp256k1zkp_v0_2_0_gej *gej = (rustsecp256k1zkp_v0_2_0_gej *)checked_malloc(&ctx->error_callback, sizeof(rustsecp256k1zkp_v0_2_0_gej) * (1 + 4 * runs));
-    rustsecp256k1zkp_v0_2_0_fe *zinv = (rustsecp256k1zkp_v0_2_0_fe *)checked_malloc(&ctx->error_callback, sizeof(rustsecp256k1zkp_v0_2_0_fe) * (1 + 4 * runs));
     rustsecp256k1zkp_v0_2_0_fe zf;
     rustsecp256k1zkp_v0_2_0_fe zfi2, zfi3;
 
@@ -2299,23 +2276,6 @@ void test_ge(void) {
             random_field_element_magnitude(&gej[1 + j + 4 * i].y);
             random_field_element_magnitude(&gej[1 + j + 4 * i].z);
         }
-    }
-
-    /* Compute z inverses. */
-    {
-        rustsecp256k1zkp_v0_2_0_fe *zs = checked_malloc(&ctx->error_callback, sizeof(rustsecp256k1zkp_v0_2_0_fe) * (1 + 4 * runs));
-        for (i = 0; i < 4 * runs + 1; i++) {
-            if (i == 0) {
-                /* The point at infinity does not have a meaningful z inverse. Any should do. */
-                do {
-                    random_field_element_test(&zs[i]);
-                } while(rustsecp256k1zkp_v0_2_0_fe_is_zero(&zs[i]));
-            } else {
-                zs[i] = gej[i].z;
-            }
-        }
-        rustsecp256k1zkp_v0_2_0_fe_inv_all_var(zinv, zs, 4 * runs + 1);
-        free(zs);
     }
 
     /* Generate random zf, and zfi2 = 1/zf^2, zfi3 = 1/zf^3 */
@@ -2426,16 +2386,9 @@ void test_ge(void) {
         free(gej_shuffled);
     }
 
-    /* Test batch gej -> ge conversion with and without known z ratios. */
+    /* Test batch gej -> ge conversion without known z ratios. */
     {
-        rustsecp256k1zkp_v0_2_0_fe *zr = (rustsecp256k1zkp_v0_2_0_fe *)checked_malloc(&ctx->error_callback, (4 * runs + 1) * sizeof(rustsecp256k1zkp_v0_2_0_fe));
         rustsecp256k1zkp_v0_2_0_ge *ge_set_all = (rustsecp256k1zkp_v0_2_0_ge *)checked_malloc(&ctx->error_callback, (4 * runs + 1) * sizeof(rustsecp256k1zkp_v0_2_0_ge));
-        for (i = 0; i < 4 * runs + 1; i++) {
-            /* Compute gej[i + 1].z / gez[i].z (with gej[n].z taken to be 1). */
-            if (i < 4 * runs) {
-                rustsecp256k1zkp_v0_2_0_fe_mul(&zr[i + 1], &zinv[i], &gej[i + 1].z);
-            }
-        }
         rustsecp256k1zkp_v0_2_0_ge_set_all_gej_var(ge_set_all, gej, 4 * runs + 1);
         for (i = 0; i < 4 * runs + 1; i++) {
             rustsecp256k1zkp_v0_2_0_fe s;
@@ -2444,7 +2397,6 @@ void test_ge(void) {
             ge_equals_gej(&ge_set_all[i], &gej[i]);
         }
         free(ge_set_all);
-        free(zr);
     }
 
     /* Test batch gej -> ge conversion with many infinities. */
@@ -2465,7 +2417,6 @@ void test_ge(void) {
 
     free(ge);
     free(gej);
-    free(zinv);
 }
 
 
@@ -2607,6 +2558,83 @@ void run_ec_combine(void) {
     for (i = 0; i < count * 8; i++) {
          test_ec_combine();
     }
+}
+
+void test_ec_commit(void) {
+    rustsecp256k1zkp_v0_2_0_scalar seckey_s;
+    rustsecp256k1zkp_v0_2_0_ge pubkey;
+    rustsecp256k1zkp_v0_2_0_gej pubkeyj;
+    rustsecp256k1zkp_v0_2_0_ge commitment;
+    unsigned char data[32];
+    rustsecp256k1zkp_v0_2_0_sha256 sha;
+
+    /* Create random keypair and data */
+    random_scalar_order_test(&seckey_s);
+    rustsecp256k1zkp_v0_2_0_ecmult_gen(&ctx->ecmult_gen_ctx, &pubkeyj, &seckey_s);
+    rustsecp256k1zkp_v0_2_0_ge_set_gej(&pubkey, &pubkeyj);
+    rustsecp256k1zkp_v0_2_0_testrand256_test(data);
+
+    /* Commit to data and verify */
+    rustsecp256k1zkp_v0_2_0_sha256_initialize(&sha);
+    CHECK(rustsecp256k1zkp_v0_2_0_ec_commit(&ctx->ecmult_ctx, &commitment, &pubkey, &sha, data, 32) == 1);
+    rustsecp256k1zkp_v0_2_0_sha256_initialize(&sha);
+    CHECK(rustsecp256k1zkp_v0_2_0_ec_commit_verify(&ctx->ecmult_ctx, &commitment, &pubkey, &sha, data, 32) == 1);
+    rustsecp256k1zkp_v0_2_0_sha256_initialize(&sha);
+    CHECK(rustsecp256k1zkp_v0_2_0_ec_commit_seckey(&seckey_s, &pubkey, &sha, data, 32) == 1);
+    rustsecp256k1zkp_v0_2_0_ecmult_gen(&ctx->ecmult_gen_ctx, &pubkeyj, &seckey_s);
+    ge_equals_gej(&commitment, &pubkeyj);
+
+    /* Check that verification fails with different data */
+    rustsecp256k1zkp_v0_2_0_sha256_initialize(&sha);
+    CHECK(rustsecp256k1zkp_v0_2_0_ec_commit_verify(&ctx->ecmult_ctx, &commitment, &pubkey, &sha, data, 31) == 0);
+
+    /* Check that commmitting fails when the inner pubkey is the point at
+     * infinity */
+    rustsecp256k1zkp_v0_2_0_sha256_initialize(&sha);
+    rustsecp256k1zkp_v0_2_0_ge_set_infinity(&pubkey);
+    CHECK(rustsecp256k1zkp_v0_2_0_ec_commit(&ctx->ecmult_ctx, &commitment, &pubkey, &sha, data, 32) == 0);
+    rustsecp256k1zkp_v0_2_0_scalar_set_int(&seckey_s, 0);
+    CHECK(rustsecp256k1zkp_v0_2_0_ec_commit_seckey(&seckey_s, &pubkey, &sha, data, 32) == 0);
+    CHECK(rustsecp256k1zkp_v0_2_0_ec_commit_verify(&ctx->ecmult_ctx, &commitment, &pubkey, &sha, data, 32) == 0);
+}
+
+void test_ec_commit_api(void) {
+    unsigned char seckey[32];
+    rustsecp256k1zkp_v0_2_0_scalar seckey_s;
+    rustsecp256k1zkp_v0_2_0_ge pubkey;
+    rustsecp256k1zkp_v0_2_0_gej pubkeyj;
+    rustsecp256k1zkp_v0_2_0_ge commitment;
+    unsigned char data[32];
+    rustsecp256k1zkp_v0_2_0_sha256 sha;
+
+    memset(data, 23, sizeof(data));
+
+    /* Create random keypair */
+    random_scalar_order_test(&seckey_s);
+    rustsecp256k1zkp_v0_2_0_scalar_get_b32(seckey, &seckey_s);
+    rustsecp256k1zkp_v0_2_0_ecmult_gen(&ctx->ecmult_gen_ctx, &pubkeyj, &seckey_s);
+    rustsecp256k1zkp_v0_2_0_ge_set_gej(&pubkey, &pubkeyj);
+
+    rustsecp256k1zkp_v0_2_0_sha256_initialize(&sha);
+    CHECK(rustsecp256k1zkp_v0_2_0_ec_commit(&ctx->ecmult_ctx, &commitment, &pubkey, &sha, data, 1) == 1);
+    /* The same pubkey can be both input and output of the function */
+    {
+        rustsecp256k1zkp_v0_2_0_ge pubkey_tmp = pubkey;
+        rustsecp256k1zkp_v0_2_0_sha256_initialize(&sha);
+        CHECK(rustsecp256k1zkp_v0_2_0_ec_commit(&ctx->ecmult_ctx, &pubkey_tmp, &pubkey_tmp, &sha, data, 1) == 1);
+        ge_equals_ge(&commitment, &pubkey_tmp);
+    }
+
+    rustsecp256k1zkp_v0_2_0_sha256_initialize(&sha);
+    CHECK(rustsecp256k1zkp_v0_2_0_ec_commit_verify(&ctx->ecmult_ctx, &commitment, &pubkey, &sha, data, 1) == 1);
+}
+
+void run_ec_commit(void) {
+    int i;
+    for (i = 0; i < count * 8; i++) {
+         test_ec_commit();
+    }
+    test_ec_commit_api();
 }
 
 void test_group_decompress(const rustsecp256k1zkp_v0_2_0_fe* x) {
@@ -5620,6 +5648,14 @@ void run_ecdsa_openssl(void) {
 #include "modules/schnorrsig/tests_impl.h"
 #endif
 
+#ifdef ENABLE_MODULE_ECDSA_S2C
+#include "modules/ecdsa_s2c/tests_impl.h"
+#endif
+
+#ifdef ENABLE_MODULE_ECDSA_ADAPTOR
+#include "modules/ecdsa_adaptor/tests_impl.h"
+#endif
+
 void run_rustsecp256k1zkp_v0_2_0_memczero_test(void) {
     unsigned char buf1[6] = {1, 2, 3, 4, 5, 6};
     unsigned char buf2[sizeof(buf1)];
@@ -5847,7 +5883,6 @@ int main(int argc, char **argv) {
     /* field tests */
     run_field_inv();
     run_field_inv_var();
-    run_field_inv_all_var();
     run_field_misc();
     run_field_convert();
     run_sqr();
@@ -5867,6 +5902,7 @@ int main(int argc, char **argv) {
     run_ecmult_const_tests();
     run_ecmult_multi_tests();
     run_ec_combine();
+    run_ec_commit();
 
     /* endomorphism tests */
     run_endomorphism_tests();
@@ -5927,6 +5963,15 @@ int main(int argc, char **argv) {
 
 #ifdef ENABLE_MODULE_SCHNORRSIG
     run_schnorrsig_tests();
+#endif
+
+#ifdef ENABLE_MODULE_ECDSA_S2C
+    /* ECDSA sign to contract */
+    run_ecdsa_s2c_tests();
+#endif
+
+#ifdef ENABLE_MODULE_ECDSA_ADAPTOR
+    run_ecdsa_adaptor_tests();
 #endif
 
     /* util tests */

@@ -1,3 +1,4 @@
+mod ecdsa_adaptor;
 mod generator;
 #[cfg(feature = "std")]
 mod pedersen;
@@ -7,6 +8,7 @@ mod rangeproof;
 mod surjection_proof;
 mod tag;
 
+pub use self::ecdsa_adaptor::*;
 pub use self::generator::*;
 #[cfg(feature = "std")]
 pub use self::pedersen::*;

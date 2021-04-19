@@ -95,6 +95,14 @@ pub enum Error {
     InvalidRangeProof,
     /// Bad generator
     InvalidGenerator,
+    /// Given bytes don't represent a valid adaptor signature
+    InvalidEcdsaAdaptorSignature,
+    /// Failed to decrypt an adaptor signature because of an internal error within `libsecp256k1-zkp`
+    CannotDecryptAdaptorSignature,
+    /// Failed to recover an adaptor secret from an adaptor signature because of an internal error within `libsecp256k1-zkp`
+    CannotRecoverAdaptorSecret,
+    /// Given adaptor signature is not valid for the provided combination of public key, encryption key and message
+    CannotVerifyAdaptorSignature,
 }
 
 // Passthrough Debug to Display, since errors should be user-visible
@@ -107,6 +115,10 @@ impl fmt::Display for Error {
             Error::CannotMakeRangeProof => "failed to generate range proof",
             Error::InvalidRangeProof => "failed to verify range proof",
             Error::InvalidGenerator => "malformed generator",
+            Error::InvalidEcdsaAdaptorSignature => "malformed ecdsa adaptor signature",
+            Error::CannotDecryptAdaptorSignature => "failed to decrypt adaptor signature",
+            Error::CannotRecoverAdaptorSecret => "failed to recover adaptor secret",
+            Error::CannotVerifyAdaptorSignature => "failed to verify adaptor signature",
             Error::Upstream(inner) => return write!(f, "{}", inner),
         };
 

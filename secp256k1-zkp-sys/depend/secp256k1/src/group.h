@@ -1,8 +1,8 @@
-/**********************************************************************
- * Copyright (c) 2013, 2014 Pieter Wuille                             *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2013, 2014 Pieter Wuille                              *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
 #ifndef SECP256K1_GROUP_H
 #define SECP256K1_GROUP_H
@@ -62,8 +62,11 @@ static int rustsecp256k1zkp_v0_2_0_ge_is_valid_var(const rustsecp256k1zkp_v0_2_0
 /** Set r equal to the inverse of a (i.e., mirrored around the X axis) */
 static void rustsecp256k1zkp_v0_2_0_ge_neg(rustsecp256k1zkp_v0_2_0_ge *r, const rustsecp256k1zkp_v0_2_0_ge *a);
 
-/** Set a group element equal to another which is given in jacobian coordinates */
+/** Set a group element equal to another which is given in jacobian coordinates. Constant time. */
 static void rustsecp256k1zkp_v0_2_0_ge_set_gej(rustsecp256k1zkp_v0_2_0_ge *r, rustsecp256k1zkp_v0_2_0_gej *a);
+
+/** Set a group element equal to another which is given in jacobian coordinates. */
+static void rustsecp256k1zkp_v0_2_0_ge_set_gej_var(rustsecp256k1zkp_v0_2_0_ge *r, rustsecp256k1zkp_v0_2_0_gej *a);
 
 /** Set a batch of group elements equal to the inputs given in jacobian coordinates */
 static void rustsecp256k1zkp_v0_2_0_ge_set_all_gej_var(rustsecp256k1zkp_v0_2_0_ge *r, const rustsecp256k1zkp_v0_2_0_gej *a, size_t len);

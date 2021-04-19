@@ -1,11 +1,11 @@
-/**********************************************************************
- * Copyright (c) 2020 Jonas Nick                                      *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2020 Jonas Nick                                       *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
-#ifndef _SECP256K1_MODULE_EXTRAKEYS_MAIN_
-#define _SECP256K1_MODULE_EXTRAKEYS_MAIN_
+#ifndef SECP256K1_MODULE_EXTRAKEYS_MAIN_H
+#define SECP256K1_MODULE_EXTRAKEYS_MAIN_H
 
 #include "include/secp256k1.h"
 #include "include/secp256k1_extrakeys.h"
@@ -184,6 +184,16 @@ int rustsecp256k1zkp_v0_2_0_keypair_create(const rustsecp256k1zkp_v0_2_0_context
 
     rustsecp256k1zkp_v0_2_0_scalar_clear(&sk);
     return ret;
+}
+
+int rustsecp256k1zkp_v0_2_0_keypair_sec(const rustsecp256k1zkp_v0_2_0_context* ctx, unsigned char *seckey, const rustsecp256k1zkp_v0_2_0_keypair *keypair) {
+    VERIFY_CHECK(ctx != NULL);
+    ARG_CHECK(seckey != NULL);
+    memset(seckey, 0, 32);
+    ARG_CHECK(keypair != NULL);
+
+    memcpy(seckey, &keypair->data[0], 32);
+    return 1;
 }
 
 int rustsecp256k1zkp_v0_2_0_keypair_pub(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_pubkey *pubkey, const rustsecp256k1zkp_v0_2_0_keypair *keypair) {

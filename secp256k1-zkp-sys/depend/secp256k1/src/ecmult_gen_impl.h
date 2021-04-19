@@ -1,8 +1,8 @@
-/**********************************************************************
- * Copyright (c) 2013, 2014, 2015 Pieter Wuille, Gregory Maxwell      *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2013, 2014, 2015 Pieter Wuille, Gregory Maxwell       *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
 #ifndef SECP256K1_ECMULT_GEN_IMPL_H
 #define SECP256K1_ECMULT_GEN_IMPL_H
@@ -144,7 +144,7 @@ static void rustsecp256k1zkp_v0_2_0_ecmult_gen(const rustsecp256k1zkp_v0_2_0_ecm
              *    (https://cryptojedi.org/peter/data/chesrump-20130822.pdf) and
              *   "Cache Attacks and Countermeasures: the Case of AES", RSA 2006,
              *    by Dag Arne Osvik, Adi Shamir, and Eran Tromer
-             *    (http://www.tau.ac.il/~tromer/papers/cache.pdf)
+             *    (https://www.tau.ac.il/~tromer/papers/cache.pdf)
              */
             rustsecp256k1zkp_v0_2_0_ge_storage_cmov(&adds, &(*ctx->prec)[j][i], i == bits);
         }

@@ -1,8 +1,8 @@
-/**********************************************************************
- * Copyright (c) 2013, 2014 Pieter Wuille                             *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2013, 2014 Pieter Wuille                              *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
 #ifndef SECP256K1_FIELD_IMPL_H
 #define SECP256K1_FIELD_IMPL_H
@@ -261,33 +261,6 @@ static void rustsecp256k1zkp_v0_2_0_fe_inv_var(rustsecp256k1zkp_v0_2_0_fe *r, co
 #else
 #error "Please select field inverse implementation"
 #endif
-}
-
-static void rustsecp256k1zkp_v0_2_0_fe_inv_all_var(rustsecp256k1zkp_v0_2_0_fe *r, const rustsecp256k1zkp_v0_2_0_fe *a, size_t len) {
-    rustsecp256k1zkp_v0_2_0_fe u;
-    size_t i;
-    if (len < 1) {
-        return;
-    }
-
-    VERIFY_CHECK((r + len <= a) || (a + len <= r));
-
-    r[0] = a[0];
-
-    i = 0;
-    while (++i < len) {
-        rustsecp256k1zkp_v0_2_0_fe_mul(&r[i], &r[i - 1], &a[i]);
-    }
-
-    rustsecp256k1zkp_v0_2_0_fe_inv_var(&u, &r[--i]);
-
-    while (i > 0) {
-        size_t j = i--;
-        rustsecp256k1zkp_v0_2_0_fe_mul(&r[j], &r[i], &u);
-        rustsecp256k1zkp_v0_2_0_fe_mul(&u, &u, &a[j]);
-    }
-
-    r[0] = u;
 }
 
 static int rustsecp256k1zkp_v0_2_0_fe_is_quad_var(const rustsecp256k1zkp_v0_2_0_fe *a) {

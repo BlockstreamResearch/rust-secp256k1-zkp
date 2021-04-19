@@ -1,8 +1,8 @@
-/**********************************************************************
- * Copyright (c) 2013-2015 Pieter Wuille                              *
- * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
- **********************************************************************/
+/***********************************************************************
+ * Copyright (c) 2013-2015 Pieter Wuille                               *
+ * Distributed under the MIT software license, see the accompanying    *
+ * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
+ ***********************************************************************/
 
 #ifndef SECP256K1_MODULE_RECOVERY_MAIN_H
 #define SECP256K1_MODULE_RECOVERY_MAIN_H
@@ -120,34 +120,34 @@ static int rustsecp256k1zkp_v0_2_0_ecdsa_sig_recover(const rustsecp256k1zkp_v0_2
     return !rustsecp256k1zkp_v0_2_0_gej_is_infinity(&qj);
 }
 
-int rustsecp256k1zkp_v0_2_0_ecdsa_sign_recoverable(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_ecdsa_recoverable_signature *signature, const unsigned char *msg32, const unsigned char *seckey, rustsecp256k1zkp_v0_2_0_nonce_function noncefp, const void* noncedata) {
+int rustsecp256k1zkp_v0_2_0_ecdsa_sign_recoverable(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_ecdsa_recoverable_signature *signature, const unsigned char *msghash32, const unsigned char *seckey, rustsecp256k1zkp_v0_2_0_nonce_function noncefp, const void* noncedata) {
     rustsecp256k1zkp_v0_2_0_scalar r, s;
     int ret, recid;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(rustsecp256k1zkp_v0_2_0_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
-    ARG_CHECK(msg32 != NULL);
+    ARG_CHECK(msghash32 != NULL);
     ARG_CHECK(signature != NULL);
     ARG_CHECK(seckey != NULL);
 
-    ret = rustsecp256k1zkp_v0_2_0_ecdsa_sign_inner(ctx, &r, &s, &recid, msg32, seckey, noncefp, noncedata);
+    ret = rustsecp256k1zkp_v0_2_0_ecdsa_sign_inner(ctx, &r, &s, &recid, NULL, NULL, NULL, msghash32, seckey, noncefp, noncedata);
     rustsecp256k1zkp_v0_2_0_ecdsa_recoverable_signature_save(signature, &r, &s, recid);
     return ret;
 }
 
-int rustsecp256k1zkp_v0_2_0_ecdsa_recover(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_pubkey *pubkey, const rustsecp256k1zkp_v0_2_0_ecdsa_recoverable_signature *signature, const unsigned char *msg32) {
+int rustsecp256k1zkp_v0_2_0_ecdsa_recover(const rustsecp256k1zkp_v0_2_0_context* ctx, rustsecp256k1zkp_v0_2_0_pubkey *pubkey, const rustsecp256k1zkp_v0_2_0_ecdsa_recoverable_signature *signature, const unsigned char *msghash32) {
     rustsecp256k1zkp_v0_2_0_ge q;
     rustsecp256k1zkp_v0_2_0_scalar r, s;
     rustsecp256k1zkp_v0_2_0_scalar m;
     int recid;
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(rustsecp256k1zkp_v0_2_0_ecmult_context_is_built(&ctx->ecmult_ctx));
-    ARG_CHECK(msg32 != NULL);
+    ARG_CHECK(msghash32 != NULL);
     ARG_CHECK(signature != NULL);
     ARG_CHECK(pubkey != NULL);
 
     rustsecp256k1zkp_v0_2_0_ecdsa_recoverable_signature_load(ctx, &r, &s, &recid, signature);
     VERIFY_CHECK(recid >= 0 && recid < 4);  /* should have been caught in parse_compact */
-    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&m, msg32, NULL);
+    rustsecp256k1zkp_v0_2_0_scalar_set_b32(&m, msghash32, NULL);
     if (rustsecp256k1zkp_v0_2_0_ecdsa_sig_recover(&ctx->ecmult_ctx, &r, &s, &q, &m, recid)) {
         rustsecp256k1zkp_v0_2_0_pubkey_save(pubkey, &q);
         return 1;
