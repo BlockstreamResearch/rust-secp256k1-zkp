@@ -1,4 +1,4 @@
-include_HEADERS += include/rustsecp256k1zkp_v0_2_0_rangeproof.h
+include_HEADERS += include/rustsecp256k1zkp_v0_3_0_rangeproof.h
 noinst_HEADERS += src/modules/rangeproof/main_impl.h
 noinst_HEADERS += src/modules/rangeproof/pedersen.h
 noinst_HEADERS += src/modules/rangeproof/pedersen_impl.h

@@ -1,3 +1,7 @@
+# 0.3.0 - 2021-04-19
+
+- Add ECDSA adaptor signatures
+
 # 0.2.1 - 2021-04-13
 - Fix bug in Pedersen Commitment deserialization.
 

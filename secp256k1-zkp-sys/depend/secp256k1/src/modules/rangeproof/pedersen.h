@@ -14,9 +14,9 @@
 #include <stdint.h>
 
 /** Multiply a small number with the generator: r = gn*G2 */
-static void rustsecp256k1zkp_v0_2_0_pedersen_ecmult_small(rustsecp256k1zkp_v0_2_0_gej *r, uint64_t gn, const rustsecp256k1zkp_v0_2_0_ge* genp);
+static void rustsecp256k1zkp_v0_3_0_pedersen_ecmult_small(rustsecp256k1zkp_v0_3_0_gej *r, uint64_t gn, const rustsecp256k1zkp_v0_3_0_ge* genp);
 
 /* sec * G + value * G2. */
-static void rustsecp256k1zkp_v0_2_0_pedersen_ecmult(const rustsecp256k1zkp_v0_2_0_ecmult_gen_context *ecmult_gen_ctx, rustsecp256k1zkp_v0_2_0_gej *rj, const rustsecp256k1zkp_v0_2_0_scalar *sec, uint64_t value, const rustsecp256k1zkp_v0_2_0_ge* genp);
+static void rustsecp256k1zkp_v0_3_0_pedersen_ecmult(const rustsecp256k1zkp_v0_3_0_ecmult_gen_context *ecmult_gen_ctx, rustsecp256k1zkp_v0_3_0_gej *rj, const rustsecp256k1zkp_v0_3_0_scalar *sec, uint64_t value, const rustsecp256k1zkp_v0_3_0_ge* genp);
 
 #endif
