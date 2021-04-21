@@ -1,6 +1,6 @@
 use core::{fmt, slice, str};
 use ffi;
-use {from_hex, key::ONE_KEY, Error, Generator, Secp256k1, SecretKey, Signing};
+use {constants, from_hex, key::ONE_KEY, Error, Generator, Secp256k1, SecretKey, Signing};
 
 /// Represents a commitment to a single u64 value.
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
@@ -44,7 +44,10 @@ impl PedersenCommitment {
         Ok(PedersenCommitment(commitment))
     }
 
-    /// Create a new [`PedersenCommitment`] that commits to the given value with a certain blinding factor and generator.
+    /// Create a new [`PedersenCommitment`] that commits to the given value with
+    /// a certain blinding factor and generator.
+    /// Use the [PedersenCommitment::new_unblinded] for creating a commitment
+    /// using zero blinding factor.
     pub fn new<C: Signing>(
         secp: &Secp256k1<C>,
         value: u64,
@@ -66,6 +69,32 @@ impl PedersenCommitment {
             ret, 1,
             "failed to create pedersen commitment, likely a bad blinding factor"
         );
+
+        PedersenCommitment(commitment)
+    }
+
+    /// Create a new [`PedersenCommitment`] that commits to the given value
+    /// with a zero blinding factor and the [`Generator`].
+    /// The [PedersenCommitment::new] cannot be used for zero blind because
+    /// zero value is not permitted for [`SecretKey`] type.
+    pub fn new_unblinded<C: Signing>(
+        secp: &Secp256k1<C>,
+        value: u64,
+        generator: Generator,
+    ) -> Self {
+        let mut commitment = ffi::PedersenCommitment::default();
+        let zero_bf = [0u8; constants::SECRET_KEY_SIZE];
+
+        let ret = unsafe {
+            ffi::secp256k1_pedersen_commit(
+                *secp.ctx(),
+                &mut commitment,
+                zero_bf.as_ptr(),
+                value,
+                generator.as_inner(),
+            )
+        };
+        assert_eq!(ret, 1, "failed to create pedersen commitment");
 
         PedersenCommitment(commitment)
     }
@@ -287,6 +316,24 @@ mod tests {
 
             PedersenCommitment::new(SECP256K1, self.value, self.value_blinding_factor, generator)
         }
+    }
+
+    #[test]
+    fn test_unblinded_pedersen_commitments() {
+        let tag = Tag::random();
+        let unblinded_gen = Generator::new_unblinded(SECP256K1, tag);
+        let one_comm = PedersenCommitment::new_unblinded(SECP256K1, 1, unblinded_gen); // 1*G
+        let two_comm = PedersenCommitment::new_unblinded(SECP256K1, 2, unblinded_gen); // 2*G
+        let three_comm = PedersenCommitment::new_unblinded(SECP256K1, 3, unblinded_gen); // 3*G
+        let six_comm = PedersenCommitment::new_unblinded(SECP256K1, 6, unblinded_gen); // 6*G
+
+        let commitment_sums_are_equal = verify_commitments_sum_to_equal(
+            SECP256K1,
+            &[one_comm, two_comm, three_comm],
+            &[six_comm],
+        );
+
+        assert!(commitment_sums_are_equal);
     }
 
     #[test]
