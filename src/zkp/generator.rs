@@ -46,6 +46,7 @@ impl Generator {
     }
 
     /// Creates a new [`Generator`] by blinding a [`Tag`] using the given blinding factor.
+    /// Use [Generator::new_unblinded] for creating a [`Generator`] with zero blinding factor
     pub fn new_blinded<C: Signing>(
         secp: &Secp256k1<C>,
         tag: Tag,
@@ -59,6 +60,26 @@ impl Generator {
                 &mut generator,
                 tag.into_inner().as_ptr(),
                 blinding_factor.as_ptr(),
+            )
+        };
+        assert_eq!(ret, 1);
+
+        Generator(generator)
+    }
+
+    /// Creates a new unblinded [`Generator`] by from [`Tag`]
+    /// The [Generator::new_blinded] cannot be used for zero blind because
+    /// zero value is not permitted for [`SecretKey`] type.
+    pub fn new_unblinded<C: Signing>(secp: &Secp256k1<C>, tag: Tag) -> Self {
+        let mut generator = unsafe { ffi::PublicKey::new() };
+        let zero_bf = [0u8; constants::SECRET_KEY_SIZE];
+
+        let ret = unsafe {
+            ffi::secp256k1_generator_generate_blinded(
+                *secp.ctx(),
+                &mut generator,
+                tag.into_inner().as_ptr(),
+                zero_bf.as_ptr(),
             )
         };
         assert_eq!(ret, 1);
