@@ -9,6 +9,10 @@
 
 use core::{fmt, ptr, str};
 use ffi::{self, CPtr, ECDSA_ADAPTOR_SIGNATURE_LENGTH};
+#[cfg(any(test, feature = "rand-std"))]
+use rand::thread_rng;
+#[cfg(any(test, feature = "rand"))]
+use rand::{CryptoRng, Rng};
 use {constants, PublicKey, Secp256k1, SecretKey};
 use {from_hex, Error};
 use {Message, Signing};
@@ -86,7 +90,43 @@ impl EcdsaAdaptorSignature {
 
 impl EcdsaAdaptorSignature {
     /// Creates an adaptor signature along with a proof to verify the adaptor signature.
+    /// This function derives a nonce using a similar process as described in BIP-340.
+    /// The nonce derivation process is strengthened against side channel
+    /// attacks by providing auxiliary randomness using the ThreadRng random number generator.
+    /// Requires compilation with "rand-std" feature.
+    #[cfg(any(test, feature = "rand-std"))]
     pub fn encrypt<C: Signing>(
+        secp: &Secp256k1<C>,
+        msg: &Message,
+        sk: &SecretKey,
+        enckey: &PublicKey,
+    ) -> EcdsaAdaptorSignature {
+        let mut rng = thread_rng();
+        EcdsaAdaptorSignature::encrypt_with_rng(secp, msg, sk, enckey, &mut rng)
+    }
+
+    /// Creates an adaptor signature along with a proof to verify the adaptor signature,
+    /// This function derives a nonce using a similar process as described in BIP-340.
+    /// The nonce derivation process is strengthened against side channel
+    /// attacks by providing auxiliary randomness using the provided random number generator.
+    /// Requires compilation with "rand" feature.
+    #[cfg(any(test, feature = "rand"))]
+    pub fn encrypt_with_rng<C: Signing, R: Rng + CryptoRng>(
+        secp: &Secp256k1<C>,
+        msg: &Message,
+        sk: &SecretKey,
+        enckey: &PublicKey,
+        rng: &mut R,
+    ) -> EcdsaAdaptorSignature {
+        let mut aux = [0u8; 32];
+        rng.fill_bytes(&mut aux);
+        EcdsaAdaptorSignature::encrypt_with_aux_rand(secp, msg, sk, enckey, &aux)
+    }
+
+    /// Creates an adaptor signature along with a proof to verify the adaptor signature,
+    /// without using any auxiliary random data. Note that using this function
+    /// is still considered safe.
+    pub fn encrypt_no_aux_rand<C: Signing>(
         secp: &Secp256k1<C>,
         msg: &Message,
         sk: &SecretKey,
@@ -102,12 +142,41 @@ impl EcdsaAdaptorSignature {
                     sk.as_c_ptr(),
                     enckey.as_c_ptr(),
                     msg.as_c_ptr(),
-                    None,
+                    ffi::secp256k1_nonce_function_ecdsa_adaptor,
                     ptr::null_mut(),
                 ) == 1
             );
         };
 
+        EcdsaAdaptorSignature(adaptor_sig)
+    }
+
+    /// Creates an adaptor signature along with a proof to verify the adaptor signature.
+    /// This function derives a nonce using a similar process as described in BIP-340.
+    /// The nonce derivation process is strengthened against side channel attacks by
+    /// using the provided auxiliary random data.
+    pub fn encrypt_with_aux_rand<C: Signing>(
+        secp: &Secp256k1<C>,
+        msg: &Message,
+        sk: &SecretKey,
+        enckey: &PublicKey,
+        aux_rand: &[u8; 32],
+    ) -> EcdsaAdaptorSignature {
+        let mut adaptor_sig = ffi::EcdsaAdaptorSignature::new();
+
+        unsafe {
+            debug_assert!(
+                ffi::secp256k1_ecdsa_adaptor_encrypt(
+                    *secp.ctx(),
+                    &mut adaptor_sig,
+                    sk.as_c_ptr(),
+                    enckey.as_c_ptr(),
+                    msg.as_c_ptr(),
+                    ffi::secp256k1_nonce_function_ecdsa_adaptor,
+                    aux_rand.as_c_ptr() as *mut ffi::types::c_void,
+                ) == 1
+            );
+        };
         EcdsaAdaptorSignature(adaptor_sig)
     }
 
@@ -186,16 +255,17 @@ impl EcdsaAdaptorSignature {
 mod tests {
     use super::Message;
     use super::*;
-    use rand::thread_rng;
+    use rand::{rngs::ThreadRng, thread_rng, RngCore};
     use SECP256K1;
 
-    #[test]
-    #[cfg(not(rust_secp_fuzz))]
-    fn test_ecdsa_adaptor_signature() {
-        let (seckey, pubkey) = SECP256K1.generate_keypair(&mut thread_rng());
-        let (adaptor_secret, adaptor) = SECP256K1.generate_keypair(&mut thread_rng());
+    fn test_ecdsa_adaptor_signature_helper(
+        encrypt: fn(&Message, &SecretKey, &PublicKey, &mut ThreadRng) -> EcdsaAdaptorSignature,
+    ) {
+        let mut rng = thread_rng();
+        let (seckey, pubkey) = SECP256K1.generate_keypair(&mut rng);
+        let (adaptor_secret, adaptor) = SECP256K1.generate_keypair(&mut rng);
         let msg = Message::from_slice(&[2u8; 32]).unwrap();
-        let adaptor_sig = EcdsaAdaptorSignature::encrypt(&SECP256K1, &msg, &seckey, &adaptor);
+        let adaptor_sig = encrypt(&msg, &seckey, &adaptor, &mut rng);
 
         adaptor_sig
             .verify(&SECP256K1, &msg, &pubkey, &adaptor)
@@ -213,6 +283,40 @@ mod tests {
             .recover(&SECP256K1, &sig, &adaptor)
             .expect("to be able to recover the secret");
         assert_eq!(adaptor_secret, recovered);
+    }
+
+    #[test]
+    #[cfg(not(rust_secp_fuzz))]
+    fn test_ecdsa_adaptor_signature_encrypt() {
+        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, _| {
+            EcdsaAdaptorSignature::encrypt(&SECP256K1, msg, sk, adaptor)
+        })
+    }
+
+    #[test]
+    #[cfg(not(rust_secp_fuzz))]
+    fn test_ecdsa_adaptor_signature_encrypt_with_rng() {
+        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, rng| {
+            EcdsaAdaptorSignature::encrypt_with_rng(&SECP256K1, msg, sk, adaptor, rng)
+        })
+    }
+
+    #[test]
+    #[cfg(not(rust_secp_fuzz))]
+    fn test_ecdsa_adaptor_signature_encrypt_with_aux_rand() {
+        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, rng| {
+            let mut aux_rand = [0; 32];
+            rng.fill_bytes(&mut aux_rand);
+            EcdsaAdaptorSignature::encrypt_with_aux_rand(&SECP256K1, msg, sk, adaptor, &aux_rand)
+        })
+    }
+
+    #[test]
+    #[cfg(not(rust_secp_fuzz))]
+    fn test_ecdsa_adaptor_signature_encrypt_no_aux_rand() {
+        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, _| {
+            EcdsaAdaptorSignature::encrypt_no_aux_rand(&SECP256K1, msg, sk, adaptor)
+        })
     }
 
     #[test]
