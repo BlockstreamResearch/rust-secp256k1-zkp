@@ -1,7 +1,111 @@
 use core::{fmt, str};
-use ffi;
-use {constants, from_hex, Error, Secp256k1, SecretKey, Signing, Tag};
+use ffi::{self, CPtr};
+#[cfg(feature = "rand")]
+use rand::Rng;
+use {constants, from_hex, Error, Secp256k1, Signing, Tag};
 
+/// Represents a blinding factor/Tweak on secp256k1 curve
+///
+/// Contrary to a [`crate::SecretKey`], the value 0 is also a valid tweak.
+/// Values outside secp curve order are invalid tweaks.
+#[derive(Default, Hash)]
+pub struct Tweak([u8; constants::SECRET_KEY_SIZE]);
+impl_array_newtype!(Tweak, u8, constants::SECRET_KEY_SIZE);
+
+/// The zero Tweak
+pub const ZERO_TWEAK: Tweak = Tweak([
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+]);
+
+impl fmt::Debug for Tweak {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Tweak(")?;
+        for i in self[..].iter().cloned() {
+            write!(f, "{:02x}", i)?;
+        }
+        write!(f, ")")
+    }
+}
+
+impl fmt::LowerHex for Tweak {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for ch in &self.0[..] {
+            write!(f, "{:02x}", *ch)?;
+        }
+        Ok(())
+    }
+}
+
+impl fmt::Display for Tweak {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::LowerHex::fmt(self, f)
+    }
+}
+
+impl str::FromStr for Tweak {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Tweak, Error> {
+        let mut res = [0; constants::SECRET_KEY_SIZE];
+        match from_hex(s, &mut res) {
+            Ok(constants::SECRET_KEY_SIZE) => Tweak::from_inner(res),
+            _ => Err(Error::InvalidTweakLength),
+        }
+    }
+}
+
+impl Tweak {
+    /// Generate a new random Tweak
+    #[cfg(feature = "rand")]
+    pub fn new<R: Rng + ?Sized>(rng: &mut R) -> Tweak {
+        let mut ret = [0u8; constants::SECRET_KEY_SIZE];
+        rng.fill_bytes(&mut ret);
+        Tweak(ret)
+    }
+
+    /// Converts a byte slice to a Tweak
+    /// Fails if tweak is not 32 bytes or if tweak is outside secp curve order
+    #[inline]
+    pub fn from_slice(data: &[u8]) -> Result<Tweak, Error> {
+        match data.len() {
+            constants::SECRET_KEY_SIZE => {
+                let mut ret = [0; constants::SECRET_KEY_SIZE];
+                unsafe {
+                    if ffi::secp256k1_ec_seckey_verify(
+                        ffi::secp256k1_context_no_precomp,
+                        data.as_ref().as_c_ptr(),
+                    ) == 0
+                    {
+                        if data.iter().all(|x| *x == 0) {
+                            return Ok(Tweak(ret));
+                        }
+                        return Err(Error::TweakOutOfBounds);
+                    }
+                }
+                ret[..].copy_from_slice(data);
+                Ok(Tweak(ret))
+            }
+            _ => Err(Error::InvalidTweakLength),
+        }
+    }
+
+    /// Converts a `SECRET_KEY_SIZE`(32)- array to a tweak
+    #[inline]
+    pub fn from_inner(data: [u8; 32]) -> Result<Tweak, Error> {
+        unsafe {
+            if ffi::secp256k1_ec_seckey_verify(
+                ffi::secp256k1_context_no_precomp,
+                data.as_ref().as_c_ptr(),
+            ) == 0
+            {
+                if data.iter().all(|x| *x == 0) {
+                    return Ok(Tweak(data));
+                }
+                return Err(Error::TweakOutOfBounds);
+            }
+        }
+        Ok(Tweak(data))
+    }
+}
 /// Represents a generator on the secp256k1 curve.
 ///
 /// A generator is a public key internally but has a slightly different serialization with the first byte being tweaked.
@@ -47,11 +151,7 @@ impl Generator {
 
     /// Creates a new [`Generator`] by blinding a [`Tag`] using the given blinding factor.
     /// Use [Generator::new_unblinded] for creating a [`Generator`] with zero blinding factor
-    pub fn new_blinded<C: Signing>(
-        secp: &Secp256k1<C>,
-        tag: Tag,
-        blinding_factor: SecretKey,
-    ) -> Self {
+    pub fn new_blinded<C: Signing>(secp: &Secp256k1<C>, tag: Tag, blinding_factor: Tweak) -> Self {
         let mut generator = unsafe { ffi::PublicKey::new() };
 
         let ret = unsafe {
@@ -68,8 +168,7 @@ impl Generator {
     }
 
     /// Creates a new unblinded [`Generator`] by from [`Tag`]
-    /// The [Generator::new_blinded] cannot be used for zero blind because
-    /// zero value is not permitted for [`SecretKey`] type.
+    /// Same as using zero [`Tweak`] with [`Generator::new_blinded`]
     pub fn new_unblinded<C: Signing>(secp: &Secp256k1<C>, tag: Tag) -> Self {
         let mut generator = unsafe { ffi::PublicKey::new() };
         let zero_bf = [0u8; constants::SECRET_KEY_SIZE];

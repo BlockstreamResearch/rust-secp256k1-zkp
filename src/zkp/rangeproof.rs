@@ -4,7 +4,7 @@ use Error;
 use Generator;
 use PedersenCommitment;
 use Verification;
-use {ffi, Secp256k1, SecretKey, Signing};
+use {ffi, Secp256k1, SecretKey, Signing, Tweak};
 
 /// Represents a range proof.
 ///
@@ -66,7 +66,7 @@ impl RangeProof {
         min_value: u64,
         commitment: PedersenCommitment,
         value: u64,
-        commitment_blinding: SecretKey,
+        commitment_blinding: Tweak,
         message: &[u8],
         additional_commitment: &[u8],
         sk: SecretKey,
@@ -185,7 +185,7 @@ impl RangeProof {
 
         let opening = Opening {
             value,
-            blinding_factor: SecretKey::from_slice(&blinding_factor)?,
+            blinding_factor: Tweak::from_slice(&blinding_factor)?,
             message: message[..message_length].into(),
         };
 
@@ -276,7 +276,7 @@ pub struct Opening {
     /// The value that the prover originally committed to in the Pedersen commitment.
     pub value: u64,
     /// The blinding factor that was used to create the Pedersen commitment of above value.
-    pub blinding_factor: SecretKey,
+    pub blinding_factor: Tweak,
     /// The message that was embedded by the prover.
     pub message: Box<[u8]>,
 }
