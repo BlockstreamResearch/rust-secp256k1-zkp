@@ -337,7 +337,7 @@ extern "C" {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Clone, Eq, Hash)]
 pub struct SurjectionProof {
     #[doc = " Total number of input asset tags"]
     pub n_inputs: size_t,

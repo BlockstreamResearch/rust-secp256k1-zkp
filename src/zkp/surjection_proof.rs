@@ -4,7 +4,7 @@ use Verification;
 use {Error, Generator, Secp256k1};
 
 /// Represents a surjection proof.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub struct SurjectionProof {
     inner: ffi::SurjectionProof,
 }
