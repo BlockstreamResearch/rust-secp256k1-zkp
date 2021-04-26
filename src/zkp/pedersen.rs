@@ -1,6 +1,6 @@
 use core::{fmt, slice, str};
 use ffi;
-use {constants, from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
+use {from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
 
 /// Represents a commitment to a single u64 value.
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
@@ -80,21 +80,7 @@ impl PedersenCommitment {
         value: u64,
         generator: Generator,
     ) -> Self {
-        let mut commitment = ffi::PedersenCommitment::default();
-        let zero_bf = [0u8; constants::SECRET_KEY_SIZE];
-
-        let ret = unsafe {
-            ffi::secp256k1_pedersen_commit(
-                *secp.ctx(),
-                &mut commitment,
-                zero_bf.as_ptr(),
-                value,
-                generator.as_inner(),
-            )
-        };
-        assert_eq!(ret, 1, "failed to create pedersen commitment");
-
-        PedersenCommitment(commitment)
+        PedersenCommitment::new(secp, value, ZERO_TWEAK ,generator)
     }
 
     pub(crate) fn as_inner(&self) -> &ffi::PedersenCommitment {

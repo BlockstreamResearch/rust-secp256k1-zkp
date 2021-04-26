@@ -170,20 +170,7 @@ impl Generator {
     /// Creates a new unblinded [`Generator`] by from [`Tag`]
     /// Same as using zero [`Tweak`] with [`Generator::new_blinded`]
     pub fn new_unblinded<C: Signing>(secp: &Secp256k1<C>, tag: Tag) -> Self {
-        let mut generator = unsafe { ffi::PublicKey::new() };
-        let zero_bf = [0u8; constants::SECRET_KEY_SIZE];
-
-        let ret = unsafe {
-            ffi::secp256k1_generator_generate_blinded(
-                *secp.ctx(),
-                &mut generator,
-                tag.into_inner().as_ptr(),
-                zero_bf.as_ptr(),
-            )
-        };
-        assert_eq!(ret, 1);
-
-        Generator(generator)
+        Generator::new_blinded(secp, tag, ZERO_TWEAK)
     }
 
     /// Extracts the internal representation of this generator.
