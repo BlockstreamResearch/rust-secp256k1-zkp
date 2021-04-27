@@ -337,7 +337,7 @@ extern "C" {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct SurjectionProof {
     #[doc = " Total number of input asset tags"]
     pub n_inputs: size_t,
@@ -364,6 +364,18 @@ impl PartialEq for SurjectionProof {
         self.n_inputs == other.n_inputs
             && self.used_inputs == other.used_inputs
             && self.data[..] == other.data[..]
+    }
+}
+
+impl Eq for SurjectionProof {}
+
+impl hash::Hash for SurjectionProof {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.n_inputs.hash(state);
+        self.used_inputs.hash(state);
+        for byte in self.data.iter(){
+            byte.hash(state);
+        }
     }
 }
 

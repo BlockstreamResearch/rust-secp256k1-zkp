@@ -4,7 +4,7 @@ use Verification;
 use {Error, Generator, Secp256k1};
 
 /// Represents a surjection proof.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub struct SurjectionProof {
     inner: ffi::SurjectionProof,
 }
@@ -139,6 +139,16 @@ impl SurjectionProof {
         bytes
     }
 
+    /// Find the length of surjection proof when serialized
+    pub fn len(&self) -> usize {
+        unsafe {
+            ffi::secp256k1_surjectionproof_serialized_size(
+                ffi::secp256k1_context_no_precomp,
+                &self.inner,
+            )
+        }
+    }
+
     /// Verify a surjection proof.
     #[must_use]
     pub fn verify<C: Verification>(
@@ -165,6 +175,77 @@ impl SurjectionProof {
         };
 
         ret == 1
+    }
+}
+
+#[cfg(feature = "hashes")]
+impl ::core::fmt::Display for SurjectionProof {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        use bitcoin_hashes::hex::format_hex;
+
+        format_hex(self.serialize().as_slice(), f)
+    }
+}
+
+// TODO: Macrofy (de)serialization
+
+#[cfg(all(feature = "serde", feature = "hashes"))]
+impl ::serde::Serialize for SurjectionProof {
+    fn serialize<S: ::serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        if s.is_human_readable() {
+            s.collect_str(&self)
+        } else {
+            s.serialize_bytes(&self.serialize())
+        }
+    }
+}
+
+#[cfg(all(feature = "serde", feature = "hashes"))]
+impl<'de> ::serde::Deserialize<'de> for SurjectionProof {
+    fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<SurjectionProof, D::Error> {
+        use core::fmt;
+
+        if d.is_human_readable() {
+            struct HexVisitor;
+
+            impl<'de> ::serde::de::Visitor<'de> for HexVisitor {
+                type Value = SurjectionProof;
+
+                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                    formatter.write_str("an ASCII hex string")
+                }
+
+                fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                where
+                    E: ::serde::de::Error,
+                {
+                    use bitcoin_hashes::hex::FromHex;
+
+                    let bytes = Vec::<u8>::from_hex(v).map_err(E::custom)?;
+                    SurjectionProof::from_slice(&bytes).map_err(E::custom)
+                }
+            }
+            d.deserialize_str(HexVisitor)
+        } else {
+            struct BytesVisitor;
+
+            impl<'de> ::serde::de::Visitor<'de> for BytesVisitor {
+                type Value = SurjectionProof;
+
+                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                    formatter.write_str("a bytestring")
+                }
+
+                fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+                where
+                    E: ::serde::de::Error,
+                {
+                    SurjectionProof::from_slice(v).map_err(E::custom)
+                }
+            }
+
+            d.deserialize_bytes(BytesVisitor)
+        }
     }
 }
 
