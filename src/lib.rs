@@ -37,6 +37,7 @@
 #![cfg_attr(all(not(test), not(feature = "std")), no_std)]
 #![cfg_attr(all(test, feature = "unstable"), feature(test))]
 
+#[macro_use]
 pub extern crate secp256k1_zkp_sys;
 pub use secp256k1_zkp_sys as ffi;
 
@@ -95,6 +96,10 @@ pub enum Error {
     InvalidRangeProof,
     /// Bad generator
     InvalidGenerator,
+    /// Tweak must of len 32
+    InvalidTweakLength,
+    /// Tweak must be less than secp curve order
+    TweakOutOfBounds,
     /// Given bytes don't represent a valid adaptor signature
     InvalidEcdsaAdaptorSignature,
     /// Failed to decrypt an adaptor signature because of an internal error within `libsecp256k1-zkp`
@@ -120,6 +125,8 @@ impl fmt::Display for Error {
             Error::CannotRecoverAdaptorSecret => "failed to recover adaptor secret",
             Error::CannotVerifyAdaptorSignature => "failed to verify adaptor signature",
             Error::Upstream(inner) => return write!(f, "{}", inner),
+            Error::InvalidTweakLength => "Tweak must of size 32",
+            Error::TweakOutOfBounds => "Tweak must be less than secp curve order",
         };
 
         f.write_str(str)

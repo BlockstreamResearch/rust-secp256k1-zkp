@@ -13,7 +13,7 @@ pub struct SurjectionProof {
 mod with_rand {
     use super::*;
     use rand::Rng;
-    use {SecretKey, Signing, Tag};
+    use {Signing, Tag, Tweak};
 
     impl SurjectionProof {
         /// Prove that a given tag - when blinded - is contained within another set of blinded tags.
@@ -24,8 +24,8 @@ mod with_rand {
             secp: &Secp256k1<C>,
             rng: &mut R,
             codomain_tag: Tag,
-            codomain_blinding_factor: SecretKey,
-            domain: &[(Generator, Tag, SecretKey)],
+            codomain_blinding_factor: Tweak,
+            domain: &[(Generator, Tag, Tweak)],
         ) -> Result<SurjectionProof, Error> {
             let mut proof = ffi::SurjectionProof::new();
 
@@ -172,7 +172,7 @@ impl SurjectionProof {
 mod tests {
     use super::*;
     use rand::thread_rng;
-    use {SecretKey, Tag, SECP256K1};
+    use {Tag, Tweak, SECP256K1};
 
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::wasm_bindgen_test as test;
@@ -232,7 +232,7 @@ mod tests {
         assert_eq!(parsed, proof)
     }
 
-    fn random_blinded_tag() -> (Tag, Generator, SecretKey) {
+    fn random_blinded_tag() -> (Tag, Generator, Tweak) {
         let tag = Tag::random();
 
         let (blinded_tag, bf) = blind_tag(tag);
@@ -240,8 +240,8 @@ mod tests {
         (tag, blinded_tag, bf)
     }
 
-    fn blind_tag(tag: Tag) -> (Generator, SecretKey) {
-        let bf = SecretKey::new(&mut thread_rng());
+    fn blind_tag(tag: Tag) -> (Generator, Tweak) {
+        let bf = Tweak::new(&mut thread_rng());
         let blinded_tag = Generator::new_blinded(SECP256K1, tag, bf);
 
         (blinded_tag, bf)

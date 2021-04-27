@@ -1,6 +1,6 @@
 use core::{fmt, slice, str};
 use ffi;
-use {constants, from_hex, key::ONE_KEY, Error, Generator, Secp256k1, SecretKey, Signing};
+use {from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
 
 /// Represents a commitment to a single u64 value.
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
@@ -51,7 +51,7 @@ impl PedersenCommitment {
     pub fn new<C: Signing>(
         secp: &Secp256k1<C>,
         value: u64,
-        blinding_factor: SecretKey,
+        blinding_factor: Tweak,
         generator: Generator,
     ) -> Self {
         let mut commitment = ffi::PedersenCommitment::default();
@@ -75,28 +75,12 @@ impl PedersenCommitment {
 
     /// Create a new [`PedersenCommitment`] that commits to the given value
     /// with a zero blinding factor and the [`Generator`].
-    /// The [PedersenCommitment::new] cannot be used for zero blind because
-    /// zero value is not permitted for [`SecretKey`] type.
     pub fn new_unblinded<C: Signing>(
         secp: &Secp256k1<C>,
         value: u64,
         generator: Generator,
     ) -> Self {
-        let mut commitment = ffi::PedersenCommitment::default();
-        let zero_bf = [0u8; constants::SECRET_KEY_SIZE];
-
-        let ret = unsafe {
-            ffi::secp256k1_pedersen_commit(
-                *secp.ctx(),
-                &mut commitment,
-                zero_bf.as_ptr(),
-                value,
-                generator.as_inner(),
-            )
-        };
-        assert_eq!(ret, 1, "failed to create pedersen commitment");
-
-        PedersenCommitment(commitment)
+        PedersenCommitment::new(secp, value, ZERO_TWEAK ,generator)
     }
 
     pub(crate) fn as_inner(&self) -> &ffi::PedersenCommitment {
@@ -116,18 +100,14 @@ pub struct CommitmentSecrets {
     /// The value that is committed to.
     pub value: u64,
     /// The blinding factor used when committing to the value.
-    pub value_blinding_factor: SecretKey,
+    pub value_blinding_factor: Tweak,
     /// The blinding factor used when producing the [`Generator`] that is necessary to commit to the value.
-    pub generator_blinding_factor: SecretKey,
+    pub generator_blinding_factor: Tweak,
 }
 
 impl CommitmentSecrets {
     /// Constructor.
-    pub fn new(
-        value: u64,
-        value_blinding_factor: SecretKey,
-        generator_blinding_factor: SecretKey,
-    ) -> Self {
+    pub fn new(value: u64, value_blinding_factor: Tweak, generator_blinding_factor: Tweak) -> Self {
         CommitmentSecrets {
             value,
             value_blinding_factor,
@@ -140,11 +120,11 @@ impl CommitmentSecrets {
 pub fn compute_adaptive_blinding_factor<C: Signing>(
     secp: &Secp256k1<C>,
     value: u64,
-    generator_blinding_factor: SecretKey,
+    generator_blinding_factor: Tweak,
     set_a: &[CommitmentSecrets],
     set_b: &[CommitmentSecrets],
-) -> SecretKey {
-    let value_blinding_factor_placeholder = ONE_KEY; // this placeholder will be filled with the generated blinding factor
+) -> Tweak {
+    let value_blinding_factor_placeholder = ZERO_TWEAK; // this placeholder will be filled with the generated blinding factor
 
     let (mut values, mut secrets) = set_a
         .iter()
@@ -178,7 +158,7 @@ pub fn compute_adaptive_blinding_factor<C: Signing>(
 
     let last = vbf.last().expect("this vector is never empty");
     let slice = unsafe { slice::from_raw_parts(*last, 32) };
-    SecretKey::from_slice(slice).expect("data is always a valid secret key")
+    Tweak::from_slice(slice).expect("data is always 32 bytes")
 }
 
 /// Verifies that the sum of the committed values within the commitments of both sets is equal.
@@ -306,8 +286,8 @@ mod tests {
         pub fn random(value: u64) -> Self {
             Self {
                 value,
-                value_blinding_factor: SecretKey::new(&mut thread_rng()),
-                generator_blinding_factor: SecretKey::new(&mut thread_rng()),
+                value_blinding_factor: Tweak::new(&mut thread_rng()),
+                generator_blinding_factor: Tweak::new(&mut thread_rng()),
             }
         }
 
@@ -359,7 +339,7 @@ mod tests {
         let secrets_3 = CommitmentSecrets::random(1000);
         let commitment_3 = secrets_3.commit(tag_1);
 
-        let tbf_4 = SecretKey::new(&mut thread_rng());
+        let tbf_4 = Tweak::new(&mut thread_rng());
         let blinded_tag_4 = Generator::new_blinded(SECP256K1, tag_2, tbf_4);
         let vbf_4 = compute_adaptive_blinding_factor(
             SECP256K1,
