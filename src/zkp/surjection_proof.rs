@@ -139,6 +139,16 @@ impl SurjectionProof {
         bytes
     }
 
+    /// Find the length of surjection proof when serialized
+    pub fn len(&self) -> usize {
+        unsafe {
+            ffi::secp256k1_surjectionproof_serialized_size(
+                ffi::secp256k1_context_no_precomp,
+                &self.inner,
+            )
+        }
+    }
+
     /// Verify a surjection proof.
     #[must_use]
     pub fn verify<C: Verification>(
