@@ -11,7 +11,7 @@ jobs:
         rust:
           - nightly
     steps:
-      - name: Checkout Crate 
+      - name: Checkout Crate
         uses: actions/checkout@v2
       - name: Checkout Toolchain
         uses: actions-rs/toolchain@v1
@@ -93,6 +93,11 @@ jobs:
       - name: Pin cc if rust 1.29
         if: matrix.rust == '1.29.0'
         run: cargo generate-lockfile --verbose && cargo update -p cc --precise "1.0.41" --verbose
+      - name: rustfmt on stable
+        if: matrix.rust == 'stable'
+        env:
+          DO_LINT: true
+        run: ./contrib/test.sh
       - name: Running cargo
         env:
           DO_FEATURE_MATRIX: true

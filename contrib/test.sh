@@ -71,3 +71,11 @@ if [ "$DO_BENCH" = true ]; then
     cargo bench --all --features="unstable"
 fi
 
+# Lint if told to
+if [ "$DO_LINT" = true ]
+then
+    (
+        rustup component add rustfmt
+        cargo fmt --all -- --check
+    )
+fi
