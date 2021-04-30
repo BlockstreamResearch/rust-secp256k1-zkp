@@ -33,20 +33,21 @@ fn main() {
 
     // Actual build
     let mut base_config = cc::Build::new();
-    base_config.include("depend/secp256k1/")
-               .include("depend/secp256k1/include")
-               .include("depend/secp256k1/src")
-               .flag_if_supported("-Wno-unused-function") // some ecmult stuff is defined but not used upstream
-               .define("SECP256K1_BUILD", Some("1"))
-               .define("ENABLE_MODULE_SURJECTIONPROOF", Some("1"))
-               .define("ENABLE_MODULE_GENERATOR", Some("1"))
-               .define("ENABLE_MODULE_RANGEPROOF", Some("1"))
-               .define("ENABLE_MODULE_ECDSA_ADAPTOR", Some("1"))
-               .define("ECMULT_GEN_PREC_BITS", Some("4"))
-               // TODO these three should be changed to use libgmp, at least until secp PR 290 is merged
-               .define("USE_NUM_NONE", Some("1"))
-               .define("USE_FIELD_INV_BUILTIN", Some("1"))
-               .define("USE_SCALAR_INV_BUILTIN", Some("1"));
+    base_config
+        .include("depend/secp256k1/")
+        .include("depend/secp256k1/include")
+        .include("depend/secp256k1/src")
+        .flag_if_supported("-Wno-unused-function") // some ecmult stuff is defined but not used upstream
+        .define("SECP256K1_BUILD", Some("1"))
+        .define("ENABLE_MODULE_SURJECTIONPROOF", Some("1"))
+        .define("ENABLE_MODULE_GENERATOR", Some("1"))
+        .define("ENABLE_MODULE_RANGEPROOF", Some("1"))
+        .define("ENABLE_MODULE_ECDSA_ADAPTOR", Some("1"))
+        .define("ECMULT_GEN_PREC_BITS", Some("4"))
+        // TODO these three should be changed to use libgmp, at least until secp PR 290 is merged
+        .define("USE_NUM_NONE", Some("1"))
+        .define("USE_FIELD_INV_BUILTIN", Some("1"))
+        .define("USE_SCALAR_INV_BUILTIN", Some("1"));
 
     if cfg!(feature = "lowmemory") {
         base_config.define("ECMULT_WINDOW_SIZE", Some("4")); // A low-enough value to consume neglible memory
@@ -62,13 +63,15 @@ fn main() {
     }
 
     match &env::var("TARGET").unwrap() as &str {
-        "wasm32-unknown-unknown"|"wasm32-wasi" =>
-            { base_config.include("wasm-sysroot"); },
-        _ => {},
+        "wasm32-unknown-unknown" | "wasm32-wasi" => {
+            base_config.include("wasm-sysroot");
+        }
+        _ => {}
     }
 
     // secp256k1
-    base_config.file("depend/secp256k1/contrib/lax_der_parsing.c")
-               .file("depend/secp256k1/src/secp256k1.c")
-               .compile("libsecp256k1zkp.a");
+    base_config
+        .file("depend/secp256k1/contrib/lax_der_parsing.c")
+        .file("depend/secp256k1/src/secp256k1.c")
+        .compile("libsecp256k1zkp.a");
 }
