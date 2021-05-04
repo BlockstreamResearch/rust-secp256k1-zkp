@@ -1,3 +1,8 @@
+# 0.4.0 - 2021-05-04
+
+- Changed several zkp APIs to use `Tweak` type instead of `SecretKey` type to allow modelling of zero tweaks.
+- Introduce `Generator::new_unblinded` and `PedersenCommitment::new_unblinded` APIs
+
 # 0.3.0 - 2021-04-19
 
 - Add ECDSA adaptor signatures
