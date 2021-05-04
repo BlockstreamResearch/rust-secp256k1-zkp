@@ -373,7 +373,7 @@ impl hash::Hash for SurjectionProof {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         self.n_inputs.hash(state);
         self.used_inputs.hash(state);
-        for byte in self.data.iter(){
+        for byte in self.data.iter() {
             byte.hash(state);
         }
     }

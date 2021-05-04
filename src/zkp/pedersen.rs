@@ -80,7 +80,7 @@ impl PedersenCommitment {
         value: u64,
         generator: Generator,
     ) -> Self {
-        PedersenCommitment::new(secp, value, ZERO_TWEAK ,generator)
+        PedersenCommitment::new(secp, value, ZERO_TWEAK, generator)
     }
 
     pub(crate) fn as_inner(&self) -> &ffi::PedersenCommitment {
@@ -376,23 +376,24 @@ mod tests {
         use serde_test::{assert_tokens, Token};
 
         let commitment = PedersenCommitment::from_slice(&[
-            9,7,166,63,171,227,228,157,87,19,233,218,252,171,254,202,
-            228,138,19,124,26,29,131,42,33,212,151,151,89,0,135,201,254,
-        ]).unwrap();
+            9, 7, 166, 63, 171, 227, 228, 157, 87, 19, 233, 218, 252, 171, 254, 202, 228, 138, 19,
+            124, 26, 29, 131, 42, 33, 212, 151, 151, 89, 0, 135, 201, 254,
+        ])
+        .unwrap();
 
         assert_tokens(
             &commitment.readable(),
-            &[Token::Str("0907a63fabe3e49d5713e9dafcabfecae48a137c1a1d832a21d49797590087c9fe")]
+            &[Token::Str(
+                "0907a63fabe3e49d5713e9dafcabfecae48a137c1a1d832a21d49797590087c9fe",
+            )],
         );
 
         assert_tokens(
             &commitment.compact(),
-            &[Token::Bytes(
-                &[
-                    9,7,166,63,171,227,228,157,87,19,233,218,252,171,254,202,
-                    228,138,19,124,26,29,131,42,33,212,151,151,89,0,135,201,254,
-                ]
-            )]
+            &[Token::Bytes(&[
+                9, 7, 166, 63, 171, 227, 228, 157, 87, 19, 233, 218, 252, 171, 254, 202, 228, 138,
+                19, 124, 26, 29, 131, 42, 33, 212, 151, 151, 89, 0, 135, 201, 254,
+            ])],
         );
     }
 
