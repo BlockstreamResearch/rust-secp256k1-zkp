@@ -8,7 +8,7 @@ pub const ECDSA_ADAPTOR_SIGNATURE_LENGTH: size_t = 162;
 extern "C" {
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_pedersen_commitment_parse"
+        link_name = "rustsecp256k1zkp_v0_4_0_pedersen_commitment_parse"
     )]
     // Parse a 33-byte commitment into 64 byte internal commitment object
     pub fn secp256k1_pedersen_commitment_parse(
@@ -19,7 +19,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_pedersen_commitment_serialize"
+        link_name = "rustsecp256k1zkp_v0_4_0_pedersen_commitment_serialize"
     )]
     // Serialize a 64-byte commit object into a 33 byte serialized byte sequence
     pub fn secp256k1_pedersen_commitment_serialize(
@@ -30,7 +30,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_pedersen_commit"
+        link_name = "rustsecp256k1zkp_v0_4_0_pedersen_commit"
     )]
     // Generates a pedersen commitment: *commit = blind * G + value * G2.
     // The commitment is 33 bytes, the blinding factor is 32 bytes.
@@ -44,7 +44,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_pedersen_blind_generator_blind_sum"
+        link_name = "rustsecp256k1zkp_v0_4_0_pedersen_blind_generator_blind_sum"
     )]
     /// Sets the final Pedersen blinding factor correctly when the generators themselves
     ///  have blinding factors.
@@ -86,7 +86,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_pedersen_verify_tally"
+        link_name = "rustsecp256k1zkp_v0_4_0_pedersen_verify_tally"
     )]
     // Takes two list of 64-byte commitments and sums the first set and
     // subtracts the second and verifies that they sum to 0.
@@ -101,7 +101,7 @@ extern "C" {
     #[cfg(feature = "std")]
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_rangeproof_info"
+        link_name = "rustsecp256k1zkp_v0_4_0_rangeproof_info"
     )]
     pub fn secp256k1_rangeproof_info(
         ctx: *const Context,
@@ -116,7 +116,7 @@ extern "C" {
     #[cfg(feature = "std")]
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_rangeproof_rewind"
+        link_name = "rustsecp256k1zkp_v0_4_0_rangeproof_rewind"
     )]
     pub fn secp256k1_rangeproof_rewind(
         ctx: *const Context,
@@ -138,7 +138,7 @@ extern "C" {
     #[cfg(feature = "std")]
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_rangeproof_verify"
+        link_name = "rustsecp256k1zkp_v0_4_0_rangeproof_verify"
     )]
     pub fn secp256k1_rangeproof_verify(
         ctx: *const Context,
@@ -155,7 +155,7 @@ extern "C" {
     #[cfg(feature = "std")]
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_rangeproof_sign"
+        link_name = "rustsecp256k1zkp_v0_4_0_rangeproof_sign"
     )]
     pub fn secp256k1_rangeproof_sign(
         ctx: *const Context,
@@ -177,7 +177,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_surjectionproof_initialize"
+        link_name = "rustsecp256k1zkp_v0_4_0_surjectionproof_initialize"
     )]
     pub fn secp256k1_surjectionproof_initialize(
         ctx: *const Context,
@@ -193,7 +193,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_surjectionproof_serialize"
+        link_name = "rustsecp256k1zkp_v0_4_0_surjectionproof_serialize"
     )]
     pub fn secp256k1_surjectionproof_serialize(
         ctx: *const Context,
@@ -204,7 +204,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_surjectionproof_serialized_size"
+        link_name = "rustsecp256k1zkp_v0_4_0_surjectionproof_serialized_size"
     )]
     pub fn secp256k1_surjectionproof_serialized_size(
         ctx: *const Context,
@@ -213,7 +213,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_surjectionproof_parse"
+        link_name = "rustsecp256k1zkp_v0_4_0_surjectionproof_parse"
     )]
     pub fn secp256k1_surjectionproof_parse(
         ctx: *const Context,
@@ -224,7 +224,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_surjectionproof_generate"
+        link_name = "rustsecp256k1zkp_v0_4_0_surjectionproof_generate"
     )]
     pub fn secp256k1_surjectionproof_generate(
         ctx: *const Context,
@@ -239,7 +239,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_surjectionproof_verify"
+        link_name = "rustsecp256k1zkp_v0_4_0_surjectionproof_verify"
     )]
     pub fn secp256k1_surjectionproof_verify(
         ctx: *const Context,
@@ -251,7 +251,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_generator_generate_blinded"
+        link_name = "rustsecp256k1zkp_v0_4_0_generator_generate_blinded"
     )]
     pub fn secp256k1_generator_generate_blinded(
         ctx: *const Context,
@@ -262,7 +262,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_generator_serialize"
+        link_name = "rustsecp256k1zkp_v0_4_0_generator_serialize"
     )]
     pub fn secp256k1_generator_serialize(
         ctx: *const Context,
@@ -272,7 +272,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_generator_parse"
+        link_name = "rustsecp256k1zkp_v0_4_0_generator_parse"
     )]
     pub fn secp256k1_generator_parse(
         ctx: *const Context,
@@ -282,13 +282,13 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_nonce_function_ecdsa_adaptor"
+        link_name = "rustsecp256k1zkp_v0_4_0_nonce_function_ecdsa_adaptor"
     )]
     pub static secp256k1_nonce_function_ecdsa_adaptor: EcdsaAdaptorNonceFn;
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_ecdsa_adaptor_encrypt"
+        link_name = "rustsecp256k1zkp_v0_4_0_ecdsa_adaptor_encrypt"
     )]
     pub fn secp256k1_ecdsa_adaptor_encrypt(
         cx: *const Context,
@@ -302,7 +302,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_ecdsa_adaptor_verify"
+        link_name = "rustsecp256k1zkp_v0_4_0_ecdsa_adaptor_verify"
     )]
     pub fn secp256k1_ecdsa_adaptor_verify(
         cx: *const Context,
@@ -314,7 +314,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_ecdsa_adaptor_decrypt"
+        link_name = "rustsecp256k1zkp_v0_4_0_ecdsa_adaptor_decrypt"
     )]
     pub fn secp256k1_ecdsa_adaptor_decrypt(
         cx: *const Context,
@@ -325,7 +325,7 @@ extern "C" {
 
     #[cfg_attr(
         not(feature = "external-symbols"),
-        link_name = "rustsecp256k1zkp_v0_3_0_ecdsa_adaptor_recover"
+        link_name = "rustsecp256k1zkp_v0_4_0_ecdsa_adaptor_recover"
     )]
     pub fn secp256k1_ecdsa_adaptor_recover(
         cx: *const Context,
