@@ -16,17 +16,17 @@ extern "C" {
  *  guaranteed to be portable between different platforms or versions. It is
  *  however guaranteed to be 64 bytes in size, and can be safely copied/moved.
  *  If you need to convert to a format suitable for storage, transmission, or
- *  comparison, use rustsecp256k1zkp_v0_3_0_pedersen_commitment_serialize and
- *  rustsecp256k1zkp_v0_3_0_pedersen_commitment_parse.
+ *  comparison, use rustsecp256k1zkp_v0_4_0_pedersen_commitment_serialize and
+ *  rustsecp256k1zkp_v0_4_0_pedersen_commitment_parse.
  */
 typedef struct {
     unsigned char data[64];
-} rustsecp256k1zkp_v0_3_0_pedersen_commitment;
+} rustsecp256k1zkp_v0_4_0_pedersen_commitment;
 
 /**
  * Static constant generator 'h' maintained for historical reasons.
  */
-SECP256K1_API extern const rustsecp256k1zkp_v0_3_0_generator *rustsecp256k1zkp_v0_3_0_generator_h;
+SECP256K1_API extern const rustsecp256k1zkp_v0_4_0_generator *rustsecp256k1zkp_v0_4_0_generator_h;
 
 /** Parse a 33-byte commitment into a commitment object.
  *
@@ -35,9 +35,9 @@ SECP256K1_API extern const rustsecp256k1zkp_v0_3_0_generator *rustsecp256k1zkp_v
  *  Out:  commit:   pointer to the output commitment object
  *  In:   input:    pointer to a 33-byte serialized commitment key
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_pedersen_commitment_parse(
-    const rustsecp256k1zkp_v0_3_0_context* ctx,
-    rustsecp256k1zkp_v0_3_0_pedersen_commitment* commit,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_4_0_pedersen_commitment_parse(
+    const rustsecp256k1zkp_v0_4_0_context* ctx,
+    rustsecp256k1zkp_v0_4_0_pedersen_commitment* commit,
     const unsigned char *input
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -46,13 +46,13 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_pedersen_
  *  Returns: 1 always.
  *  Args:   ctx:        a secp256k1 context object.
  *  Out:    output:     a pointer to a 33-byte byte array
- *  In:     commit:     a pointer to a rustsecp256k1zkp_v0_3_0_pedersen_commitment containing an
+ *  In:     commit:     a pointer to a rustsecp256k1zkp_v0_4_0_pedersen_commitment containing an
  *                      initialized commitment
  */
-SECP256K1_API int rustsecp256k1zkp_v0_3_0_pedersen_commitment_serialize(
-    const rustsecp256k1zkp_v0_3_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_4_0_pedersen_commitment_serialize(
+    const rustsecp256k1zkp_v0_4_0_context* ctx,
     unsigned char *output,
-    const rustsecp256k1zkp_v0_3_0_pedersen_commitment* commit
+    const rustsecp256k1zkp_v0_4_0_pedersen_commitment* commit
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Generate a pedersen commitment.
@@ -68,12 +68,12 @@ SECP256K1_API int rustsecp256k1zkp_v0_3_0_pedersen_commitment_serialize(
  *
  *  Blinding factors can be generated and verified in the same way as secp256k1 private keys for ECDSA.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_pedersen_commit(
-  const rustsecp256k1zkp_v0_3_0_context* ctx,
-  rustsecp256k1zkp_v0_3_0_pedersen_commitment *commit,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_4_0_pedersen_commit(
+  const rustsecp256k1zkp_v0_4_0_context* ctx,
+  rustsecp256k1zkp_v0_4_0_pedersen_commitment *commit,
   const unsigned char *blind,
   uint64_t value,
-  const rustsecp256k1zkp_v0_3_0_generator *gen
+  const rustsecp256k1zkp_v0_4_0_generator *gen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(5);
 
 /** Computes the sum of multiple positive and negative blinding factors.
@@ -87,8 +87,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_pedersen_
  *          npositive:       how many of the initial factors should be treated with a positive sign.
  *  Out:    blind_out:  pointer to a 32-byte array for the sum (cannot be NULL)
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_pedersen_blind_sum(
-  const rustsecp256k1zkp_v0_3_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_4_0_pedersen_blind_sum(
+  const rustsecp256k1zkp_v0_4_0_context* ctx,
   unsigned char *blind_out,
   const unsigned char * const *blinds,
   size_t n,
@@ -111,11 +111,11 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_pedersen_
  * A all blinding factors and all values must sum to zero.
  *
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_pedersen_verify_tally(
-  const rustsecp256k1zkp_v0_3_0_context* ctx,
-  const rustsecp256k1zkp_v0_3_0_pedersen_commitment * const* commits,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_4_0_pedersen_verify_tally(
+  const rustsecp256k1zkp_v0_4_0_context* ctx,
+  const rustsecp256k1zkp_v0_4_0_pedersen_commitment * const* commits,
   size_t pcnt,
-  const rustsecp256k1zkp_v0_3_0_pedersen_commitment * const* ncommits,
+  const rustsecp256k1zkp_v0_4_0_pedersen_commitment * const* ncommits,
   size_t ncnt
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(4);
 
@@ -149,8 +149,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_pedersen_
  *                          May not be NULL unless `n_total` is 0.
  *                          the last value will be modified to get the total sum to zero.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_pedersen_blind_generator_blind_sum(
-  const rustsecp256k1zkp_v0_3_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_4_0_pedersen_blind_generator_blind_sum(
+  const rustsecp256k1zkp_v0_4_0_context* ctx,
   const uint64_t *value,
   const unsigned char* const* generator_blind,
   unsigned char* const* blinding_factor,
@@ -171,16 +171,16 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_pedersen_
  * Out:  min_value: pointer to a unsigned int64 which will be updated with the minimum value that commit could have. (cannot be NULL)
  *       max_value: pointer to a unsigned int64 which will be updated with the maximum value that commit could have. (cannot be NULL)
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_rangeproof_verify(
-  const rustsecp256k1zkp_v0_3_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_4_0_rangeproof_verify(
+  const rustsecp256k1zkp_v0_4_0_context* ctx,
   uint64_t *min_value,
   uint64_t *max_value,
-  const rustsecp256k1zkp_v0_3_0_pedersen_commitment *commit,
+  const rustsecp256k1zkp_v0_4_0_pedersen_commitment *commit,
   const unsigned char *proof,
   size_t plen,
   const unsigned char *extra_commit,
   size_t extra_commit_len,
-  const rustsecp256k1zkp_v0_3_0_generator* gen
+  const rustsecp256k1zkp_v0_4_0_generator* gen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5) SECP256K1_ARG_NONNULL(9);
 
 /** Verify a range proof proof and rewind the proof to recover information sent by its author.
@@ -203,8 +203,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_rangeproo
  *        min_value: pointer to an unsigned int64 which will be updated with the minimum value that commit could have. (cannot be NULL)
  *        max_value: pointer to an unsigned int64 which will be updated with the maximum value that commit could have. (cannot be NULL)
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_rangeproof_rewind(
-  const rustsecp256k1zkp_v0_3_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_4_0_rangeproof_rewind(
+  const rustsecp256k1zkp_v0_4_0_context* ctx,
   unsigned char *blind_out,
   uint64_t *value_out,
   unsigned char *message_out,
@@ -212,12 +212,12 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_rangeproo
   const unsigned char *nonce,
   uint64_t *min_value,
   uint64_t *max_value,
-  const rustsecp256k1zkp_v0_3_0_pedersen_commitment *commit,
+  const rustsecp256k1zkp_v0_4_0_pedersen_commitment *commit,
   const unsigned char *proof,
   size_t plen,
   const unsigned char *extra_commit,
   size_t extra_commit_len,
-  const rustsecp256k1zkp_v0_3_0_generator *gen
+  const rustsecp256k1zkp_v0_4_0_generator *gen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(6) SECP256K1_ARG_NONNULL(7) SECP256K1_ARG_NONNULL(8) SECP256K1_ARG_NONNULL(9) SECP256K1_ARG_NONNULL(10) SECP256K1_ARG_NONNULL(14);
 
 /** Author a proof that a committed value is within a range.
@@ -247,12 +247,12 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_rangeproo
  *  This can randomly fail with probability around one in 2^100. If this happens, buy a lottery ticket and retry with a different nonce or blinding.
  *
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_rangeproof_sign(
-  const rustsecp256k1zkp_v0_3_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_4_0_rangeproof_sign(
+  const rustsecp256k1zkp_v0_4_0_context* ctx,
   unsigned char *proof,
   size_t *plen,
   uint64_t min_value,
-  const rustsecp256k1zkp_v0_3_0_pedersen_commitment *commit,
+  const rustsecp256k1zkp_v0_4_0_pedersen_commitment *commit,
   const unsigned char *blind,
   const unsigned char *nonce,
   int exp,
@@ -262,7 +262,7 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_rangeproo
   size_t msg_len,
   const unsigned char *extra_commit,
   size_t extra_commit_len,
-  const rustsecp256k1zkp_v0_3_0_generator *gen
+  const rustsecp256k1zkp_v0_4_0_generator *gen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(5) SECP256K1_ARG_NONNULL(6) SECP256K1_ARG_NONNULL(7) SECP256K1_ARG_NONNULL(15);
 
 /** Extract some basic information from a range-proof.
@@ -276,8 +276,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_rangeproo
  *        min_value: pointer to an unsigned int64 which will be updated with the minimum value that commit could have. (cannot be NULL)
  *        max_value: pointer to an unsigned int64 which will be updated with the maximum value that commit could have. (cannot be NULL)
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_3_0_rangeproof_info(
-  const rustsecp256k1zkp_v0_3_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_4_0_rangeproof_info(
+  const rustsecp256k1zkp_v0_4_0_context* ctx,
   int *exp,
   int *mantissa,
   uint64_t *min_value,
