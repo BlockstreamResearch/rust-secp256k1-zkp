@@ -61,6 +61,12 @@ impl CPtr for EcdsaAdaptorSignature {
     }
 }
 
+impl AsRef<[u8]> for EcdsaAdaptorSignature {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
+
 impl EcdsaAdaptorSignature {
     /// Creates an [`EcdsaAdaptorSignature`] directly from a slice
     #[inline]
