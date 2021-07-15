@@ -45,3 +45,6 @@ bitcoin_hashes = "0.9"
 [target.wasm32-unknown-unknown.dev-dependencies]
 wasm-bindgen-test = "0.3"
 rand = { version = "0.6", features = ["wasm-bindgen"] }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
