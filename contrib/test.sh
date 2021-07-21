@@ -52,8 +52,8 @@ fi
 
 # Webassembly stuff
 if [ "$DO_WASM" = true ]; then
-    clang --version &&
-    wasm-pack build &&
+    clang --version
+    wasm-pack build
     wasm-pack test --node;
 fi
 
