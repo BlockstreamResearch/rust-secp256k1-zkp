@@ -53,8 +53,8 @@ fi
 # Webassembly stuff
 if [ "$DO_WASM" = true ]; then
     clang --version &&
-    CC=clang-9 wasm-pack build &&
-    CC=clang-9 wasm-pack test --node;
+    wasm-pack build &&
+    wasm-pack test --node;
 fi
 
 # Address Sanitizer

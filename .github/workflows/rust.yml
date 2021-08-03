@@ -29,13 +29,21 @@ jobs:
           DO_BENCH: true
         run: ./contrib/test.sh
 
-  wasm_pack:
+  wasm:
     name: Stable - Docs / WebAssembly Build
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust:
-          - stable
+        target: [ x86_64-unknown-linux-gnu, x86_64-apple-darwin ]
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            cc: clang-12
+            ar: ar
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            cc: /usr/local/opt/llvm/bin/clang
+            ar: /usr/local/opt/llvm/bin/llvm-ar
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Crate
         uses: actions/checkout@v2
@@ -43,7 +51,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ matrix.rust }}
+          toolchain: stable
           override: true
       - name: Building docs
         env:
@@ -54,17 +62,9 @@ jobs:
       - name: Running WASM build
         env:
           DO_WASM: true
+          CC: ${{ matrix.cc }}
+          AR: ${{ matrix.ar }}
         run: ./contrib/test.sh
-
-  build_wasm:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: wasm32-unknown-unknown
-      - run: cargo build --target wasm32-unknown-unknown --features global-context,use-serde,use-rand
 
   Tests:
     name: Tests
