@@ -457,7 +457,7 @@ static void rustsecp256k1zkp_v0_4_0_musig_compute_messagehash(const rustsecp256k
 
     VERIFY_CHECK(session->round >= 2);
 
-    rustsecp256k1zkp_v0_4_0_schnorrsig_sha256_tagged(&sha);
+    rustsecp256k1zkp_v0_4_0_musig_sha256_init_tagged(&sha);
     rustsecp256k1zkp_v0_4_0_xonly_pubkey_load(ctx, &rp, &session->combined_nonce);
     rustsecp256k1zkp_v0_4_0_fe_get_b32(buf, &rp.x);
     rustsecp256k1zkp_v0_4_0_sha256_write(&sha, buf, 32);
