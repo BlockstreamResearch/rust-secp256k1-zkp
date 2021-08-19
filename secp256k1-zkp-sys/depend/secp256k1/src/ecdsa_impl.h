@@ -140,7 +140,7 @@ static int rustsecp256k1zkp_v0_4_0_der_parse_integer(rustsecp256k1zkp_v0_4_0_sca
         overflow = 1;
     }
     if (!overflow) {
-        memcpy(ra + 32 - rlen, *sig, rlen);
+        if (rlen) memcpy(ra + 32 - rlen, *sig, rlen);
         rustsecp256k1zkp_v0_4_0_scalar_set_b32(r, ra, &overflow);
     }
     if (overflow) {

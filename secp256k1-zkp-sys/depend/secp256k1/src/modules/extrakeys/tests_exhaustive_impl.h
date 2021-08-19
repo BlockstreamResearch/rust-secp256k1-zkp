@@ -8,7 +8,7 @@
 #define SECP256K1_MODULE_EXTRAKEYS_TESTS_EXHAUSTIVE_H
 
 #include "src/modules/extrakeys/main_impl.h"
-#include "include/secp256k1_extrakeys.h"
+#include "../../../include/secp256k1_extrakeys.h"
 
 static void test_exhaustive_extrakeys(const rustsecp256k1zkp_v0_4_0_context *ctx, const rustsecp256k1zkp_v0_4_0_ge* group) {
     rustsecp256k1zkp_v0_4_0_keypair keypair[EXHAUSTIVE_TEST_ORDER - 1];

@@ -369,7 +369,7 @@ SECP256K1_INLINE static int rustsecp256k1zkp_v0_4_0_rangeproof_rewind_inner(rust
     rustsecp256k1zkp_v0_4_0_scalar stmp;
     unsigned char prep[4096];
     unsigned char tmp[32];
-    uint64_t value;
+    uint64_t value = 0;
     size_t offset;
     size_t i;
     size_t j;

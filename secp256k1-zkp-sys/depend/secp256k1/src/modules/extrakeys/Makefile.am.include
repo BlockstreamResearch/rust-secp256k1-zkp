@@ -2,3 +2,5 @@ include_HEADERS += include/rustsecp256k1zkp_v0_4_0_extrakeys.h
 noinst_HEADERS += src/modules/extrakeys/tests_impl.h
 noinst_HEADERS += src/modules/extrakeys/tests_exhaustive_impl.h
 noinst_HEADERS += src/modules/extrakeys/main_impl.h
+noinst_HEADERS += src/modules/extrakeys/hsort.h
+noinst_HEADERS += src/modules/extrakeys/hsort_impl.h

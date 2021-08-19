@@ -7,8 +7,9 @@
 #ifndef SECP256K1_MODULE_EXTRAKEYS_MAIN_H
 #define SECP256K1_MODULE_EXTRAKEYS_MAIN_H
 
-#include "include/secp256k1.h"
-#include "include/secp256k1_extrakeys.h"
+#include "../../../include/secp256k1.h"
+#include "../../../include/secp256k1_extrakeys.h"
+#include "hsort_impl.h"
 
 static SECP256K1_INLINE int rustsecp256k1zkp_v0_4_0_xonly_pubkey_load(const rustsecp256k1zkp_v0_4_0_context* ctx, rustsecp256k1zkp_v0_4_0_ge *ge, const rustsecp256k1zkp_v0_4_0_xonly_pubkey *pubkey) {
     return rustsecp256k1zkp_v0_4_0_pubkey_load(ctx, ge, (const rustsecp256k1zkp_v0_4_0_pubkey *) pubkey);
@@ -53,6 +54,32 @@ int rustsecp256k1zkp_v0_4_0_xonly_pubkey_serialize(const rustsecp256k1zkp_v0_4_0
     }
     rustsecp256k1zkp_v0_4_0_fe_get_b32(output32, &pk.x);
     return 1;
+}
+
+int rustsecp256k1zkp_v0_4_0_xonly_pubkey_cmp(const rustsecp256k1zkp_v0_4_0_context* ctx, const rustsecp256k1zkp_v0_4_0_xonly_pubkey* pk0, const rustsecp256k1zkp_v0_4_0_xonly_pubkey* pk1) {
+    unsigned char out[2][32];
+    const rustsecp256k1zkp_v0_4_0_xonly_pubkey* pk[2];
+    int i;
+
+    VERIFY_CHECK(ctx != NULL);
+    pk[0] = pk0; pk[1] = pk1;
+    for (i = 0; i < 2; i++) {
+        /* If the public key is NULL or invalid, xonly_pubkey_serialize will
+         * call the illegal_callback and return 0. In that case we will
+         * serialize the key as all zeros which is less than any valid public
+         * key. This results in consistent comparisons even if NULL or invalid
+         * pubkeys are involved and prevents edge cases such as sorting
+         * algorithms that use this function and do not terminate as a
+         * result. */
+        if (!rustsecp256k1zkp_v0_4_0_xonly_pubkey_serialize(ctx, out[i], pk[i])) {
+            /* Note that xonly_pubkey_serialize should already set the output to
+             * zero in that case, but it's not guaranteed by the API, we can't
+             * test it and writing a VERIFY_CHECK is more complex than
+             * explicitly memsetting (again). */
+            memset(out[i], 0, sizeof(out[i]));
+        }
+    }
+    return rustsecp256k1zkp_v0_4_0_memcmp_var(out[0], out[1], sizeof(out[1]));
 }
 
 /** Keeps a group element as is if it has an even Y and otherwise negates it.
@@ -126,6 +153,28 @@ int rustsecp256k1zkp_v0_4_0_xonly_pubkey_tweak_add_check(const rustsecp256k1zkp_
 
     return rustsecp256k1zkp_v0_4_0_memcmp_var(&pk_expected32, tweaked_pubkey32, 32) == 0
             && rustsecp256k1zkp_v0_4_0_fe_is_odd(&pk.y) == tweaked_pk_parity;
+}
+
+/* This struct wraps a const context pointer to satisfy the rustsecp256k1zkp_v0_4_0_hsort api
+ * which expects a non-const cmp_data pointer. */
+typedef struct {
+    const rustsecp256k1zkp_v0_4_0_context *ctx;
+} rustsecp256k1zkp_v0_4_0_xonly_sort_cmp_data;
+
+static int rustsecp256k1zkp_v0_4_0_xonly_sort_cmp(const void* pk1, const void* pk2, void *cmp_data) {
+    return rustsecp256k1zkp_v0_4_0_xonly_pubkey_cmp(((rustsecp256k1zkp_v0_4_0_xonly_sort_cmp_data*)cmp_data)->ctx,
+                                      *(rustsecp256k1zkp_v0_4_0_xonly_pubkey **)pk1,
+                                      *(rustsecp256k1zkp_v0_4_0_xonly_pubkey **)pk2);
+}
+
+int rustsecp256k1zkp_v0_4_0_xonly_sort(const rustsecp256k1zkp_v0_4_0_context* ctx, const rustsecp256k1zkp_v0_4_0_xonly_pubkey **pubkeys, size_t n_pubkeys) {
+    rustsecp256k1zkp_v0_4_0_xonly_sort_cmp_data cmp_data;
+    VERIFY_CHECK(ctx != NULL);
+    ARG_CHECK(pubkeys != NULL);
+
+    cmp_data.ctx = ctx;
+    rustsecp256k1zkp_v0_4_0_hsort(pubkeys, n_pubkeys, sizeof(*pubkeys), rustsecp256k1zkp_v0_4_0_xonly_sort_cmp, &cmp_data);
+    return 1;
 }
 
 static void rustsecp256k1zkp_v0_4_0_keypair_save(rustsecp256k1zkp_v0_4_0_keypair *keypair, const rustsecp256k1zkp_v0_4_0_scalar *sk, rustsecp256k1zkp_v0_4_0_ge *pk) {

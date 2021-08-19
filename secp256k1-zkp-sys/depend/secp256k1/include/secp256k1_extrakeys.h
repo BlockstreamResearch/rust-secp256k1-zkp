@@ -15,9 +15,9 @@ extern "C" {
  *  The exact representation of data inside is implementation defined and not
  *  guaranteed to be portable between different platforms or versions. It is
  *  however guaranteed to be 64 bytes in size, and can be safely copied/moved.
- *  If you need to convert to a format suitable for storage, transmission, or
- *  comparison, use rustsecp256k1zkp_v0_4_0_xonly_pubkey_serialize and
- *  rustsecp256k1zkp_v0_4_0_xonly_pubkey_parse.
+ *  If you need to convert to a format suitable for storage, transmission, use
+ *  use rustsecp256k1zkp_v0_4_0_xonly_pubkey_serialize and rustsecp256k1zkp_v0_4_0_xonly_pubkey_parse. To
+ *  compare keys, use rustsecp256k1zkp_v0_4_0_xonly_pubkey_cmp.
  */
 typedef struct {
     unsigned char data[64];
@@ -65,6 +65,21 @@ SECP256K1_API int rustsecp256k1zkp_v0_4_0_xonly_pubkey_serialize(
     const rustsecp256k1zkp_v0_4_0_context* ctx,
     unsigned char *output32,
     const rustsecp256k1zkp_v0_4_0_xonly_pubkey* pubkey
+) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
+
+/** Compare two x-only public keys using lexicographic order
+ *
+ *  Returns: <0 if the first public key is less than the second
+ *           >0 if the first public key is greater than the second
+ *           0 if the two public keys are equal
+ *  Args: ctx:      a secp256k1 context object.
+ *  In:   pubkey1:  first public key to compare
+ *        pubkey2:  second public key to compare
+ */
+SECP256K1_API int rustsecp256k1zkp_v0_4_0_xonly_pubkey_cmp(
+    const rustsecp256k1zkp_v0_4_0_context* ctx,
+    const rustsecp256k1zkp_v0_4_0_xonly_pubkey* pk1,
+    const rustsecp256k1zkp_v0_4_0_xonly_pubkey* pk2
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Converts a rustsecp256k1zkp_v0_4_0_pubkey into a rustsecp256k1zkp_v0_4_0_xonly_pubkey.
@@ -150,6 +165,20 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_4_0_xonly_pub
     const rustsecp256k1zkp_v0_4_0_xonly_pubkey *internal_pubkey,
     const unsigned char *tweak32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5);
+
+/** Sorts xonly public keys according to rustsecp256k1zkp_v0_4_0_xonly_pubkey_cmp
+ *
+ *  Returns: 0 if the arguments are invalid. 1 otherwise.
+ *
+ *  Args:     ctx: pointer to a context object
+ *  In:   pubkeys: array of pointers to pubkeys to sort
+ *      n_pubkeys: number of elements in the pubkeys array
+ */
+SECP256K1_API int rustsecp256k1zkp_v0_4_0_xonly_sort(
+    const rustsecp256k1zkp_v0_4_0_context* ctx,
+    const rustsecp256k1zkp_v0_4_0_xonly_pubkey **pubkeys,
+    size_t n_pubkeys
+) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2);
 
 /** Compute the keypair for a secret key.
  *

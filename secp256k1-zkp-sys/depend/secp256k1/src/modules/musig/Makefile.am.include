@@ -1,5 +1,9 @@
 include_HEADERS += include/rustsecp256k1zkp_v0_4_0_musig.h
 noinst_HEADERS += src/modules/musig/main_impl.h
+noinst_HEADERS += src/modules/musig/keyagg_impl.h
+noinst_HEADERS += src/modules/musig/session.h
+noinst_HEADERS += src/modules/musig/session_impl.h
+noinst_HEADERS += src/modules/musig/adaptor_impl.h
 noinst_HEADERS += src/modules/musig/tests_impl.h
 
 noinst_PROGRAMS += example_musig

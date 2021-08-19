@@ -10,7 +10,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <time.h>
 
 #undef USE_ECMULT_STATIC_PRECOMPUTATION
@@ -20,10 +19,10 @@
 #define EXHAUSTIVE_TEST_ORDER 13
 #endif
 
-#include "include/secp256k1.h"
+#include "secp256k1.c"
+#include "../include/secp256k1.h"
 #include "assumptions.h"
 #include "group.h"
-#include "secp256k1.c"
 #include "testrand_impl.h"
 
 static int count = 2;
@@ -303,6 +302,7 @@ void test_exhaustive_sign(const rustsecp256k1zkp_v0_4_0_context *ctx, const rust
             if (skip_section(&iter)) continue;
             for (k = 1; k < EXHAUSTIVE_TEST_ORDER; k++) {  /* nonce */
                 const int starting_k = k;
+                int ret;
                 rustsecp256k1zkp_v0_4_0_ecdsa_signature sig;
                 rustsecp256k1zkp_v0_4_0_scalar sk, msg, r, s, expected_r;
                 unsigned char sk32[32], msg32[32];
@@ -311,7 +311,8 @@ void test_exhaustive_sign(const rustsecp256k1zkp_v0_4_0_context *ctx, const rust
                 rustsecp256k1zkp_v0_4_0_scalar_get_b32(sk32, &sk);
                 rustsecp256k1zkp_v0_4_0_scalar_get_b32(msg32, &msg);
 
-                rustsecp256k1zkp_v0_4_0_ecdsa_sign(ctx, &sig, msg32, sk32, rustsecp256k1zkp_v0_4_0_nonce_function_smallint, &k);
+                ret = rustsecp256k1zkp_v0_4_0_ecdsa_sign(ctx, &sig, msg32, sk32, rustsecp256k1zkp_v0_4_0_nonce_function_smallint, &k);
+                CHECK(ret == 1);
 
                 rustsecp256k1zkp_v0_4_0_ecdsa_signature_load(ctx, &r, &s, &sig);
                 /* Note that we compute expected_r *after* signing -- this is important
