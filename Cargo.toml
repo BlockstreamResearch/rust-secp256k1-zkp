@@ -25,7 +25,7 @@ rand-std = ["rand/std", "secp256k1/rand-std"]
 recovery = ["secp256k1-zkp-sys/recovery", "secp256k1/recovery"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory", "secp256k1/lowmemory"]
 global-context = ["std", "rand-std", "secp256k1/global-context"]
-hashes = ["secp256k1/bitcoin_hashes"]
+bitcoin_hashes = ["secp256k1/bitcoin_hashes"]
 use-serde = ["serde", "secp256k1/serde"]
 use-rand = ["rand", "secp256k1/rand"]
 
