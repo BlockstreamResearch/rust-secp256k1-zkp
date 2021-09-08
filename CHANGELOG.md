@@ -12,6 +12,7 @@
 - Add ECDSA adaptor signatures
 
 # 0.2.1 - 2021-04-13
+
 - Fix bug in Pedersen Commitment deserialization.
 
 # 0.2.0 - 2021-01-06
@@ -22,5 +23,3 @@
 # 0.1.0 - 2019-06-03
 
 - Initial release with bindings to Schnorr signatures
-
-
