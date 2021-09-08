@@ -25,14 +25,13 @@ rand-std = ["rand/std", "secp256k1/rand-std"]
 recovery = ["secp256k1-zkp-sys/recovery", "secp256k1/recovery"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory", "secp256k1/lowmemory"]
 global-context = ["std", "rand-std", "secp256k1/global-context"]
-hashes = ["bitcoin_hashes", "secp256k1/bitcoin_hashes"]
+hashes = ["secp256k1/bitcoin_hashes"]
 use-serde = ["serde", "secp256k1/serde"]
 use-rand = ["rand", "secp256k1/rand"]
 
 [dependencies]
 secp256k1 = "0.20.0"
 secp256k1-zkp-sys = { version = "0.4.0", default-features = false, path = "./secp256k1-zkp-sys" }
-bitcoin_hashes = { version = "0.9", optional = true }
 rand = { version = "0.6", default-features = false, optional = true }
 serde = { version = "1.0", default-features = false, optional = true }
 
@@ -40,7 +39,6 @@ serde = { version = "1.0", default-features = false, optional = true }
 rand = "0.6"
 rand_core = "0.4"
 serde_test = "1.0"
-bitcoin_hashes = "0.9"
 
 [target.wasm32-unknown-unknown.dev-dependencies]
 wasm-bindgen-test = "0.3"
