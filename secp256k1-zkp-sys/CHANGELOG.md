@@ -6,6 +6,3 @@
 # 0.1.0 - 2019-06-03
 
 - Initial release with bindings to Schnorr signatures
-
-
-

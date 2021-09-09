@@ -1,6 +1,6 @@
 #!/bin/sh -ex
 
-FEATURES="hashes global-context lowmemory use-rand rand-std recovery use-serde"
+FEATURES="bitcoin_hashes global-context lowmemory use-rand rand-std recovery use-serde"
 
 # Use toolchain if explicitly specified
 if [ -n "$TOOLCHAIN" ]
