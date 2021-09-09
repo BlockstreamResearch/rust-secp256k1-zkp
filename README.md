@@ -11,6 +11,7 @@ In addition to everything from `rust-secp256k1`, this library adds type-safe Rus
 - generators
 - range proofs
 - pedersen commitments
+- adaptor signatures
 
 ### Contributing
 
