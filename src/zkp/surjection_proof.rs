@@ -1,5 +1,7 @@
 use core::mem::size_of;
 use ffi;
+use from_hex;
+use std::str;
 use Verification;
 use {Error, Generator, Secp256k1};
 
@@ -187,7 +189,16 @@ impl ::core::fmt::Display for SurjectionProof {
     }
 }
 
-// TODO: Macrofy (de)serialization
+impl str::FromStr for SurjectionProof {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<SurjectionProof, Error> {
+        let mut res = Vec::with_capacity(s.len() / 2);
+        match from_hex(s, &mut res) {
+            Ok(_) => SurjectionProof::from_slice(&res),
+            _ => Err(Error::InvalidSurjectionProof),
+        }
+    }
+}
 
 #[cfg(all(feature = "serde", feature = "hashes"))]
 impl ::serde::Serialize for SurjectionProof {
@@ -203,48 +214,15 @@ impl ::serde::Serialize for SurjectionProof {
 #[cfg(all(feature = "serde", feature = "hashes"))]
 impl<'de> ::serde::Deserialize<'de> for SurjectionProof {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<SurjectionProof, D::Error> {
-        use core::fmt;
+        use serde_util;
 
         if d.is_human_readable() {
-            struct HexVisitor;
-
-            impl<'de> ::serde::de::Visitor<'de> for HexVisitor {
-                type Value = SurjectionProof;
-
-                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                    formatter.write_str("an ASCII hex string")
-                }
-
-                fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-                where
-                    E: ::serde::de::Error,
-                {
-                    use bitcoin_hashes::hex::FromHex;
-
-                    let bytes = Vec::<u8>::from_hex(v).map_err(E::custom)?;
-                    SurjectionProof::from_slice(&bytes).map_err(E::custom)
-                }
-            }
-            d.deserialize_str(HexVisitor)
+            d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
         } else {
-            struct BytesVisitor;
-
-            impl<'de> ::serde::de::Visitor<'de> for BytesVisitor {
-                type Value = SurjectionProof;
-
-                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                    formatter.write_str("a bytestring")
-                }
-
-                fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
-                where
-                    E: ::serde::de::Error,
-                {
-                    SurjectionProof::from_slice(v).map_err(E::custom)
-                }
-            }
-
-            d.deserialize_bytes(BytesVisitor)
+            d.deserialize_bytes(serde_util::BytesVisitor::new(
+                "a bytestring",
+                SurjectionProof::from_slice,
+            ))
         }
     }
 }

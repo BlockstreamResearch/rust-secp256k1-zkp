@@ -1,5 +1,7 @@
 use ffi::RANGEPROOF_MAX_LENGTH;
+use from_hex;
 use std::ops::Range;
+use std::str;
 use Error;
 use Generator;
 use PedersenCommitment;
@@ -207,7 +209,16 @@ impl ::core::fmt::Display for RangeProof {
     }
 }
 
-// TODO: Macrofy (de)serialization
+impl str::FromStr for RangeProof {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<RangeProof, Error> {
+        let mut res = Vec::with_capacity(s.len() / 2);
+        match from_hex(s, &mut res) {
+            Ok(_) => RangeProof::from_slice(&res),
+            _ => Err(Error::InvalidRangeProof),
+        }
+    }
+}
 
 #[cfg(all(feature = "serde", feature = "hashes"))]
 impl ::serde::Serialize for RangeProof {
@@ -223,48 +234,15 @@ impl ::serde::Serialize for RangeProof {
 #[cfg(all(feature = "serde", feature = "hashes"))]
 impl<'de> ::serde::Deserialize<'de> for RangeProof {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<RangeProof, D::Error> {
-        use core::fmt;
+        use serde_util;
 
         if d.is_human_readable() {
-            struct HexVisitor;
-
-            impl<'de> ::serde::de::Visitor<'de> for HexVisitor {
-                type Value = RangeProof;
-
-                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                    formatter.write_str("an ASCII hex string")
-                }
-
-                fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-                where
-                    E: ::serde::de::Error,
-                {
-                    use bitcoin_hashes::hex::FromHex;
-
-                    let bytes = Vec::<u8>::from_hex(v).map_err(E::custom)?;
-                    RangeProof::from_slice(&bytes).map_err(E::custom)
-                }
-            }
-            d.deserialize_str(HexVisitor)
+            d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
         } else {
-            struct BytesVisitor;
-
-            impl<'de> ::serde::de::Visitor<'de> for BytesVisitor {
-                type Value = RangeProof;
-
-                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                    formatter.write_str("a bytestring")
-                }
-
-                fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
-                where
-                    E: ::serde::de::Error,
-                {
-                    RangeProof::from_slice(v).map_err(E::custom)
-                }
-            }
-
-            d.deserialize_bytes(BytesVisitor)
+            d.deserialize_bytes(serde_util::BytesVisitor::new(
+                "a bytestring",
+                RangeProof::from_slice,
+            ))
         }
     }
 }
