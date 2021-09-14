@@ -178,7 +178,7 @@ impl SurjectionProof {
     }
 }
 
-#[cfg(feature = "hashes")]
+#[cfg(feature = "bitcoin_hashes")]
 impl ::core::fmt::Display for SurjectionProof {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         use bitcoin_hashes::hex::format_hex;
@@ -189,7 +189,7 @@ impl ::core::fmt::Display for SurjectionProof {
 
 // TODO: Macrofy (de)serialization
 
-#[cfg(all(feature = "serde", feature = "hashes"))]
+#[cfg(all(feature = "serde", feature = "bitcoin_hashes"))]
 impl ::serde::Serialize for SurjectionProof {
     fn serialize<S: ::serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         if s.is_human_readable() {
@@ -200,7 +200,7 @@ impl ::serde::Serialize for SurjectionProof {
     }
 }
 
-#[cfg(all(feature = "serde", feature = "hashes"))]
+#[cfg(all(feature = "serde", feature = "bitcoin_hashes"))]
 impl<'de> ::serde::Deserialize<'de> for SurjectionProof {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<SurjectionProof, D::Error> {
         use core::fmt;
