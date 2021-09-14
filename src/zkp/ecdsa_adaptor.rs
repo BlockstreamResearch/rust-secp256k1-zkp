@@ -50,6 +50,33 @@ impl str::FromStr for EcdsaAdaptorSignature {
     }
 }
 
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for EcdsaAdaptorSignature {
+    fn serialize<S: ::serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        if s.is_human_readable() {
+            s.collect_str(self)
+        } else {
+            s.serialize_bytes(self.0.as_bytes())
+        }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> ::serde::Deserialize<'de> for EcdsaAdaptorSignature {
+    fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        use serde_util;
+
+        if d.is_human_readable() {
+            d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
+        } else {
+            d.deserialize_bytes(serde_util::BytesVisitor::new(
+                "a bytestring",
+                EcdsaAdaptorSignature::from_slice,
+            ))
+        }
+    }
+}
+
 impl CPtr for EcdsaAdaptorSignature {
     type Target = ffi::EcdsaAdaptorSignature;
     fn as_c_ptr(&self) -> *const Self::Target {
@@ -407,6 +434,49 @@ mod tests {
             .expect("with high s we should still be able to recover the decryption key");
 
         assert_eq!(expected_decryption_key, recovered);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_ecdsa_adaptor_sig_de_serialization() {
+        use serde_test::Configure;
+        use serde_test::{assert_tokens, Token};
+
+        let sig = EcdsaAdaptorSignature::from_slice(&[
+            3, 44, 99, 124, 215, 151, 221, 140, 44, 226, 97, 144, 126, 212, 62, 130, 214, 209, 164,
+            140, 186, 187, 190, 206, 128, 17, 51, 221, 141, 112, 160, 27, 20, 3, 235, 97, 90, 62,
+            89, 177, 203, 191, 79, 135, 172, 175, 100, 91, 225, 237, 163, 42, 6, 102, 17, 243, 93,
+            213, 85, 120, 2, 128, 43, 20, 177, 156, 129, 192, 76, 63, 239, 172, 87, 131, 178, 7,
+            123, 212, 63, 160, 163, 154, 184, 166, 77, 77, 120, 51, 42, 93, 98, 30, 162, 62, 202,
+            70, 188, 1, 16, 17, 171, 130, 221, 166, 222, 184, 86, 153, 245, 8, 116, 77, 112, 212,
+            19, 75, 234, 3, 247, 132, 210, 133, 181, 198, 193, 90, 86, 228, 225, 250, 180, 188, 53,
+            106, 187, 222, 187, 59, 143, 225, 229, 94, 109, 214, 210, 169, 234, 69, 126, 145, 178,
+            230, 100, 47, 174, 105, 249, 219, 181, 37, 136, 84,
+        ])
+        .unwrap();
+
+        assert_tokens(
+            &sig.readable(),
+            &[Token::Str(
+                "032c637cd797dd8c2ce261907ed43e82d6d1a48cbabbbece801133dd8d70a01b1403eb615a3e59b1cbbf4f87acaf645be1eda32a066611f35dd5557802802b14b19c81c04c3fefac5783b2077bd43fa0a39ab8a64d4d78332a5d621ea23eca46bc011011ab82dda6deb85699f508744d70d4134bea03f784d285b5c6c15a56e4e1fab4bc356abbdebb3b8fe1e55e6dd6d2a9ea457e91b2e6642fae69f9dbb5258854",
+            )],
+        );
+
+        assert_tokens(
+            &sig.compact(),
+            &[Token::Bytes(&[
+                3, 44, 99, 124, 215, 151, 221, 140, 44, 226, 97, 144, 126, 212, 62, 130, 214, 209,
+                164, 140, 186, 187, 190, 206, 128, 17, 51, 221, 141, 112, 160, 27, 20, 3, 235, 97,
+                90, 62, 89, 177, 203, 191, 79, 135, 172, 175, 100, 91, 225, 237, 163, 42, 6, 102,
+                17, 243, 93, 213, 85, 120, 2, 128, 43, 20, 177, 156, 129, 192, 76, 63, 239, 172,
+                87, 131, 178, 7, 123, 212, 63, 160, 163, 154, 184, 166, 77, 77, 120, 51, 42, 93,
+                98, 30, 162, 62, 202, 70, 188, 1, 16, 17, 171, 130, 221, 166, 222, 184, 86, 153,
+                245, 8, 116, 77, 112, 212, 19, 75, 234, 3, 247, 132, 210, 133, 181, 198, 193, 90,
+                86, 228, 225, 250, 180, 188, 53, 106, 187, 222, 187, 59, 143, 225, 229, 94, 109,
+                214, 210, 169, 234, 69, 126, 145, 178, 230, 100, 47, 174, 105, 249, 219, 181, 37,
+                136, 84,
+            ])],
+        );
     }
 
     fn msg_from_str(input: &str) -> Message {
