@@ -223,54 +223,15 @@ impl ::serde::Serialize for Generator {
 #[cfg(feature = "serde")]
 impl<'de> ::serde::Deserialize<'de> for Generator {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        use serde_util;
+
         if d.is_human_readable() {
-            struct HexVisitor;
-
-            impl<'de> ::serde::de::Visitor<'de> for HexVisitor {
-                type Value = Generator;
-
-                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                    formatter.write_str("an ASCII hex string")
-                }
-
-                fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
-                where
-                    E: ::serde::de::Error,
-                {
-                    if let Ok(hex) = str::from_utf8(v) {
-                        str::FromStr::from_str(hex).map_err(E::custom)
-                    } else {
-                        Err(E::invalid_value(::serde::de::Unexpected::Bytes(v), &self))
-                    }
-                }
-
-                fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-                where
-                    E: ::serde::de::Error,
-                {
-                    str::FromStr::from_str(v).map_err(E::custom)
-                }
-            }
-            d.deserialize_str(HexVisitor)
+            d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
         } else {
-            struct BytesVisitor;
-
-            impl<'de> ::serde::de::Visitor<'de> for BytesVisitor {
-                type Value = Generator;
-
-                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                    formatter.write_str("a bytestring")
-                }
-
-                fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
-                where
-                    E: ::serde::de::Error,
-                {
-                    Generator::from_slice(v).map_err(E::custom)
-                }
-            }
-
-            d.deserialize_bytes(BytesVisitor)
+            d.deserialize_bytes(serde_util::BytesVisitor::new(
+                "a bytestring",
+                Generator::from_slice,
+            ))
         }
     }
 }
@@ -289,54 +250,15 @@ impl ::serde::Serialize for Tweak {
 #[cfg(feature = "serde")]
 impl<'de> ::serde::Deserialize<'de> for Tweak {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        use serde_util;
+
         if d.is_human_readable() {
-            struct HexVisitor;
-
-            impl<'de> ::serde::de::Visitor<'de> for HexVisitor {
-                type Value = Tweak;
-
-                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                    formatter.write_str("an ASCII hex string")
-                }
-
-                fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
-                where
-                    E: ::serde::de::Error,
-                {
-                    if let Ok(hex) = str::from_utf8(v) {
-                        str::FromStr::from_str(hex).map_err(E::custom)
-                    } else {
-                        Err(E::invalid_value(::serde::de::Unexpected::Bytes(v), &self))
-                    }
-                }
-
-                fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-                where
-                    E: ::serde::de::Error,
-                {
-                    str::FromStr::from_str(v).map_err(E::custom)
-                }
-            }
-            d.deserialize_str(HexVisitor)
+            d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
         } else {
-            struct BytesVisitor;
-
-            impl<'de> ::serde::de::Visitor<'de> for BytesVisitor {
-                type Value = Tweak;
-
-                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                    formatter.write_str("a bytestring")
-                }
-
-                fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
-                where
-                    E: ::serde::de::Error,
-                {
-                    Tweak::from_slice(v).map_err(E::custom)
-                }
-            }
-
-            d.deserialize_bytes(BytesVisitor)
+            d.deserialize_bytes(serde_util::BytesVisitor::new(
+                "a bytestring",
+                Tweak::from_slice,
+            ))
         }
     }
 }

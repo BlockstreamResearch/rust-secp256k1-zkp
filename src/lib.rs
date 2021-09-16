@@ -74,6 +74,8 @@ pub use key::{PublicKey, SecretKey};
 
 pub use secp256k1::*;
 
+#[cfg(feature = "serde")]
+mod serde_util;
 mod zkp;
 pub use zkp::*;
 
