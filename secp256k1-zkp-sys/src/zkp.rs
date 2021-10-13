@@ -1,9 +1,12 @@
 use core::{fmt, hash};
-use {types::*, Context, PublicKey, Signature};
+use {types::*, Context, NonceFn, PublicKey, Signature};
 
 /// Rangeproof maximum length
 pub const RANGEPROOF_MAX_LENGTH: size_t = 5134;
 pub const ECDSA_ADAPTOR_SIGNATURE_LENGTH: size_t = 162;
+
+/// The maximum number of whitelist keys.
+pub const WHITELIST_MAX_N_KEYS: size_t = 255;
 
 extern "C" {
     #[cfg_attr(
@@ -334,6 +337,59 @@ extern "C" {
         adaptor_sig162: *const EcdsaAdaptorSignature,
         enckey: *const PublicKey,
     ) -> c_int;
+
+    #[cfg_attr(
+        not(feature = "external-symbols"),
+        link_name = "rustsecp256k1zkp_v0_4_0_whitelist_signature_parse"
+    )]
+    pub fn secp256k1_whitelist_signature_parse(
+        cx: *const Context,
+        sig: *mut WhitelistSignature,
+        input: *const c_uchar,
+        input_len: size_t,
+    ) -> c_int;
+
+    #[cfg_attr(
+        not(feature = "external-symbols"),
+        link_name = "rustsecp256k1zkp_v0_4_0_whitelist_signature_serialize"
+    )]
+    pub fn secp256k1_whitelist_signature_serialize(
+        ctx: *const Context,
+        output: *mut c_uchar,
+        outputlen: *mut size_t,
+        sig: *const WhitelistSignature,
+    ) -> c_int;
+
+    #[cfg_attr(
+        not(feature = "external-symbols"),
+        link_name = "rustsecp256k1zkp_v0_4_0_whitelist_sign"
+    )]
+    pub fn secp256k1_whitelist_sign(
+        ctx: *const Context,
+        sig: *mut WhitelistSignature,
+        online_keys: *const PublicKey,
+        offline_keys: *const PublicKey,
+        n_keys: size_t,
+        sub_pubkey: *const PublicKey,
+        online_seckey: *const c_uchar,
+        summed_seckey: *const c_uchar,
+        index: size_t,
+        noncefp: NonceFn,
+        noncedata: *mut c_void,
+    ) -> c_int;
+
+    #[cfg_attr(
+        not(feature = "external-symbols"),
+        link_name = "rustsecp256k1zkp_v0_4_0_whitelist_verify"
+    )]
+    pub fn secp256k1_whitelist_verify(
+        ctx: *const Context,
+        sig: *const WhitelistSignature,
+        online_keys: *const PublicKey,
+        offline_keys: *const PublicKey,
+        n_keys: size_t,
+        sub_pubkey: *const PublicKey,
+    ) -> c_int;
 }
 
 #[repr(C)]
@@ -473,6 +529,39 @@ impl Default for PedersenCommitment {
 impl hash::Hash for PedersenCommitment {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         state.write(&self.0)
+    }
+}
+
+/// A ring signature for the "whitelist" scheme.
+#[repr(C)]
+#[derive(Clone)]
+pub struct WhitelistSignature {
+    /// The number of keys.
+    pub n_keys: size_t,
+    /// The signature in the form of e0 + n_keys s values.
+    pub data: [u8; 32 * (1 + WHITELIST_MAX_N_KEYS)],
+}
+
+impl hash::Hash for WhitelistSignature {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.n_keys.hash(state);
+        self.data[..].hash(state);
+    }
+}
+
+impl PartialEq for WhitelistSignature {
+    fn eq(&self, other: &Self) -> bool {
+        self.n_keys == other.n_keys && self.data[..] == other.data[..]
+    }
+}
+impl Eq for WhitelistSignature {}
+
+impl Default for WhitelistSignature {
+    fn default() -> WhitelistSignature {
+        WhitelistSignature {
+            n_keys: 0,
+            data: [0; 32 * (1 + WHITELIST_MAX_N_KEYS)],
+        }
     }
 }
 

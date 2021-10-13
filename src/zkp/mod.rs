@@ -7,6 +7,7 @@ mod rangeproof;
 #[cfg(feature = "std")]
 mod surjection_proof;
 mod tag;
+mod whitelist;
 
 pub use self::ecdsa_adaptor::*;
 pub use self::generator::*;
@@ -17,3 +18,4 @@ pub use self::rangeproof::*;
 #[cfg(feature = "std")]
 pub use self::surjection_proof::*;
 pub use self::tag::*;
+pub use self::whitelist::*;

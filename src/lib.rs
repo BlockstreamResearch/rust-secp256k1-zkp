@@ -110,6 +110,14 @@ pub enum Error {
     CannotRecoverAdaptorSecret,
     /// Given adaptor signature is not valid for the provided combination of public key, encryption key and message
     CannotVerifyAdaptorSignature,
+    /// Given bytes don't represent a valid whitelist signature
+    InvalidWhitelistSignature,
+    /// Invalid PAK list
+    InvalidPakList,
+    /// Couldn't create whitelist signature with the given data.
+    CannotCreateWhitelistSignature,
+    /// The given whitelist signature doesn't correctly prove inclusion in the whitelist.
+    InvalidWhitelistProof,
 }
 
 // Passthrough Debug to Display, since errors should be user-visible
@@ -129,6 +137,14 @@ impl fmt::Display for Error {
             Error::Upstream(inner) => return write!(f, "{}", inner),
             Error::InvalidTweakLength => "Tweak must of size 32",
             Error::TweakOutOfBounds => "Tweak must be less than secp curve order",
+            Error::InvalidWhitelistSignature => "malformed whitelist signature",
+            Error::InvalidPakList => "invalid PAK list",
+            Error::CannotCreateWhitelistSignature => {
+                "cannot create whitelist signature with the given data"
+            }
+            Error::InvalidWhitelistProof => {
+                "given whitelist signature doesn't correctly prove inclusion in the whitelist"
+            }
         };
 
         f.write_str(str)
