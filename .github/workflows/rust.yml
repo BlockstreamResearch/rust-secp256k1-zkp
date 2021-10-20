@@ -103,3 +103,32 @@ jobs:
           DO_FEATURE_MATRIX: true
         run: ./contrib/test.sh
 
+  ReleaseTests:
+    name: Release tests with global context enabled
+    strategy:
+      matrix:
+        rust:
+          - 1.29.0
+          - beta
+          - stable
+        target: [ x86_64-unknown-linux-gnu, x86_64-apple-darwin ]
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Crate
+        uses: actions/checkout@v2
+      - name: Checkout Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: Pin cc if rust 1.29
+        if: matrix.rust == '1.29.0'
+        run: cargo generate-lockfile --verbose && cargo update -p cc --precise "1.0.41" --verbose
+      - name: Running cargo in release mode
+        run: cargo test --features="global-context" --release
