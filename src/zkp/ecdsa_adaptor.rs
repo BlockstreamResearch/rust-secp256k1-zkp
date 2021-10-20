@@ -167,19 +167,18 @@ impl EcdsaAdaptorSignature {
     ) -> EcdsaAdaptorSignature {
         let mut adaptor_sig = ffi::EcdsaAdaptorSignature::new();
 
-        unsafe {
-            debug_assert!(
-                ffi::secp256k1_ecdsa_adaptor_encrypt(
-                    *secp.ctx(),
-                    &mut adaptor_sig,
-                    sk.as_c_ptr(),
-                    enckey.as_c_ptr(),
-                    msg.as_c_ptr(),
-                    ffi::secp256k1_nonce_function_ecdsa_adaptor,
-                    ptr::null_mut(),
-                ) == 1
-            );
+        let res = unsafe {
+            ffi::secp256k1_ecdsa_adaptor_encrypt(
+                *secp.ctx(),
+                &mut adaptor_sig,
+                sk.as_c_ptr(),
+                enckey.as_c_ptr(),
+                msg.as_c_ptr(),
+                ffi::secp256k1_nonce_function_ecdsa_adaptor,
+                ptr::null_mut(),
+            )
         };
+        debug_assert_eq!(res, 1);
 
         EcdsaAdaptorSignature(adaptor_sig)
     }
@@ -197,19 +196,19 @@ impl EcdsaAdaptorSignature {
     ) -> EcdsaAdaptorSignature {
         let mut adaptor_sig = ffi::EcdsaAdaptorSignature::new();
 
-        unsafe {
-            debug_assert!(
-                ffi::secp256k1_ecdsa_adaptor_encrypt(
-                    *secp.ctx(),
-                    &mut adaptor_sig,
-                    sk.as_c_ptr(),
-                    enckey.as_c_ptr(),
-                    msg.as_c_ptr(),
-                    ffi::secp256k1_nonce_function_ecdsa_adaptor,
-                    aux_rand.as_c_ptr() as *mut ffi::types::c_void,
-                ) == 1
-            );
+        let res = unsafe {
+            ffi::secp256k1_ecdsa_adaptor_encrypt(
+                *secp.ctx(),
+                &mut adaptor_sig,
+                sk.as_c_ptr(),
+                enckey.as_c_ptr(),
+                msg.as_c_ptr(),
+                ffi::secp256k1_nonce_function_ecdsa_adaptor,
+                aux_rand.as_c_ptr() as *mut ffi::types::c_void,
+            )
         };
+        debug_assert_eq!(res, 1);
+
         EcdsaAdaptorSignature(adaptor_sig)
     }
 
