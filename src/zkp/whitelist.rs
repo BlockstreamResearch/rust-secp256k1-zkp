@@ -404,7 +404,7 @@ mod tests {
             // incorrectly serialized with byte changed
             let mut encoded = correct_signature.serialize();
             let len = encoded.len();
-            encoded[len - 1] = (encoded[len - 1] + 1) % 255;
+            encoded[len - 1] = encoded[len - 1] ^ 0x01;
             let decoded = WhitelistSignature::from_slice(&encoded).unwrap();
             assert_eq!(
                 Err(Error::InvalidWhitelistProof),
