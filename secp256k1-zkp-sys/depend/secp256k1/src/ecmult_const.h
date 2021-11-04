@@ -15,6 +15,6 @@
  * Here `bits` should be set to the maximum bitlength of the _absolute value_ of `q`, plus
  * one because we internally sometimes add 2 to the number during the WNAF conversion.
  */
-static void rustsecp256k1zkp_v0_4_0_ecmult_const(rustsecp256k1zkp_v0_4_0_gej *r, const rustsecp256k1zkp_v0_4_0_ge *a, const rustsecp256k1zkp_v0_4_0_scalar *q, int bits);
+static void rustsecp256k1zkp_v0_5_0_ecmult_const(rustsecp256k1zkp_v0_5_0_gej *r, const rustsecp256k1zkp_v0_5_0_ge *a, const rustsecp256k1zkp_v0_5_0_scalar *q, int bits);
 
 #endif /* SECP256K1_ECMULT_CONST_H */
