@@ -7,7 +7,7 @@
 #ifndef SECP256K1_MODULE_RECOVERY_MAIN_H
 #define SECP256K1_MODULE_RECOVERY_MAIN_H
 
-#include "include/secp256k1_recovery.h"
+#include "../../../include/secp256k1_recovery.h"
 
 static void rustsecp256k1zkp_v0_4_0_ecdsa_recoverable_signature_load(const rustsecp256k1zkp_v0_4_0_context* ctx, rustsecp256k1zkp_v0_4_0_scalar* r, rustsecp256k1zkp_v0_4_0_scalar* s, int* recid, const rustsecp256k1zkp_v0_4_0_ecdsa_recoverable_signature* sig) {
     (void)ctx;

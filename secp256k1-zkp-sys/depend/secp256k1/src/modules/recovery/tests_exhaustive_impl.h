@@ -8,7 +8,7 @@
 #define SECP256K1_MODULE_RECOVERY_EXHAUSTIVE_TESTS_H
 
 #include "src/modules/recovery/main_impl.h"
-#include "include/secp256k1_recovery.h"
+#include "../../../include/secp256k1_recovery.h"
 
 void test_exhaustive_recovery_sign(const rustsecp256k1zkp_v0_4_0_context *ctx, const rustsecp256k1zkp_v0_4_0_ge *group) {
     int i, j, k;

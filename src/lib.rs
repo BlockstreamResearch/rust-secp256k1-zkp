@@ -118,6 +118,22 @@ pub enum Error {
     CannotCreateWhitelistSignature,
     /// The given whitelist signature doesn't correctly prove inclusion in the whitelist.
     InvalidWhitelistProof,
+    /// Cannot establish Musig pre-session
+    InvalidMusigPreSession,
+    /// Invalid tweak to Musig public key
+    InvalidMusigTweak,
+    /// Cannot establish a Musig session
+    InvalidMusigSession,
+    /// Invalid Musig public nonces
+    CannotGenMusigNonce,
+    /// Invalid Musig public nonce
+    InvalidMusigPubNonce,
+    /// Invalid Musig aggregated nonce
+    InvalidMusigAggNonce,
+    /// Invalid Musig partial signature
+    InvalidMusigPartSig,
+    /// Cannot extract Musig secret adaptor
+    InvalidMusigExtract,
 }
 
 // Passthrough Debug to Display, since errors should be user-visible
@@ -145,6 +161,14 @@ impl fmt::Display for Error {
             Error::InvalidWhitelistProof => {
                 "given whitelist signature doesn't correctly prove inclusion in the whitelist"
             }
+            Error::InvalidMusigPreSession => "failed to create Musig pre-session",
+            Error::InvalidMusigTweak => "malformed Musig tweak",
+            Error::InvalidMusigSession => "failed to create a Musig session",
+            Error::CannotGenMusigNonce => "failed to create a Musig nonce pair",
+            Error::InvalidMusigPubNonce => "malformed Musig public nonce(s)",
+            Error::InvalidMusigAggNonce => "malformed Musig aggregated nonce",
+            Error::InvalidMusigPartSig => "malformed Musig partial signature",
+            Error::InvalidMusigExtract => "failed to extract Musig secret adaptor",
         };
 
         f.write_str(str)

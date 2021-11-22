@@ -43,13 +43,12 @@ static void rustsecp256k1zkp_v0_4_0_fe_normalize_weak(rustsecp256k1zkp_v0_4_0_fe
 /** Normalize a field element, without constant-time guarantee. */
 static void rustsecp256k1zkp_v0_4_0_fe_normalize_var(rustsecp256k1zkp_v0_4_0_fe *r);
 
-/** Verify whether a field element represents zero i.e. would normalize to a zero value. The field
- *  implementation may optionally normalize the input, but this should not be relied upon. */
-static int rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero(rustsecp256k1zkp_v0_4_0_fe *r);
+/** Verify whether a field element represents zero i.e. would normalize to a zero value. */
+static int rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero(const rustsecp256k1zkp_v0_4_0_fe *r);
 
-/** Verify whether a field element represents zero i.e. would normalize to a zero value. The field
- *  implementation may optionally normalize the input, but this should not be relied upon. */
-static int rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero_var(rustsecp256k1zkp_v0_4_0_fe *r);
+/** Verify whether a field element represents zero i.e. would normalize to a zero value,
+ *  without constant-time guarantee. */
+static int rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero_var(const rustsecp256k1zkp_v0_4_0_fe *r);
 
 /** Set a field element equal to a small integer. Resulting field element is normalized. */
 static void rustsecp256k1zkp_v0_4_0_fe_set_int(rustsecp256k1zkp_v0_4_0_fe *r, int a);

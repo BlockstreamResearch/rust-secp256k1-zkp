@@ -7,9 +7,9 @@
 #ifndef SECP256K1_MODULE_SCHNORRSIG_MAIN_H
 #define SECP256K1_MODULE_SCHNORRSIG_MAIN_H
 
-#include "include/secp256k1.h"
-#include "include/secp256k1_schnorrsig.h"
-#include "hash.h"
+#include "../../../include/secp256k1.h"
+#include "../../../include/secp256k1_schnorrsig.h"
+#include "../../hash.h"
 
 /* Initializes SHA256 with fixed midstate. This midstate was computed by applying
  * SHA256 to SHA256("BIP0340/nonce")||SHA256("BIP0340/nonce"). */
@@ -43,16 +43,18 @@ static void rustsecp256k1zkp_v0_4_0_nonce_function_bip340_sha256_tagged_aux(rust
     sha->bytes = 64;
 }
 
-/* algo16 argument for nonce_function_bip340 to derive the nonce exactly as stated in BIP-340
+/* algo argument for nonce_function_bip340 to derive the nonce exactly as stated in BIP-340
  * by using the correct tagged hash function. */
-static const unsigned char bip340_algo16[16] = "BIP0340/nonce\0\0\0";
+static const unsigned char bip340_algo[13] = "BIP0340/nonce";
 
-static int nonce_function_bip340(unsigned char *nonce32, const unsigned char *msg32, const unsigned char *key32, const unsigned char *xonly_pk32, const unsigned char *algo16, void *data) {
+static const unsigned char schnorrsig_extraparams_magic[4] = SECP256K1_SCHNORRSIG_EXTRAPARAMS_MAGIC;
+
+static int nonce_function_bip340(unsigned char *nonce32, const unsigned char *msg, size_t msglen, const unsigned char *key32, const unsigned char *xonly_pk32, const unsigned char *algo, size_t algolen, void *data) {
     rustsecp256k1zkp_v0_4_0_sha256 sha;
     unsigned char masked_key[32];
     int i;
 
-    if (algo16 == NULL) {
+    if (algo == NULL) {
         return 0;
     }
 
@@ -65,18 +67,14 @@ static int nonce_function_bip340(unsigned char *nonce32, const unsigned char *ms
         }
     }
 
-    /* Tag the hash with algo16 which is important to avoid nonce reuse across
+    /* Tag the hash with algo which is important to avoid nonce reuse across
      * algorithms. If this nonce function is used in BIP-340 signing as defined
      * in the spec, an optimized tagging implementation is used. */
-    if (rustsecp256k1zkp_v0_4_0_memcmp_var(algo16, bip340_algo16, 16) == 0) {
+    if (algolen == sizeof(bip340_algo)
+            && rustsecp256k1zkp_v0_4_0_memcmp_var(algo, bip340_algo, algolen) == 0) {
         rustsecp256k1zkp_v0_4_0_nonce_function_bip340_sha256_tagged(&sha);
     } else {
-        int algo16_len = 16;
-        /* Remove terminating null bytes */
-        while (algo16_len > 0 && !algo16[algo16_len - 1]) {
-            algo16_len--;
-        }
-        rustsecp256k1zkp_v0_4_0_sha256_initialize_tagged(&sha, algo16, algo16_len);
+        rustsecp256k1zkp_v0_4_0_sha256_initialize_tagged(&sha, algo, algolen);
     }
 
     /* Hash (masked-)key||pk||msg using the tagged hash as per the spec */
@@ -86,7 +84,7 @@ static int nonce_function_bip340(unsigned char *nonce32, const unsigned char *ms
         rustsecp256k1zkp_v0_4_0_sha256_write(&sha, key32, 32);
     }
     rustsecp256k1zkp_v0_4_0_sha256_write(&sha, xonly_pk32, 32);
-    rustsecp256k1zkp_v0_4_0_sha256_write(&sha, msg32, 32);
+    rustsecp256k1zkp_v0_4_0_sha256_write(&sha, msg, msglen);
     rustsecp256k1zkp_v0_4_0_sha256_finalize(&sha, nonce32);
     return 1;
 }
@@ -108,23 +106,23 @@ static void rustsecp256k1zkp_v0_4_0_schnorrsig_sha256_tagged(rustsecp256k1zkp_v0
     sha->bytes = 64;
 }
 
-static void rustsecp256k1zkp_v0_4_0_schnorrsig_challenge(rustsecp256k1zkp_v0_4_0_scalar* e, const unsigned char *r32, const unsigned char *msg32, const unsigned char *pubkey32)
+static void rustsecp256k1zkp_v0_4_0_schnorrsig_challenge(rustsecp256k1zkp_v0_4_0_scalar* e, const unsigned char *r32, const unsigned char *msg, size_t msglen, const unsigned char *pubkey32)
 {
     unsigned char buf[32];
     rustsecp256k1zkp_v0_4_0_sha256 sha;
 
-    /* tagged hash(r.x, pk.x, msg32) */
+    /* tagged hash(r.x, pk.x, msg) */
     rustsecp256k1zkp_v0_4_0_schnorrsig_sha256_tagged(&sha);
     rustsecp256k1zkp_v0_4_0_sha256_write(&sha, r32, 32);
     rustsecp256k1zkp_v0_4_0_sha256_write(&sha, pubkey32, 32);
-    rustsecp256k1zkp_v0_4_0_sha256_write(&sha, msg32, 32);
+    rustsecp256k1zkp_v0_4_0_sha256_write(&sha, msg, msglen);
     rustsecp256k1zkp_v0_4_0_sha256_finalize(&sha, buf);
     /* Set scalar e to the challenge hash modulo the curve order as per
      * BIP340. */
     rustsecp256k1zkp_v0_4_0_scalar_set_b32(e, buf, NULL);
 }
 
-int rustsecp256k1zkp_v0_4_0_schnorrsig_sign(const rustsecp256k1zkp_v0_4_0_context* ctx, unsigned char *sig64, const unsigned char *msg32, const rustsecp256k1zkp_v0_4_0_keypair *keypair, rustsecp256k1zkp_v0_4_0_nonce_function_hardened noncefp, void *ndata) {
+int rustsecp256k1zkp_v0_4_0_schnorrsig_sign_internal(const rustsecp256k1zkp_v0_4_0_context* ctx, unsigned char *sig64, const unsigned char *msg, size_t msglen, const rustsecp256k1zkp_v0_4_0_keypair *keypair, rustsecp256k1zkp_v0_4_0_nonce_function_hardened noncefp, void *ndata) {
     rustsecp256k1zkp_v0_4_0_scalar sk;
     rustsecp256k1zkp_v0_4_0_scalar e;
     rustsecp256k1zkp_v0_4_0_scalar k;
@@ -139,7 +137,7 @@ int rustsecp256k1zkp_v0_4_0_schnorrsig_sign(const rustsecp256k1zkp_v0_4_0_contex
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(rustsecp256k1zkp_v0_4_0_ecmult_gen_context_is_built(&ctx->ecmult_gen_ctx));
     ARG_CHECK(sig64 != NULL);
-    ARG_CHECK(msg32 != NULL);
+    ARG_CHECK(msg != NULL || msglen == 0);
     ARG_CHECK(keypair != NULL);
 
     if (noncefp == NULL) {
@@ -156,7 +154,7 @@ int rustsecp256k1zkp_v0_4_0_schnorrsig_sign(const rustsecp256k1zkp_v0_4_0_contex
 
     rustsecp256k1zkp_v0_4_0_scalar_get_b32(seckey, &sk);
     rustsecp256k1zkp_v0_4_0_fe_get_b32(pk_buf, &pk.x);
-    ret &= !!noncefp(buf, msg32, seckey, pk_buf, bip340_algo16, ndata);
+    ret &= !!noncefp(buf, msg, msglen, seckey, pk_buf, bip340_algo, sizeof(bip340_algo), ndata);
     rustsecp256k1zkp_v0_4_0_scalar_set_b32(&k, buf, NULL);
     ret &= !rustsecp256k1zkp_v0_4_0_scalar_is_zero(&k);
     rustsecp256k1zkp_v0_4_0_scalar_cmov(&k, &rustsecp256k1zkp_v0_4_0_scalar_one, !ret);
@@ -174,7 +172,7 @@ int rustsecp256k1zkp_v0_4_0_schnorrsig_sign(const rustsecp256k1zkp_v0_4_0_contex
     rustsecp256k1zkp_v0_4_0_fe_normalize_var(&r.x);
     rustsecp256k1zkp_v0_4_0_fe_get_b32(&sig64[0], &r.x);
 
-    rustsecp256k1zkp_v0_4_0_schnorrsig_challenge(&e, &sig64[0], msg32, pk_buf);
+    rustsecp256k1zkp_v0_4_0_schnorrsig_challenge(&e, &sig64[0], msg, msglen, pk_buf);
     rustsecp256k1zkp_v0_4_0_scalar_mul(&e, &e, &sk);
     rustsecp256k1zkp_v0_4_0_scalar_add(&e, &e, &k);
     rustsecp256k1zkp_v0_4_0_scalar_get_b32(&sig64[32], &e);
@@ -187,7 +185,26 @@ int rustsecp256k1zkp_v0_4_0_schnorrsig_sign(const rustsecp256k1zkp_v0_4_0_contex
     return ret;
 }
 
-int rustsecp256k1zkp_v0_4_0_schnorrsig_verify(const rustsecp256k1zkp_v0_4_0_context* ctx, const unsigned char *sig64, const unsigned char *msg32, const rustsecp256k1zkp_v0_4_0_xonly_pubkey *pubkey) {
+int rustsecp256k1zkp_v0_4_0_schnorrsig_sign(const rustsecp256k1zkp_v0_4_0_context* ctx, unsigned char *sig64, const unsigned char *msg32, const rustsecp256k1zkp_v0_4_0_keypair *keypair, unsigned char *aux_rand32) {
+    return rustsecp256k1zkp_v0_4_0_schnorrsig_sign_internal(ctx, sig64, msg32, 32, keypair, rustsecp256k1zkp_v0_4_0_nonce_function_bip340, aux_rand32);
+}
+
+int rustsecp256k1zkp_v0_4_0_schnorrsig_sign_custom(const rustsecp256k1zkp_v0_4_0_context* ctx, unsigned char *sig64, const unsigned char *msg, size_t msglen, const rustsecp256k1zkp_v0_4_0_keypair *keypair, rustsecp256k1zkp_v0_4_0_schnorrsig_extraparams *extraparams) {
+    rustsecp256k1zkp_v0_4_0_nonce_function_hardened noncefp = NULL;
+    void *ndata = NULL;
+    VERIFY_CHECK(ctx != NULL);
+
+    if (extraparams != NULL) {
+        ARG_CHECK(rustsecp256k1zkp_v0_4_0_memcmp_var(extraparams->magic,
+                                       schnorrsig_extraparams_magic,
+                                       sizeof(extraparams->magic)) == 0);
+        noncefp = extraparams->noncefp;
+        ndata = extraparams->ndata;
+    }
+    return rustsecp256k1zkp_v0_4_0_schnorrsig_sign_internal(ctx, sig64, msg, msglen, keypair, noncefp, ndata);
+}
+
+int rustsecp256k1zkp_v0_4_0_schnorrsig_verify(const rustsecp256k1zkp_v0_4_0_context* ctx, const unsigned char *sig64, const unsigned char *msg, size_t msglen, const rustsecp256k1zkp_v0_4_0_xonly_pubkey *pubkey) {
     rustsecp256k1zkp_v0_4_0_scalar s;
     rustsecp256k1zkp_v0_4_0_scalar e;
     rustsecp256k1zkp_v0_4_0_gej rj;
@@ -201,7 +218,7 @@ int rustsecp256k1zkp_v0_4_0_schnorrsig_verify(const rustsecp256k1zkp_v0_4_0_cont
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(rustsecp256k1zkp_v0_4_0_ecmult_context_is_built(&ctx->ecmult_ctx));
     ARG_CHECK(sig64 != NULL);
-    ARG_CHECK(msg32 != NULL);
+    ARG_CHECK(msg != NULL || msglen == 0);
     ARG_CHECK(pubkey != NULL);
 
     if (!rustsecp256k1zkp_v0_4_0_fe_set_b32(&rx, &sig64[0])) {
@@ -219,7 +236,7 @@ int rustsecp256k1zkp_v0_4_0_schnorrsig_verify(const rustsecp256k1zkp_v0_4_0_cont
 
     /* Compute e. */
     rustsecp256k1zkp_v0_4_0_fe_get_b32(buf, &pk.x);
-    rustsecp256k1zkp_v0_4_0_schnorrsig_challenge(&e, &sig64[0], msg32, buf);
+    rustsecp256k1zkp_v0_4_0_schnorrsig_challenge(&e, &sig64[0], msg, msglen, buf);
 
     /* Compute rj =  s*G + (-e)*pkj */
     rustsecp256k1zkp_v0_4_0_scalar_negate(&e, &e);

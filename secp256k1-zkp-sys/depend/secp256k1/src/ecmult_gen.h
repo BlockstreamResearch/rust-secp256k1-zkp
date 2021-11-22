@@ -35,7 +35,6 @@ typedef struct {
     rustsecp256k1zkp_v0_4_0_gej initial;
 } rustsecp256k1zkp_v0_4_0_ecmult_gen_context;
 
-static const size_t SECP256K1_ECMULT_GEN_CONTEXT_PREALLOCATED_SIZE;
 static void rustsecp256k1zkp_v0_4_0_ecmult_gen_context_init(rustsecp256k1zkp_v0_4_0_ecmult_gen_context* ctx);
 static void rustsecp256k1zkp_v0_4_0_ecmult_gen_context_build(rustsecp256k1zkp_v0_4_0_ecmult_gen_context* ctx, void **prealloc);
 static void rustsecp256k1zkp_v0_4_0_ecmult_gen_context_finalize_memcpy(rustsecp256k1zkp_v0_4_0_ecmult_gen_context *dst, const rustsecp256k1zkp_v0_4_0_ecmult_gen_context* src);

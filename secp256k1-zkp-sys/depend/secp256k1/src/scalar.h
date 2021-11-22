@@ -7,7 +7,6 @@
 #ifndef SECP256K1_SCALAR_H
 #define SECP256K1_SCALAR_H
 
-#include "num.h"
 #include "util.h"
 
 #if defined HAVE_CONFIG_H
@@ -66,9 +65,6 @@ static void rustsecp256k1zkp_v0_4_0_scalar_mul(rustsecp256k1zkp_v0_4_0_scalar *r
  *  the low bits that were shifted off */
 static int rustsecp256k1zkp_v0_4_0_scalar_shr_int(rustsecp256k1zkp_v0_4_0_scalar *r, int n);
 
-/** Compute the square of a scalar (modulo the group order). */
-static void rustsecp256k1zkp_v0_4_0_scalar_sqr(rustsecp256k1zkp_v0_4_0_scalar *r, const rustsecp256k1zkp_v0_4_0_scalar *a);
-
 /** Compute the inverse of a scalar (modulo the group order). */
 static void rustsecp256k1zkp_v0_4_0_scalar_inverse(rustsecp256k1zkp_v0_4_0_scalar *r, const rustsecp256k1zkp_v0_4_0_scalar *a);
 
@@ -93,14 +89,6 @@ static int rustsecp256k1zkp_v0_4_0_scalar_is_high(const rustsecp256k1zkp_v0_4_0_
 /** Conditionally negate a number, in constant time.
  * Returns -1 if the number was negated, 1 otherwise */
 static int rustsecp256k1zkp_v0_4_0_scalar_cond_negate(rustsecp256k1zkp_v0_4_0_scalar *a, int flag);
-
-#ifndef USE_NUM_NONE
-/** Convert a scalar to a number. */
-static void rustsecp256k1zkp_v0_4_0_scalar_get_num(rustsecp256k1zkp_v0_4_0_num *r, const rustsecp256k1zkp_v0_4_0_scalar *a);
-
-/** Get the order of the group as a number. */
-static void rustsecp256k1zkp_v0_4_0_scalar_order_get_num(rustsecp256k1zkp_v0_4_0_num *r);
-#endif
 
 /** Compare two scalars. */
 static int rustsecp256k1zkp_v0_4_0_scalar_eq(const rustsecp256k1zkp_v0_4_0_scalar *a, const rustsecp256k1zkp_v0_4_0_scalar *b);

@@ -7,7 +7,6 @@
 #ifndef SECP256K1_ECMULT_H
 #define SECP256K1_ECMULT_H
 
-#include "num.h"
 #include "group.h"
 #include "scalar.h"
 #include "scratch.h"
@@ -18,7 +17,6 @@ typedef struct {
     rustsecp256k1zkp_v0_4_0_ge_storage (*pre_g_128)[]; /* odd multiples of 2^128*generator */
 } rustsecp256k1zkp_v0_4_0_ecmult_context;
 
-static const size_t SECP256K1_ECMULT_CONTEXT_PREALLOCATED_SIZE;
 static void rustsecp256k1zkp_v0_4_0_ecmult_context_init(rustsecp256k1zkp_v0_4_0_ecmult_context *ctx);
 static void rustsecp256k1zkp_v0_4_0_ecmult_context_build(rustsecp256k1zkp_v0_4_0_ecmult_context *ctx, void **prealloc);
 static void rustsecp256k1zkp_v0_4_0_ecmult_context_finalize_memcpy(rustsecp256k1zkp_v0_4_0_ecmult_context *dst, const rustsecp256k1zkp_v0_4_0_ecmult_context *src);

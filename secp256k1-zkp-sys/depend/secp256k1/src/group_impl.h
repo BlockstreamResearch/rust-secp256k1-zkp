@@ -7,7 +7,6 @@
 #ifndef SECP256K1_GROUP_IMPL_H
 #define SECP256K1_GROUP_IMPL_H
 
-#include "num.h"
 #include "field.h"
 #include "group.h"
 
@@ -101,8 +100,8 @@ static void rustsecp256k1zkp_v0_4_0_ge_set_gej(rustsecp256k1zkp_v0_4_0_ge *r, ru
 
 static void rustsecp256k1zkp_v0_4_0_ge_set_gej_var(rustsecp256k1zkp_v0_4_0_ge *r, rustsecp256k1zkp_v0_4_0_gej *a) {
     rustsecp256k1zkp_v0_4_0_fe z2, z3;
-    r->infinity = a->infinity;
     if (a->infinity) {
+        rustsecp256k1zkp_v0_4_0_ge_set_infinity(r);
         return;
     }
     rustsecp256k1zkp_v0_4_0_fe_inv_var(&a->z, &a->z);
@@ -111,8 +110,7 @@ static void rustsecp256k1zkp_v0_4_0_ge_set_gej_var(rustsecp256k1zkp_v0_4_0_ge *r
     rustsecp256k1zkp_v0_4_0_fe_mul(&a->x, &a->x, &z2);
     rustsecp256k1zkp_v0_4_0_fe_mul(&a->y, &a->y, &z3);
     rustsecp256k1zkp_v0_4_0_fe_set_int(&a->z, 1);
-    r->x = a->x;
-    r->y = a->y;
+    rustsecp256k1zkp_v0_4_0_ge_set_xy(r, &a->x, &a->y);
 }
 
 static void rustsecp256k1zkp_v0_4_0_ge_set_all_gej_var(rustsecp256k1zkp_v0_4_0_ge *r, const rustsecp256k1zkp_v0_4_0_gej *a, size_t len) {
@@ -121,7 +119,9 @@ static void rustsecp256k1zkp_v0_4_0_ge_set_all_gej_var(rustsecp256k1zkp_v0_4_0_g
     size_t last_i = SIZE_MAX;
 
     for (i = 0; i < len; i++) {
-        if (!a[i].infinity) {
+        if (a[i].infinity) {
+            rustsecp256k1zkp_v0_4_0_ge_set_infinity(&r[i]);
+        } else {
             /* Use destination's x coordinates as scratch space */
             if (last_i == SIZE_MAX) {
                 r[i].x = a[i].z;
@@ -149,7 +149,6 @@ static void rustsecp256k1zkp_v0_4_0_ge_set_all_gej_var(rustsecp256k1zkp_v0_4_0_g
     r[last_i].x = u;
 
     for (i = 0; i < len; i++) {
-        r[i].infinity = a[i].infinity;
         if (!a[i].infinity) {
             rustsecp256k1zkp_v0_4_0_ge_set_gej_zinv(&r[i], &a[i], &r[i].x);
         }
@@ -316,7 +315,7 @@ static void rustsecp256k1zkp_v0_4_0_gej_double_var(rustsecp256k1zkp_v0_4_0_gej *
      *  point will be gibberish (z = 0 but infinity = 0).
      */
     if (a->infinity) {
-        r->infinity = 1;
+        rustsecp256k1zkp_v0_4_0_gej_set_infinity(r);
         if (rzr != NULL) {
             rustsecp256k1zkp_v0_4_0_fe_set_int(rzr, 1);
         }

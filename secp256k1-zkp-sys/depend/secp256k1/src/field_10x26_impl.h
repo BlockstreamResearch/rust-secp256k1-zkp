@@ -9,6 +9,7 @@
 
 #include "util.h"
 #include "field.h"
+#include "modinv32_impl.h"
 
 #ifdef VERIFY
 static void rustsecp256k1zkp_v0_4_0_fe_verify(const rustsecp256k1zkp_v0_4_0_fe *a) {
@@ -181,7 +182,7 @@ static void rustsecp256k1zkp_v0_4_0_fe_normalize_var(rustsecp256k1zkp_v0_4_0_fe 
 #endif
 }
 
-static int rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero(rustsecp256k1zkp_v0_4_0_fe *r) {
+static int rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero(const rustsecp256k1zkp_v0_4_0_fe *r) {
     uint32_t t0 = r->n[0], t1 = r->n[1], t2 = r->n[2], t3 = r->n[3], t4 = r->n[4],
              t5 = r->n[5], t6 = r->n[6], t7 = r->n[7], t8 = r->n[8], t9 = r->n[9];
 
@@ -210,7 +211,7 @@ static int rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero(rustsecp256k1zkp_v0_4_0
     return (z0 == 0) | (z1 == 0x3FFFFFFUL);
 }
 
-static int rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero_var(rustsecp256k1zkp_v0_4_0_fe *r) {
+static int rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero_var(const rustsecp256k1zkp_v0_4_0_fe *r) {
     uint32_t t0, t1, t2, t3, t4, t5, t6, t7, t8, t9;
     uint32_t z0, z1;
     uint32_t x;
@@ -1162,6 +1163,94 @@ static SECP256K1_INLINE void rustsecp256k1zkp_v0_4_0_fe_from_storage(rustsecp256
     r->magnitude = 1;
     r->normalized = 1;
 #endif
+}
+
+static void rustsecp256k1zkp_v0_4_0_fe_from_signed30(rustsecp256k1zkp_v0_4_0_fe *r, const rustsecp256k1zkp_v0_4_0_modinv32_signed30 *a) {
+    const uint32_t M26 = UINT32_MAX >> 6;
+    const uint32_t a0 = a->v[0], a1 = a->v[1], a2 = a->v[2], a3 = a->v[3], a4 = a->v[4],
+                   a5 = a->v[5], a6 = a->v[6], a7 = a->v[7], a8 = a->v[8];
+
+    /* The output from rustsecp256k1zkp_v0_4_0_modinv32{_var} should be normalized to range [0,modulus), and
+     * have limbs in [0,2^30). The modulus is < 2^256, so the top limb must be below 2^(256-30*8).
+     */
+    VERIFY_CHECK(a0 >> 30 == 0);
+    VERIFY_CHECK(a1 >> 30 == 0);
+    VERIFY_CHECK(a2 >> 30 == 0);
+    VERIFY_CHECK(a3 >> 30 == 0);
+    VERIFY_CHECK(a4 >> 30 == 0);
+    VERIFY_CHECK(a5 >> 30 == 0);
+    VERIFY_CHECK(a6 >> 30 == 0);
+    VERIFY_CHECK(a7 >> 30 == 0);
+    VERIFY_CHECK(a8 >> 16 == 0);
+
+    r->n[0] =  a0                   & M26;
+    r->n[1] = (a0 >> 26 | a1 <<  4) & M26;
+    r->n[2] = (a1 >> 22 | a2 <<  8) & M26;
+    r->n[3] = (a2 >> 18 | a3 << 12) & M26;
+    r->n[4] = (a3 >> 14 | a4 << 16) & M26;
+    r->n[5] = (a4 >> 10 | a5 << 20) & M26;
+    r->n[6] = (a5 >>  6 | a6 << 24) & M26;
+    r->n[7] = (a6 >>  2           ) & M26;
+    r->n[8] = (a6 >> 28 | a7 <<  2) & M26;
+    r->n[9] = (a7 >> 24 | a8 <<  6);
+
+#ifdef VERIFY
+    r->magnitude = 1;
+    r->normalized = 1;
+    rustsecp256k1zkp_v0_4_0_fe_verify(r);
+#endif
+}
+
+static void rustsecp256k1zkp_v0_4_0_fe_to_signed30(rustsecp256k1zkp_v0_4_0_modinv32_signed30 *r, const rustsecp256k1zkp_v0_4_0_fe *a) {
+    const uint32_t M30 = UINT32_MAX >> 2;
+    const uint64_t a0 = a->n[0], a1 = a->n[1], a2 = a->n[2], a3 = a->n[3], a4 = a->n[4],
+                   a5 = a->n[5], a6 = a->n[6], a7 = a->n[7], a8 = a->n[8], a9 = a->n[9];
+
+#ifdef VERIFY
+    VERIFY_CHECK(a->normalized);
+#endif
+
+    r->v[0] = (a0       | a1 << 26) & M30;
+    r->v[1] = (a1 >>  4 | a2 << 22) & M30;
+    r->v[2] = (a2 >>  8 | a3 << 18) & M30;
+    r->v[3] = (a3 >> 12 | a4 << 14) & M30;
+    r->v[4] = (a4 >> 16 | a5 << 10) & M30;
+    r->v[5] = (a5 >> 20 | a6 <<  6) & M30;
+    r->v[6] = (a6 >> 24 | a7 <<  2
+                        | a8 << 28) & M30;
+    r->v[7] = (a8 >>  2 | a9 << 24) & M30;
+    r->v[8] =  a9 >>  6;
+}
+
+static const rustsecp256k1zkp_v0_4_0_modinv32_modinfo rustsecp256k1zkp_v0_4_0_const_modinfo_fe = {
+    {{-0x3D1, -4, 0, 0, 0, 0, 0, 0, 65536}},
+    0x2DDACACFL
+};
+
+static void rustsecp256k1zkp_v0_4_0_fe_inv(rustsecp256k1zkp_v0_4_0_fe *r, const rustsecp256k1zkp_v0_4_0_fe *x) {
+    rustsecp256k1zkp_v0_4_0_fe tmp;
+    rustsecp256k1zkp_v0_4_0_modinv32_signed30 s;
+
+    tmp = *x;
+    rustsecp256k1zkp_v0_4_0_fe_normalize(&tmp);
+    rustsecp256k1zkp_v0_4_0_fe_to_signed30(&s, &tmp);
+    rustsecp256k1zkp_v0_4_0_modinv32(&s, &rustsecp256k1zkp_v0_4_0_const_modinfo_fe);
+    rustsecp256k1zkp_v0_4_0_fe_from_signed30(r, &s);
+
+    VERIFY_CHECK(rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero(r) == rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero(&tmp));
+}
+
+static void rustsecp256k1zkp_v0_4_0_fe_inv_var(rustsecp256k1zkp_v0_4_0_fe *r, const rustsecp256k1zkp_v0_4_0_fe *x) {
+    rustsecp256k1zkp_v0_4_0_fe tmp;
+    rustsecp256k1zkp_v0_4_0_modinv32_signed30 s;
+
+    tmp = *x;
+    rustsecp256k1zkp_v0_4_0_fe_normalize_var(&tmp);
+    rustsecp256k1zkp_v0_4_0_fe_to_signed30(&s, &tmp);
+    rustsecp256k1zkp_v0_4_0_modinv32_var(&s, &rustsecp256k1zkp_v0_4_0_const_modinfo_fe);
+    rustsecp256k1zkp_v0_4_0_fe_from_signed30(r, &s);
+
+    VERIFY_CHECK(rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero(r) == rustsecp256k1zkp_v0_4_0_fe_normalizes_to_zero(&tmp));
 }
 
 #endif /* SECP256K1_FIELD_REPR_IMPL_H */

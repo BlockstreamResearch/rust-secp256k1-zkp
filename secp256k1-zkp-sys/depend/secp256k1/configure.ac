@@ -8,10 +8,6 @@ AH_TOP([#define LIBSECP256K1_CONFIG_H])
 AH_BOTTOM([#endif /*LIBSECP256K1_CONFIG_H*/])
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 
-# Set -g if CFLAGS are not already set, which matches the default autoconf
-# behavior (see PROG_CC in the Autoconf manual) with the exception that we don't
-# set -O2 here because we set it in any case (see further down).
-: ${CFLAGS="-g"}
 LT_INIT
 
 # Make the compilation flags quiet unless V=1 is used.
@@ -42,31 +38,26 @@ AM_PROG_AS
 case $host_os in
   *darwin*)
      if  test x$cross_compiling != xyes; then
-       AC_PATH_PROG([BREW],brew,)
-       if test x$BREW != x; then
+       AC_CHECK_PROG([BREW], brew, brew)
+       if test x$BREW = xbrew; then
          # These Homebrew packages may be keg-only, meaning that they won't be found
          # in expected paths because they may conflict with system files. Ask
          # Homebrew where each one is located, then adjust paths accordingly.
          openssl_prefix=`$BREW --prefix openssl 2>/dev/null`
-         gmp_prefix=`$BREW --prefix gmp 2>/dev/null`
          valgrind_prefix=`$BREW --prefix valgrind 2>/dev/null`
          if test x$openssl_prefix != x; then
            PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
            export PKG_CONFIG_PATH
            CRYPTO_CPPFLAGS="-I$openssl_prefix/include"
          fi
-         if test x$gmp_prefix != x; then
-           GMP_CPPFLAGS="-I$gmp_prefix/include"
-           GMP_LIBS="-L$gmp_prefix/lib"
-         fi
          if test x$valgrind_prefix != x; then
            VALGRIND_CPPFLAGS="-I$valgrind_prefix/include"
          fi
        else
-         AC_PATH_PROG([PORT],port,)
+         AC_CHECK_PROG([PORT], port, port)
          # If homebrew isn't installed and macports is, add the macports default paths
          # as a last resort.
-         if test x$PORT != x; then
+         if test x$PORT = xport; then
            CPPFLAGS="$CPPFLAGS -isystem /opt/local/include"
            LDFLAGS="$LDFLAGS -L/opt/local/lib"
          fi
@@ -75,26 +66,41 @@ case $host_os in
    ;;
 esac
 
-CFLAGS="-W $CFLAGS"
+# Try if some desirable compiler flags are supported and append them to SECP_CFLAGS.
+#
+# These are our own flags, so we append them to our own SECP_CFLAGS variable (instead of CFLAGS) as
+# recommended in the automake manual (Section "Flag Variables Ordering"). CFLAGS belongs to the user
+# and we are not supposed to touch it. In the Makefile, we will need to ensure that SECP_CFLAGS
+# is prepended to CFLAGS when invoking the compiler so that the user always has the last word (flag).
+#
+# Another advantage of not touching CFLAGS is that the contents of CFLAGS will be picked up by
+# libtool for compiling helper executables. For example, when compiling for Windows, libtool will
+# generate entire wrapper executables (instead of simple wrapper scripts as on Unix) to ensure
+# proper operation of uninstalled programs linked by libtool against the uninstalled shared library.
+# These executables are compiled from C source file for which our flags may not be appropriate,
+# e.g., -std=c89 flag has lead to undesirable warnings in the past.
+#
+# TODO We should analogously not touch CPPFLAGS and LDFLAGS but currently there are no issues.
+AC_DEFUN([SECP_TRY_APPEND_DEFAULT_CFLAGS], [
+    # Try to append -Werror=unknown-warning-option to CFLAGS temporarily. Otherwise clang will
+    # not error out if it gets unknown warning flags and the checks here will always succeed
+    # no matter if clang knows the flag or not.
+    SECP_TRY_APPEND_DEFAULT_CFLAGS_saved_CFLAGS="$CFLAGS"
+    SECP_TRY_APPEND_CFLAGS([-Werror=unknown-warning-option], CFLAGS)
 
-warn_CFLAGS="-std=c89 -pedantic -Wall -Wextra -Wcast-align -Wnested-externs -Wshadow -Wstrict-prototypes -Wundef -Wno-unused-function -Wno-long-long -Wno-overlength-strings"
-saved_CFLAGS="$CFLAGS"
-CFLAGS="$warn_CFLAGS $CFLAGS"
-AC_MSG_CHECKING([if ${CC} supports ${warn_CFLAGS}])
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([[char foo;]])],
-    [ AC_MSG_RESULT([yes]) ],
-    [ AC_MSG_RESULT([no])
-      CFLAGS="$saved_CFLAGS"
-    ])
+    SECP_TRY_APPEND_CFLAGS([-std=c89 -pedantic -Wno-long-long -Wnested-externs -Wshadow -Wstrict-prototypes -Wundef], $1) # GCC >= 3.0, -Wlong-long is implied by -pedantic.
+    SECP_TRY_APPEND_CFLAGS([-Wno-overlength-strings], $1) # GCC >= 4.2, -Woverlength-strings is implied by -pedantic.
+    SECP_TRY_APPEND_CFLAGS([-Wall], $1) # GCC >= 2.95 and probably many other compilers
+    SECP_TRY_APPEND_CFLAGS([-Wno-unused-function], $1) # GCC >= 3.0, -Wunused-function is implied by -Wall.
+    SECP_TRY_APPEND_CFLAGS([-Wextra], $1) # GCC >= 3.4, this is the newer name of -W, which we don't use because older GCCs will warn about unused functions.
+    SECP_TRY_APPEND_CFLAGS([-Wcast-align], $1) # GCC >= 2.95
+    SECP_TRY_APPEND_CFLAGS([-Wcast-align=strict], $1) # GCC >= 8.0
+    SECP_TRY_APPEND_CFLAGS([-Wconditional-uninitialized], $1) # Clang >= 3.0 only
+    SECP_TRY_APPEND_CFLAGS([-fvisibility=hidden], $1) # GCC >= 4.0
 
-saved_CFLAGS="$CFLAGS"
-CFLAGS="-fvisibility=hidden $CFLAGS"
-AC_MSG_CHECKING([if ${CC} supports -fvisibility=hidden])
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([[char foo;]])],
-    [ AC_MSG_RESULT([yes]) ],
-    [ AC_MSG_RESULT([no])
-      CFLAGS="$saved_CFLAGS"
-    ])
+    CFLAGS="$SECP_TRY_APPEND_DEFAULT_CFLAGS_saved_CFLAGS"
+])
+SECP_TRY_APPEND_DEFAULT_CFLAGS(SECP_CFLAGS)
 
 ###
 ### Define config arguments
@@ -204,9 +210,6 @@ AC_ARG_ENABLE(reduced_surjection_proof_size,
 # Legal values are int64 (for [u]int64_t), int128 (for [unsigned] __int128), and auto (the default).
 AC_ARG_WITH([test-override-wide-multiply], [] ,[set_widemul=$withval], [set_widemul=auto])
 
-AC_ARG_WITH([bignum], [AS_HELP_STRING([--with-bignum=gmp|no|auto],
-[bignum implementation to use [default=auto]])],[req_bignum=$withval], [req_bignum=auto])
-
 AC_ARG_WITH([asm], [AS_HELP_STRING([--with-asm=x86_64|arm|no|auto],
 [assembly optimizations to use (experimental: arm) [default=auto]])],[req_asm=$withval], [req_asm=auto])
 
@@ -252,10 +255,14 @@ AM_CONDITIONAL([VALGRIND_ENABLED],[test "$enable_valgrind" = "yes"])
 
 if test x"$enable_coverage" = x"yes"; then
     AC_DEFINE(COVERAGE, 1, [Define this symbol to compile out all VERIFY code])
-    CFLAGS="-O0 --coverage $CFLAGS"
+    SECP_CFLAGS="-O0 --coverage $SECP_CFLAGS"
     LDFLAGS="--coverage $LDFLAGS"
 else
-    CFLAGS="-O2 $CFLAGS"
+    # Most likely the CFLAGS already contain -O2 because that is autoconf's default.
+    # We still add it here because passing it twice is not an issue, and handling
+    # this case would just add unnecessary complexity (see #896).
+    SECP_CFLAGS="-O2 $SECP_CFLAGS"
+    SECP_CFLAGS_FOR_BUILD="-O2 $SECP_CFLAGS_FOR_BUILD"
 fi
 
 AC_MSG_CHECKING([for __builtin_popcount])
@@ -297,32 +304,6 @@ else
   esac
 fi
 
-if test x"$req_bignum" = x"auto"; then
-  SECP_GMP_CHECK
-  if test x"$has_gmp" = x"yes"; then
-    set_bignum=gmp
-  fi
-
-  if test x"$set_bignum" = x; then
-    set_bignum=no
-  fi
-else
-  set_bignum=$req_bignum
-  case $set_bignum in
-  gmp)
-    SECP_GMP_CHECK
-    if test x"$has_gmp" != x"yes"; then
-      AC_MSG_ERROR([gmp bignum explicitly requested but libgmp not available])
-    fi
-    ;;
-  no)
-    ;;
-  *)
-    AC_MSG_ERROR([invalid bignum implementation selection])
-    ;;
-  esac
-fi
-
 # Select assembly optimization
 use_external_asm=no
 
@@ -357,24 +338,6 @@ auto)
   ;;
 *)
   AC_MSG_ERROR([invalid wide multiplication implementation])
-  ;;
-esac
-
-# Select bignum implementation
-case $set_bignum in
-gmp)
-  AC_DEFINE(HAVE_LIBGMP, 1, [Define this symbol if libgmp is installed])
-  AC_DEFINE(USE_NUM_GMP, 1, [Define this symbol to use the gmp implementation for num])
-  AC_DEFINE(USE_FIELD_INV_NUM, 1, [Define this symbol to use the num-based field inverse implementation])
-  AC_DEFINE(USE_SCALAR_INV_NUM, 1, [Define this symbol to use the num-based scalar inverse implementation])
-  ;;
-no)
-  AC_DEFINE(USE_NUM_NONE, 1, [Define this symbol to use no num implementation])
-  AC_DEFINE(USE_FIELD_INV_BUILTIN, 1, [Define this symbol to use the native field inverse implementation])
-  AC_DEFINE(USE_SCALAR_INV_BUILTIN, 1, [Define this symbol to use the native scalar inverse implementation])
-  ;;
-*)
-  AC_MSG_ERROR([invalid bignum implementation])
   ;;
 esac
 
@@ -442,14 +405,12 @@ else
   enable_openssl_tests=no
 fi
 
-if test x"$set_bignum" = x"gmp"; then
-  SECP_LIBS="$SECP_LIBS $GMP_LIBS"
-  SECP_INCLUDES="$SECP_INCLUDES $GMP_CPPFLAGS"
-fi
-
 if test x"$enable_valgrind" = x"yes"; then
   SECP_INCLUDES="$SECP_INCLUDES $VALGRIND_CPPFLAGS"
 fi
+
+# Add -Werror and similar flags passed from the outside (for testing, e.g., in CI)
+SECP_CFLAGS="$SECP_CFLAGS $WERROR_CFLAGS"
 
 # Handle static precomputation (after everything which modifies CFLAGS and friends)
 if test x"$use_ecmult_static_precomputation" != x"no"; then
@@ -460,8 +421,9 @@ if test x"$use_ecmult_static_precomputation" != x"no"; then
     fi
     # If we're not cross-compiling, simply use the same compiler for building the static precompation code.
     CC_FOR_BUILD="$CC"
-    CFLAGS_FOR_BUILD="$CFLAGS"
     CPPFLAGS_FOR_BUILD="$CPPFLAGS"
+    SECP_CFLAGS_FOR_BUILD="$SECP_CFLAGS"
+    CFLAGS_FOR_BUILD="$CFLAGS"
     LDFLAGS_FOR_BUILD="$LDFLAGS"
   else
     AX_PROG_CC_FOR_BUILD
@@ -471,22 +433,14 @@ if test x"$use_ecmult_static_precomputation" != x"no"; then
     cross_compiling=no
     SAVE_CC="$CC"
     CC="$CC_FOR_BUILD"
-    SAVE_CFLAGS="$CFLAGS"
-    CFLAGS="$CFLAGS_FOR_BUILD"
     SAVE_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS_FOR_BUILD"
+    SAVE_CFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS_FOR_BUILD"
     SAVE_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS_FOR_BUILD"
 
-    warn_CFLAGS_FOR_BUILD="-Wall -Wextra -Wno-unused-function"
-    saved_CFLAGS="$CFLAGS"
-    CFLAGS="$warn_CFLAGS_FOR_BUILD $CFLAGS"
-    AC_MSG_CHECKING([if native ${CC_FOR_BUILD} supports ${warn_CFLAGS_FOR_BUILD}])
-    AC_COMPILE_IFELSE([AC_LANG_SOURCE([[char foo;]])],
-        [ AC_MSG_RESULT([yes]) ],
-        [ AC_MSG_RESULT([no])
-          CFLAGS="$saved_CFLAGS"
-        ])
+    SECP_TRY_APPEND_DEFAULT_CFLAGS(SECP_CFLAGS_FOR_BUILD)
 
     AC_MSG_CHECKING([for working native compiler: ${CC_FOR_BUILD}])
     AC_RUN_IFELSE(
@@ -494,19 +448,17 @@ if test x"$use_ecmult_static_precomputation" != x"no"; then
       [working_native_cc=yes],
       [working_native_cc=no],[:])
 
-    CFLAGS_FOR_BUILD="$CFLAGS"
-
     # Restore the environment
     cross_compiling=$save_cross_compiling
     CC="$SAVE_CC"
-    CFLAGS="$SAVE_CFLAGS"
     CPPFLAGS="$SAVE_CPPFLAGS"
+    CFLAGS="$SAVE_CFLAGS"
     LDFLAGS="$SAVE_LDFLAGS"
 
     if test x"$working_native_cc" = x"no"; then
       AC_MSG_RESULT([no])
       set_precomp=no
-      m4_define([please_set_for_build], [Please set CC_FOR_BUILD, CFLAGS_FOR_BUILD, CPPFLAGS_FOR_BUILD, and/or LDFLAGS_FOR_BUILD.])
+      m4_define([please_set_for_build], [Please set CC_FOR_BUILD, CPPFLAGS_FOR_BUILD, CFLAGS_FOR_BUILD, and/or LDFLAGS_FOR_BUILD.])
       if test x"$use_ecmult_static_precomputation" = x"yes";  then
         AC_MSG_ERROR([native compiler ${CC_FOR_BUILD} does not produce working binaries. please_set_for_build])
       else
@@ -519,8 +471,9 @@ if test x"$use_ecmult_static_precomputation" != x"no"; then
   fi
 
   AC_SUBST(CC_FOR_BUILD)
-  AC_SUBST(CFLAGS_FOR_BUILD)
   AC_SUBST(CPPFLAGS_FOR_BUILD)
+  AC_SUBST(SECP_CFLAGS_FOR_BUILD)
+  AC_SUBST(CFLAGS_FOR_BUILD)
   AC_SUBST(LDFLAGS_FOR_BUILD)
 else
   set_precomp=no
@@ -540,6 +493,7 @@ fi
 
 if test x"$enable_module_musig" = x"yes"; then
   AC_DEFINE(ENABLE_MODULE_MUSIG, 1, [Define this symbol to enable the MuSig module])
+  enable_module_schnorrsig=yes
 fi
 
 if test x"$enable_module_recovery" = x"yes"; then
@@ -561,7 +515,8 @@ fi
 if test x"$enable_module_surjectionproof" = x"yes"; then
   AC_DEFINE(ENABLE_MODULE_SURJECTIONPROOF, 1, [Define this symbol to enable the surjection proof module])
 fi
-
+# Test if extrakeys is set _after_ the MuSig module to allow the MuSig
+# module to set enable_module_schnorrsig=yes
 if test x"$enable_module_schnorrsig" = x"yes"; then
   AC_DEFINE(ENABLE_MODULE_SCHNORRSIG, 1, [Define this symbol to enable the schnorrsig module])
   enable_module_extrakeys=yes
@@ -672,6 +627,7 @@ AC_SUBST(SECP_INCLUDES)
 AC_SUBST(SECP_LIBS)
 AC_SUBST(SECP_TEST_LIBS)
 AC_SUBST(SECP_TEST_INCLUDES)
+AC_SUBST(SECP_CFLAGS)
 AM_CONDITIONAL([ENABLE_COVERAGE], [test x"$enable_coverage" = x"yes"])
 AM_CONDITIONAL([USE_TESTS], [test x"$use_tests" != x"no"])
 AM_CONDITIONAL([USE_EXHAUSTIVE_TESTS], [test x"$use_exhaustive_tests" != x"no"])
@@ -711,11 +667,11 @@ echo "  module ecdh             = $enable_module_ecdh"
 echo "  module recovery         = $enable_module_recovery"
 echo "  module extrakeys        = $enable_module_extrakeys"
 echo "  module schnorrsig       = $enable_module_schnorrsig"
+echo "  module musig            = $enable_module_musig"
 echo "  module ecdsa-s2c        = $enable_module_ecdsa_s2c"
 echo "  module ecdsa-adaptor    = $enable_module_ecdsa_adaptor"
 echo
 echo "  asm                     = $set_asm"
-echo "  bignum                  = $set_bignum"
 echo "  ecmult window size      = $set_ecmult_window"
 echo "  ecmult gen prec. bits   = $set_ecmult_gen_precision"
 # Hide test-only options unless they're used.
@@ -725,13 +681,15 @@ fi
 echo
 echo "  valgrind                = $enable_valgrind"
 echo "  CC                      = $CC"
-echo "  CFLAGS                  = $CFLAGS"
 echo "  CPPFLAGS                = $CPPFLAGS"
+echo "  SECP_CFLAGS             = $SECP_CFLAGS"
+echo "  CFLAGS                  = $CFLAGS"
 echo "  LDFLAGS                 = $LDFLAGS"
 echo
 if test x"$set_precomp" = x"yes"; then
 echo "  CC_FOR_BUILD            = $CC_FOR_BUILD"
-echo "  CFLAGS_FOR_BUILD        = $CFLAGS_FOR_BUILD"
 echo "  CPPFLAGS_FOR_BUILD      = $CPPFLAGS_FOR_BUILD"
+echo "  SECP_CFLAGS_FOR_BUILD   = $SECP_CFLAGS_FOR_BUILD"
+echo "  CFLAGS_FOR_BUILD        = $CFLAGS_FOR_BUILD"
 echo "  LDFLAGS_FOR_BUILD       = $LDFLAGS_FOR_BUILD"
 fi

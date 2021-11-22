@@ -182,7 +182,15 @@ int rustsecp256k1zkp_v0_4_0_pedersen_blind_generator_blind_sum(const rustsecp256
     }
 
     rustsecp256k1zkp_v0_4_0_scalar_set_int(&sum, 0);
-    for (i = 0; i < n_total; i++) {
+
+    /* Here, n_total > 0. Thus the loop runs at least once.
+       Thus we may use a do-while loop, which checks the loop
+       condition only at the end.
+
+       The do-while loop helps GCC prove that the loop runs at least
+       once and suppresses a -Wmaybe-uninitialized warning. */
+    i = 0;
+    do {
         int overflow = 0;
         rustsecp256k1zkp_v0_4_0_scalar addend;
         rustsecp256k1zkp_v0_4_0_scalar_set_u64(&addend, value[i]);  /* s = v */
@@ -207,7 +215,9 @@ int rustsecp256k1zkp_v0_4_0_pedersen_blind_generator_blind_sum(const rustsecp256
         rustsecp256k1zkp_v0_4_0_scalar_cond_negate(&addend, i < n_inputs);  /* s is negated if it's an input */
         rustsecp256k1zkp_v0_4_0_scalar_add(&sum, &sum, &addend);    /* sum += s */
         rustsecp256k1zkp_v0_4_0_scalar_clear(&addend);
-    }
+
+        i++;
+    } while (i < n_total);
 
     /* Right now tmp has the last pedersen blinding factor. Subtract the sum from it. */
     rustsecp256k1zkp_v0_4_0_scalar_negate(&sum, &sum);

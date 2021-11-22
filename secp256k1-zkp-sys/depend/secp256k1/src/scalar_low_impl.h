@@ -105,10 +105,6 @@ static int rustsecp256k1zkp_v0_4_0_scalar_shr_int(rustsecp256k1zkp_v0_4_0_scalar
     return ret;
 }
 
-static void rustsecp256k1zkp_v0_4_0_scalar_sqr(rustsecp256k1zkp_v0_4_0_scalar *r, const rustsecp256k1zkp_v0_4_0_scalar *a) {
-    *r = (*a * *a) % EXHAUSTIVE_TEST_ORDER;
-}
-
 static void rustsecp256k1zkp_v0_4_0_scalar_split_128(rustsecp256k1zkp_v0_4_0_scalar *r1, rustsecp256k1zkp_v0_4_0_scalar *r2, const rustsecp256k1zkp_v0_4_0_scalar *a) {
     *r1 = *a;
     *r2 = 0;
@@ -129,6 +125,21 @@ static SECP256K1_INLINE void rustsecp256k1zkp_v0_4_0_scalar_cmov(rustsecp256k1zk
 SECP256K1_INLINE static void rustsecp256k1zkp_v0_4_0_scalar_chacha20(rustsecp256k1zkp_v0_4_0_scalar *r1, rustsecp256k1zkp_v0_4_0_scalar *r2, const unsigned char *seed, uint64_t n) {
     *r1 = (seed[0] + n) % EXHAUSTIVE_TEST_ORDER;
     *r2 = (seed[1] + n) % EXHAUSTIVE_TEST_ORDER;
+}
+
+static void rustsecp256k1zkp_v0_4_0_scalar_inverse(rustsecp256k1zkp_v0_4_0_scalar *r, const rustsecp256k1zkp_v0_4_0_scalar *x) {
+    int i;
+    *r = 0;
+    for (i = 0; i < EXHAUSTIVE_TEST_ORDER; i++)
+        if ((i * *x) % EXHAUSTIVE_TEST_ORDER == 1)
+            *r = i;
+    /* If this VERIFY_CHECK triggers we were given a noninvertible scalar (and thus
+     * have a composite group order; fix it in exhaustive_tests.c). */
+    VERIFY_CHECK(*r != 0);
+}
+
+static void rustsecp256k1zkp_v0_4_0_scalar_inverse_var(rustsecp256k1zkp_v0_4_0_scalar *r, const rustsecp256k1zkp_v0_4_0_scalar *x) {
+    rustsecp256k1zkp_v0_4_0_scalar_inverse(r, x);
 }
 
 #endif /* SECP256K1_SCALAR_REPR_IMPL_H */
