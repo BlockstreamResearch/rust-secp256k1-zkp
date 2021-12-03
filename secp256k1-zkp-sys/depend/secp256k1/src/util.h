@@ -19,9 +19,9 @@
 typedef struct {
     void (*fn)(const char *text, void* data);
     const void* data;
-} rustsecp256k1zkp_v0_4_0_callback;
+} rustsecp256k1zkp_v0_5_0_callback;
 
-static SECP256K1_INLINE void rustsecp256k1zkp_v0_4_0_callback_call(const rustsecp256k1zkp_v0_4_0_callback * const cb, const char * const text) {
+static SECP256K1_INLINE void rustsecp256k1zkp_v0_5_0_callback_call(const rustsecp256k1zkp_v0_5_0_callback * const cb, const char * const text) {
     cb->fn(text, (void*)cb->data);
 }
 
@@ -130,7 +130,7 @@ static SECP256K1_INLINE void *manual_alloc(void** prealloc_ptr, size_t alloc_siz
 }
 
 /* Extract the sign of an int64, take the abs and return a uint64, constant time. */
-SECP256K1_INLINE static int rustsecp256k1zkp_v0_4_0_sign_and_abs64(uint64_t *out, int64_t in) {
+SECP256K1_INLINE static int rustsecp256k1zkp_v0_5_0_sign_and_abs64(uint64_t *out, int64_t in) {
     uint64_t mask0, mask1;
     int ret;
     ret = in < 0;
@@ -141,7 +141,7 @@ SECP256K1_INLINE static int rustsecp256k1zkp_v0_4_0_sign_and_abs64(uint64_t *out
     return ret;
 }
 
-SECP256K1_INLINE static int rustsecp256k1zkp_v0_4_0_clz64_var(uint64_t x) {
+SECP256K1_INLINE static int rustsecp256k1zkp_v0_5_0_clz64_var(uint64_t x) {
     int ret;
     if (!x) {
         return 64;
@@ -212,7 +212,7 @@ SECP256K1_INLINE static int rustsecp256k1zkp_v0_4_0_clz64_var(uint64_t x) {
 #endif
 
 /* Zero memory if flag == 1. Flag must be 0 or 1. Constant time. */
-static SECP256K1_INLINE void rustsecp256k1zkp_v0_4_0_memczero(void *s, size_t len, int flag) {
+static SECP256K1_INLINE void rustsecp256k1zkp_v0_5_0_memczero(void *s, size_t len, int flag) {
     unsigned char *p = (unsigned char *)s;
     /* Access flag with a volatile-qualified lvalue.
        This prevents clang from figuring out (after inlining) that flag can
@@ -231,7 +231,7 @@ static SECP256K1_INLINE void rustsecp256k1zkp_v0_4_0_memczero(void *s, size_t le
  * We use this to avoid possible compiler bugs with memcmp, e.g.
  * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95189
  */
-static SECP256K1_INLINE int rustsecp256k1zkp_v0_4_0_memcmp_var(const void *s1, const void *s2, size_t n) {
+static SECP256K1_INLINE int rustsecp256k1zkp_v0_5_0_memcmp_var(const void *s1, const void *s2, size_t n) {
     const unsigned char *p1 = s1, *p2 = s2;
     size_t i;
 
@@ -245,7 +245,7 @@ static SECP256K1_INLINE int rustsecp256k1zkp_v0_4_0_memcmp_var(const void *s1, c
 }
 
 /** If flag is true, set *r equal to *a; otherwise leave it. Constant-time.  Both *r and *a must be initialized and non-negative.*/
-static SECP256K1_INLINE void rustsecp256k1zkp_v0_4_0_int_cmov(int *r, const int *a, int flag) {
+static SECP256K1_INLINE void rustsecp256k1zkp_v0_5_0_int_cmov(int *r, const int *a, int flag) {
     unsigned int mask0, mask1, r_masked, a_masked;
     /* Access flag with a volatile-qualified lvalue.
        This prevents clang from figuring out (after inlining) that flag can
