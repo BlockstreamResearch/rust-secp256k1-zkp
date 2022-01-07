@@ -63,16 +63,9 @@ extern crate wasm_bindgen_test;
 
 use core::{fmt, str};
 
-pub use secp256k1::constants;
-pub use secp256k1::ecdh;
-pub use secp256k1::key;
-#[cfg(feature = "recovery")]
-pub use secp256k1::recovery;
-pub use secp256k1::schnorrsig;
+pub use secp256k1::*;
 
 pub use key::{PublicKey, SecretKey};
-
-pub use secp256k1::*;
 
 #[cfg(feature = "serde")]
 mod serde_util;
