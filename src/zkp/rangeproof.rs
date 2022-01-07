@@ -1,12 +1,13 @@
 use ffi::RANGEPROOF_MAX_LENGTH;
 use from_hex;
+use secp256k1::SecretKey;
 use std::ops::Range;
 use std::str;
 use Error;
 use Generator;
 use PedersenCommitment;
 use Verification;
-use {ffi, Secp256k1, SecretKey, Signing, Tweak};
+use {ffi, Secp256k1, Signing, Tweak};
 
 /// Represents a range proof.
 ///
@@ -203,7 +204,7 @@ impl RangeProof {
 #[cfg(feature = "bitcoin_hashes")]
 impl ::core::fmt::Display for RangeProof {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-        use bitcoin_hashes::hex::format_hex;
+        use hashes::hex::format_hex;
 
         format_hex(self.serialize().as_slice(), f)
     }

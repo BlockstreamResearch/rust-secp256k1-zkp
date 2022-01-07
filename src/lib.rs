@@ -43,8 +43,6 @@ pub use secp256k1_zkp_sys as ffi;
 
 extern crate secp256k1;
 
-#[cfg(feature = "bitcoin_hashes")]
-pub use secp256k1::bitcoin_hashes as hashes;
 #[cfg(any(test, feature = "std"))]
 extern crate core;
 #[cfg(any(test, feature = "rand"))]
@@ -64,8 +62,6 @@ extern crate wasm_bindgen_test;
 use core::{fmt, str};
 
 pub use secp256k1::*;
-
-pub use key::{PublicKey, SecretKey};
 
 #[cfg(feature = "serde")]
 mod serde_util;

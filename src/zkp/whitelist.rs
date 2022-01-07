@@ -10,7 +10,8 @@ use core::ptr;
 use ffi::CPtr;
 #[cfg(feature = "std")]
 use from_hex;
-use {ffi, secp256k1, Error, PublicKey, Secp256k1, SecretKey, Signing, Verification};
+use secp256k1::{PublicKey, SecretKey};
+use {ffi, secp256k1, Error, Secp256k1, Signing, Verification};
 
 /// A whitelist ring signature.
 #[derive(Clone, PartialEq, Eq, Hash)]
