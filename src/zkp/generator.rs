@@ -8,7 +8,7 @@ use {constants, from_hex, Error, Secp256k1, Signing, Tag};
 ///
 /// Contrary to a [`crate::SecretKey`], the value 0 is also a valid tweak.
 /// Values outside secp curve order are invalid tweaks.
-#[derive(Default, Hash)]
+#[derive(Default)]
 pub struct Tweak([u8; constants::SECRET_KEY_SIZE]);
 impl_array_newtype!(Tweak, u8, constants::SECRET_KEY_SIZE);
 
