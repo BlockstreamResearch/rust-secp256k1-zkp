@@ -490,12 +490,6 @@ impl Default for Tag {
     }
 }
 
-impl hash::Hash for Tag {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) {
-        self.0.hash(state)
-    }
-}
-
 impl From<[u8; 32]> for Tag {
     fn from(bytes: [u8; 32]) -> Self {
         Tag(bytes)
@@ -523,12 +517,6 @@ impl PedersenCommitment {
 impl Default for PedersenCommitment {
     fn default() -> Self {
         PedersenCommitment::new()
-    }
-}
-
-impl hash::Hash for PedersenCommitment {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) {
-        state.write(&self.0)
     }
 }
 
