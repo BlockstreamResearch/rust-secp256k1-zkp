@@ -14,11 +14,11 @@
 #include "ecmult.h"
 #include "ecmult_gen.h"
 
-int rustsecp256k1zkp_v0_5_0_borromean_verify(const rustsecp256k1zkp_v0_5_0_ecmult_context* ecmult_ctx, rustsecp256k1zkp_v0_5_0_scalar *evalues, const unsigned char *e0, const rustsecp256k1zkp_v0_5_0_scalar *s,
- const rustsecp256k1zkp_v0_5_0_gej *pubs, const size_t *rsizes, size_t nrings, const unsigned char *m, size_t mlen);
+int rustsecp256k1zkp_v0_6_0_borromean_verify(const rustsecp256k1zkp_v0_6_0_ecmult_context* ecmult_ctx, rustsecp256k1zkp_v0_6_0_scalar *evalues, const unsigned char *e0, const rustsecp256k1zkp_v0_6_0_scalar *s,
+ const rustsecp256k1zkp_v0_6_0_gej *pubs, const size_t *rsizes, size_t nrings, const unsigned char *m, size_t mlen);
 
-int rustsecp256k1zkp_v0_5_0_borromean_sign(const rustsecp256k1zkp_v0_5_0_ecmult_context* ecmult_ctx, const rustsecp256k1zkp_v0_5_0_ecmult_gen_context *ecmult_gen_ctx,
- unsigned char *e0, rustsecp256k1zkp_v0_5_0_scalar *s, const rustsecp256k1zkp_v0_5_0_gej *pubs, const rustsecp256k1zkp_v0_5_0_scalar *k, const rustsecp256k1zkp_v0_5_0_scalar *sec,
+int rustsecp256k1zkp_v0_6_0_borromean_sign(const rustsecp256k1zkp_v0_6_0_ecmult_context* ecmult_ctx, const rustsecp256k1zkp_v0_6_0_ecmult_gen_context *ecmult_gen_ctx,
+ unsigned char *e0, rustsecp256k1zkp_v0_6_0_scalar *s, const rustsecp256k1zkp_v0_6_0_gej *pubs, const rustsecp256k1zkp_v0_6_0_scalar *k, const rustsecp256k1zkp_v0_6_0_scalar *sec,
  const size_t *rsizes, const size_t *secidx, size_t nrings, const unsigned char *m, size_t mlen);
 
 #endif
