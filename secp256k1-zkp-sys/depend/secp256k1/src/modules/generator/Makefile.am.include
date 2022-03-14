@@ -1,4 +1,4 @@
-include_HEADERS += include/rustsecp256k1zkp_v0_5_0_generator.h
+include_HEADERS += include/rustsecp256k1zkp_v0_6_0_generator.h
 noinst_HEADERS += src/modules/generator/main_impl.h
 noinst_HEADERS += src/modules/generator/tests_impl.h
 if USE_BENCHMARK

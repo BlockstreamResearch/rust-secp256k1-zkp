@@ -5,25 +5,24 @@
  ***********************************************************************/
 #include <stdio.h>
 
-#include "include/secp256k1.h"
+#include "secp256k1.c"
+#include "../include/secp256k1.h"
 
 #include "assumptions.h"
 #include "util.h"
 #include "hash_impl.h"
-#include "num_impl.h"
 #include "field_impl.h"
 #include "group_impl.h"
 #include "scalar_impl.h"
 #include "ecmult_const_impl.h"
 #include "ecmult_impl.h"
 #include "bench.h"
-#include "secp256k1.c"
 
 typedef struct {
-    rustsecp256k1zkp_v0_5_0_scalar scalar[2];
-    rustsecp256k1zkp_v0_5_0_fe fe[4];
-    rustsecp256k1zkp_v0_5_0_ge ge[2];
-    rustsecp256k1zkp_v0_5_0_gej gej[2];
+    rustsecp256k1zkp_v0_6_0_scalar scalar[2];
+    rustsecp256k1zkp_v0_6_0_fe fe[4];
+    rustsecp256k1zkp_v0_6_0_ge ge[2];
+    rustsecp256k1zkp_v0_6_0_gej gej[2];
     unsigned char data[64];
     int wnaf[256];
 } bench_inv;
@@ -64,18 +63,18 @@ void bench_setup(void* arg) {
         }
     };
 
-    rustsecp256k1zkp_v0_5_0_scalar_set_b32(&data->scalar[0], init[0], NULL);
-    rustsecp256k1zkp_v0_5_0_scalar_set_b32(&data->scalar[1], init[1], NULL);
-    rustsecp256k1zkp_v0_5_0_fe_set_b32(&data->fe[0], init[0]);
-    rustsecp256k1zkp_v0_5_0_fe_set_b32(&data->fe[1], init[1]);
-    rustsecp256k1zkp_v0_5_0_fe_set_b32(&data->fe[2], init[2]);
-    rustsecp256k1zkp_v0_5_0_fe_set_b32(&data->fe[3], init[3]);
-    CHECK(rustsecp256k1zkp_v0_5_0_ge_set_xo_var(&data->ge[0], &data->fe[0], 0));
-    CHECK(rustsecp256k1zkp_v0_5_0_ge_set_xo_var(&data->ge[1], &data->fe[1], 1));
-    rustsecp256k1zkp_v0_5_0_gej_set_ge(&data->gej[0], &data->ge[0]);
-    rustsecp256k1zkp_v0_5_0_gej_rescale(&data->gej[0], &data->fe[2]);
-    rustsecp256k1zkp_v0_5_0_gej_set_ge(&data->gej[1], &data->ge[1]);
-    rustsecp256k1zkp_v0_5_0_gej_rescale(&data->gej[1], &data->fe[3]);
+    rustsecp256k1zkp_v0_6_0_scalar_set_b32(&data->scalar[0], init[0], NULL);
+    rustsecp256k1zkp_v0_6_0_scalar_set_b32(&data->scalar[1], init[1], NULL);
+    rustsecp256k1zkp_v0_6_0_fe_set_b32(&data->fe[0], init[0]);
+    rustsecp256k1zkp_v0_6_0_fe_set_b32(&data->fe[1], init[1]);
+    rustsecp256k1zkp_v0_6_0_fe_set_b32(&data->fe[2], init[2]);
+    rustsecp256k1zkp_v0_6_0_fe_set_b32(&data->fe[3], init[3]);
+    CHECK(rustsecp256k1zkp_v0_6_0_ge_set_xo_var(&data->ge[0], &data->fe[0], 0));
+    CHECK(rustsecp256k1zkp_v0_6_0_ge_set_xo_var(&data->ge[1], &data->fe[1], 1));
+    rustsecp256k1zkp_v0_6_0_gej_set_ge(&data->gej[0], &data->ge[0]);
+    rustsecp256k1zkp_v0_6_0_gej_rescale(&data->gej[0], &data->fe[2]);
+    rustsecp256k1zkp_v0_6_0_gej_set_ge(&data->gej[1], &data->ge[1]);
+    rustsecp256k1zkp_v0_6_0_gej_rescale(&data->gej[1], &data->fe[3]);
     memcpy(data->data, init[0], 32);
     memcpy(data->data + 32, init[1], 32);
 }
@@ -85,7 +84,7 @@ void bench_scalar_add(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        j += rustsecp256k1zkp_v0_5_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
+        j += rustsecp256k1zkp_v0_6_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
     }
     CHECK(j <= iters);
 }
@@ -95,16 +94,7 @@ void bench_scalar_negate(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_scalar_negate(&data->scalar[0], &data->scalar[0]);
-    }
-}
-
-void bench_scalar_sqr(void* arg, int iters) {
-    int i;
-    bench_inv *data = (bench_inv*)arg;
-
-    for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_scalar_sqr(&data->scalar[0], &data->scalar[0]);
+        rustsecp256k1zkp_v0_6_0_scalar_negate(&data->scalar[0], &data->scalar[0]);
     }
 }
 
@@ -113,7 +103,7 @@ void bench_scalar_mul(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_scalar_mul(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
+        rustsecp256k1zkp_v0_6_0_scalar_mul(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
     }
 }
 
@@ -122,8 +112,8 @@ void bench_scalar_split(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_scalar_split_lambda(&data->scalar[0], &data->scalar[1], &data->scalar[0]);
-        j += rustsecp256k1zkp_v0_5_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
+        rustsecp256k1zkp_v0_6_0_scalar_split_lambda(&data->scalar[0], &data->scalar[1], &data->scalar[0]);
+        j += rustsecp256k1zkp_v0_6_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
     }
     CHECK(j <= iters);
 }
@@ -133,8 +123,8 @@ void bench_scalar_inverse(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_scalar_inverse(&data->scalar[0], &data->scalar[0]);
-        j += rustsecp256k1zkp_v0_5_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
+        rustsecp256k1zkp_v0_6_0_scalar_inverse(&data->scalar[0], &data->scalar[0]);
+        j += rustsecp256k1zkp_v0_6_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
     }
     CHECK(j <= iters);
 }
@@ -144,8 +134,8 @@ void bench_scalar_inverse_var(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_scalar_inverse_var(&data->scalar[0], &data->scalar[0]);
-        j += rustsecp256k1zkp_v0_5_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
+        rustsecp256k1zkp_v0_6_0_scalar_inverse_var(&data->scalar[0], &data->scalar[0]);
+        j += rustsecp256k1zkp_v0_6_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
     }
     CHECK(j <= iters);
 }
@@ -155,7 +145,7 @@ void bench_field_normalize(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_fe_normalize(&data->fe[0]);
+        rustsecp256k1zkp_v0_6_0_fe_normalize(&data->fe[0]);
     }
 }
 
@@ -164,7 +154,7 @@ void bench_field_normalize_weak(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_fe_normalize_weak(&data->fe[0]);
+        rustsecp256k1zkp_v0_6_0_fe_normalize_weak(&data->fe[0]);
     }
 }
 
@@ -173,7 +163,7 @@ void bench_field_mul(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_fe_mul(&data->fe[0], &data->fe[0], &data->fe[1]);
+        rustsecp256k1zkp_v0_6_0_fe_mul(&data->fe[0], &data->fe[0], &data->fe[1]);
     }
 }
 
@@ -182,7 +172,7 @@ void bench_field_sqr(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_fe_sqr(&data->fe[0], &data->fe[0]);
+        rustsecp256k1zkp_v0_6_0_fe_sqr(&data->fe[0], &data->fe[0]);
     }
 }
 
@@ -191,8 +181,8 @@ void bench_field_inverse(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_fe_inv(&data->fe[0], &data->fe[0]);
-        rustsecp256k1zkp_v0_5_0_fe_add(&data->fe[0], &data->fe[1]);
+        rustsecp256k1zkp_v0_6_0_fe_inv(&data->fe[0], &data->fe[0]);
+        rustsecp256k1zkp_v0_6_0_fe_add(&data->fe[0], &data->fe[1]);
     }
 }
 
@@ -201,20 +191,20 @@ void bench_field_inverse_var(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_fe_inv_var(&data->fe[0], &data->fe[0]);
-        rustsecp256k1zkp_v0_5_0_fe_add(&data->fe[0], &data->fe[1]);
+        rustsecp256k1zkp_v0_6_0_fe_inv_var(&data->fe[0], &data->fe[0]);
+        rustsecp256k1zkp_v0_6_0_fe_add(&data->fe[0], &data->fe[1]);
     }
 }
 
 void bench_field_sqrt(void* arg, int iters) {
     int i, j = 0;
     bench_inv *data = (bench_inv*)arg;
-    rustsecp256k1zkp_v0_5_0_fe t;
+    rustsecp256k1zkp_v0_6_0_fe t;
 
     for (i = 0; i < iters; i++) {
         t = data->fe[0];
-        j += rustsecp256k1zkp_v0_5_0_fe_sqrt(&data->fe[0], &t);
-        rustsecp256k1zkp_v0_5_0_fe_add(&data->fe[0], &data->fe[1]);
+        j += rustsecp256k1zkp_v0_6_0_fe_sqrt(&data->fe[0], &t);
+        rustsecp256k1zkp_v0_6_0_fe_add(&data->fe[0], &data->fe[1]);
     }
     CHECK(j <= iters);
 }
@@ -224,7 +214,7 @@ void bench_group_double_var(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_gej_double_var(&data->gej[0], &data->gej[0], NULL);
+        rustsecp256k1zkp_v0_6_0_gej_double_var(&data->gej[0], &data->gej[0], NULL);
     }
 }
 
@@ -233,7 +223,7 @@ void bench_group_add_var(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_gej_add_var(&data->gej[0], &data->gej[0], &data->gej[1], NULL);
+        rustsecp256k1zkp_v0_6_0_gej_add_var(&data->gej[0], &data->gej[0], &data->gej[1], NULL);
     }
 }
 
@@ -242,7 +232,7 @@ void bench_group_add_affine(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_gej_add_ge(&data->gej[0], &data->gej[0], &data->ge[1]);
+        rustsecp256k1zkp_v0_6_0_gej_add_ge(&data->gej[0], &data->gej[0], &data->ge[1]);
     }
 }
 
@@ -251,7 +241,7 @@ void bench_group_add_affine_var(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_gej_add_ge_var(&data->gej[0], &data->gej[0], &data->ge[1], NULL);
+        rustsecp256k1zkp_v0_6_0_gej_add_ge_var(&data->gej[0], &data->gej[0], &data->ge[1], NULL);
     }
 }
 
@@ -260,17 +250,17 @@ void bench_group_jacobi_var(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        j += rustsecp256k1zkp_v0_5_0_gej_has_quad_y_var(&data->gej[0]);
+        j += rustsecp256k1zkp_v0_6_0_gej_has_quad_y_var(&data->gej[0]);
         /* Vary the Y and Z coordinates of the input (the X coordinate doesn't matter to
-           rustsecp256k1zkp_v0_5_0_gej_has_quad_y_var). Note that the resulting coordinates will
+           rustsecp256k1zkp_v0_6_0_gej_has_quad_y_var). Note that the resulting coordinates will
            generally not correspond to a point on the curve, but this is not a problem
            for the code being benchmarked here. Adding and normalizing have less
            overhead than EC operations (which could guarantee the point remains on the
            curve). */
-        rustsecp256k1zkp_v0_5_0_fe_add(&data->gej[0].y, &data->fe[1]);
-        rustsecp256k1zkp_v0_5_0_fe_add(&data->gej[0].z, &data->fe[2]);
-        rustsecp256k1zkp_v0_5_0_fe_normalize_var(&data->gej[0].y);
-        rustsecp256k1zkp_v0_5_0_fe_normalize_var(&data->gej[0].z);
+        rustsecp256k1zkp_v0_6_0_fe_add(&data->gej[0].y, &data->fe[1]);
+        rustsecp256k1zkp_v0_6_0_fe_add(&data->gej[0].z, &data->fe[2]);
+        rustsecp256k1zkp_v0_6_0_fe_normalize_var(&data->gej[0].y);
+        rustsecp256k1zkp_v0_6_0_fe_normalize_var(&data->gej[0].z);
     }
     CHECK(j <= iters);
 }
@@ -280,16 +270,16 @@ void bench_group_to_affine_var(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; ++i) {
-        rustsecp256k1zkp_v0_5_0_ge_set_gej_var(&data->ge[1], &data->gej[0]);
+        rustsecp256k1zkp_v0_6_0_ge_set_gej_var(&data->ge[1], &data->gej[0]);
         /* Use the output affine X/Y coordinates to vary the input X/Y/Z coordinates.
            Similar to bench_group_jacobi_var, this approach does not result in
            coordinates of points on the curve. */
-        rustsecp256k1zkp_v0_5_0_fe_add(&data->gej[0].x, &data->ge[1].y);
-        rustsecp256k1zkp_v0_5_0_fe_add(&data->gej[0].y, &data->fe[2]);
-        rustsecp256k1zkp_v0_5_0_fe_add(&data->gej[0].z, &data->ge[1].x);
-        rustsecp256k1zkp_v0_5_0_fe_normalize_var(&data->gej[0].x);
-        rustsecp256k1zkp_v0_5_0_fe_normalize_var(&data->gej[0].y);
-        rustsecp256k1zkp_v0_5_0_fe_normalize_var(&data->gej[0].z);
+        rustsecp256k1zkp_v0_6_0_fe_add(&data->gej[0].x, &data->ge[1].y);
+        rustsecp256k1zkp_v0_6_0_fe_add(&data->gej[0].y, &data->fe[2]);
+        rustsecp256k1zkp_v0_6_0_fe_add(&data->gej[0].z, &data->ge[1].x);
+        rustsecp256k1zkp_v0_6_0_fe_normalize_var(&data->gej[0].x);
+        rustsecp256k1zkp_v0_6_0_fe_normalize_var(&data->gej[0].y);
+        rustsecp256k1zkp_v0_6_0_fe_normalize_var(&data->gej[0].z);
     }
 }
 
@@ -298,8 +288,8 @@ void bench_ecmult_wnaf(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        bits += rustsecp256k1zkp_v0_5_0_ecmult_wnaf(data->wnaf, 256, &data->scalar[0], WINDOW_A);
-        overflow += rustsecp256k1zkp_v0_5_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
+        bits += rustsecp256k1zkp_v0_6_0_ecmult_wnaf(data->wnaf, 256, &data->scalar[0], WINDOW_A);
+        overflow += rustsecp256k1zkp_v0_6_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
     }
     CHECK(overflow >= 0);
     CHECK(bits <= 256*iters);
@@ -310,8 +300,8 @@ void bench_wnaf_const(void* arg, int iters) {
     bench_inv *data = (bench_inv*)arg;
 
     for (i = 0; i < iters; i++) {
-        bits += rustsecp256k1zkp_v0_5_0_wnaf_const(data->wnaf, &data->scalar[0], WINDOW_A, 256);
-        overflow += rustsecp256k1zkp_v0_5_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
+        bits += rustsecp256k1zkp_v0_6_0_wnaf_const(data->wnaf, &data->scalar[0], WINDOW_A, 256);
+        overflow += rustsecp256k1zkp_v0_6_0_scalar_add(&data->scalar[0], &data->scalar[0], &data->scalar[1]);
     }
     CHECK(overflow >= 0);
     CHECK(bits <= 256*iters);
@@ -321,35 +311,35 @@ void bench_wnaf_const(void* arg, int iters) {
 void bench_sha256(void* arg, int iters) {
     int i;
     bench_inv *data = (bench_inv*)arg;
-    rustsecp256k1zkp_v0_5_0_sha256 sha;
+    rustsecp256k1zkp_v0_6_0_sha256 sha;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_sha256_initialize(&sha);
-        rustsecp256k1zkp_v0_5_0_sha256_write(&sha, data->data, 32);
-        rustsecp256k1zkp_v0_5_0_sha256_finalize(&sha, data->data);
+        rustsecp256k1zkp_v0_6_0_sha256_initialize(&sha);
+        rustsecp256k1zkp_v0_6_0_sha256_write(&sha, data->data, 32);
+        rustsecp256k1zkp_v0_6_0_sha256_finalize(&sha, data->data);
     }
 }
 
 void bench_hmac_sha256(void* arg, int iters) {
     int i;
     bench_inv *data = (bench_inv*)arg;
-    rustsecp256k1zkp_v0_5_0_hmac_sha256 hmac;
+    rustsecp256k1zkp_v0_6_0_hmac_sha256 hmac;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_hmac_sha256_initialize(&hmac, data->data, 32);
-        rustsecp256k1zkp_v0_5_0_hmac_sha256_write(&hmac, data->data, 32);
-        rustsecp256k1zkp_v0_5_0_hmac_sha256_finalize(&hmac, data->data);
+        rustsecp256k1zkp_v0_6_0_hmac_sha256_initialize(&hmac, data->data, 32);
+        rustsecp256k1zkp_v0_6_0_hmac_sha256_write(&hmac, data->data, 32);
+        rustsecp256k1zkp_v0_6_0_hmac_sha256_finalize(&hmac, data->data);
     }
 }
 
 void bench_rfc6979_hmac_sha256(void* arg, int iters) {
     int i;
     bench_inv *data = (bench_inv*)arg;
-    rustsecp256k1zkp_v0_5_0_rfc6979_hmac_sha256 rng;
+    rustsecp256k1zkp_v0_6_0_rfc6979_hmac_sha256 rng;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_rfc6979_hmac_sha256_initialize(&rng, data->data, 64);
-        rustsecp256k1zkp_v0_5_0_rfc6979_hmac_sha256_generate(&rng, data->data, 32);
+        rustsecp256k1zkp_v0_6_0_rfc6979_hmac_sha256_initialize(&rng, data->data, 64);
+        rustsecp256k1zkp_v0_6_0_rfc6979_hmac_sha256_generate(&rng, data->data, 32);
     }
 }
 
@@ -357,7 +347,7 @@ void bench_context_verify(void* arg, int iters) {
     int i;
     (void)arg;
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_context_destroy(rustsecp256k1zkp_v0_5_0_context_create(SECP256K1_CONTEXT_VERIFY));
+        rustsecp256k1zkp_v0_6_0_context_destroy(rustsecp256k1zkp_v0_6_0_context_create(SECP256K1_CONTEXT_VERIFY));
     }
 }
 
@@ -365,67 +355,47 @@ void bench_context_sign(void* arg, int iters) {
     int i;
     (void)arg;
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_5_0_context_destroy(rustsecp256k1zkp_v0_5_0_context_create(SECP256K1_CONTEXT_SIGN));
+        rustsecp256k1zkp_v0_6_0_context_destroy(rustsecp256k1zkp_v0_6_0_context_create(SECP256K1_CONTEXT_SIGN));
     }
 }
-
-#ifndef USE_NUM_NONE
-void bench_num_jacobi(void* arg, int iters) {
-    int i, j = 0;
-    bench_inv *data = (bench_inv*)arg;
-    rustsecp256k1zkp_v0_5_0_num nx, na, norder;
-
-    rustsecp256k1zkp_v0_5_0_scalar_get_num(&nx, &data->scalar[0]);
-    rustsecp256k1zkp_v0_5_0_scalar_order_get_num(&norder);
-    rustsecp256k1zkp_v0_5_0_scalar_get_num(&na, &data->scalar[1]);
-
-    for (i = 0; i < iters; i++) {
-        j += rustsecp256k1zkp_v0_5_0_num_jacobi(&nx, &norder);
-        rustsecp256k1zkp_v0_5_0_num_add(&nx, &nx, &na);
-    }
-    CHECK(j <= iters);
-}
-#endif
 
 int main(int argc, char **argv) {
     bench_inv data;
     int iters = get_iters(20000);
+    int d = argc == 1; /* default */
+    print_output_table_header_row();
 
-    if (have_flag(argc, argv, "scalar") || have_flag(argc, argv, "add")) run_benchmark("scalar_add", bench_scalar_add, bench_setup, NULL, &data, 10, iters*100);
-    if (have_flag(argc, argv, "scalar") || have_flag(argc, argv, "negate")) run_benchmark("scalar_negate", bench_scalar_negate, bench_setup, NULL, &data, 10, iters*100);
-    if (have_flag(argc, argv, "scalar") || have_flag(argc, argv, "sqr")) run_benchmark("scalar_sqr", bench_scalar_sqr, bench_setup, NULL, &data, 10, iters*10);
-    if (have_flag(argc, argv, "scalar") || have_flag(argc, argv, "mul")) run_benchmark("scalar_mul", bench_scalar_mul, bench_setup, NULL, &data, 10, iters*10);
-    if (have_flag(argc, argv, "scalar") || have_flag(argc, argv, "split")) run_benchmark("scalar_split", bench_scalar_split, bench_setup, NULL, &data, 10, iters);
-    if (have_flag(argc, argv, "scalar") || have_flag(argc, argv, "inverse")) run_benchmark("scalar_inverse", bench_scalar_inverse, bench_setup, NULL, &data, 10, 2000);
-    if (have_flag(argc, argv, "scalar") || have_flag(argc, argv, "inverse")) run_benchmark("scalar_inverse_var", bench_scalar_inverse_var, bench_setup, NULL, &data, 10, 2000);
+    if (d || have_flag(argc, argv, "scalar") || have_flag(argc, argv, "add")) run_benchmark("scalar_add", bench_scalar_add, bench_setup, NULL, &data, 10, iters*100);
+    if (d || have_flag(argc, argv, "scalar") || have_flag(argc, argv, "negate")) run_benchmark("scalar_negate", bench_scalar_negate, bench_setup, NULL, &data, 10, iters*100);
+    if (d || have_flag(argc, argv, "scalar") || have_flag(argc, argv, "mul")) run_benchmark("scalar_mul", bench_scalar_mul, bench_setup, NULL, &data, 10, iters*10);
+    if (d || have_flag(argc, argv, "scalar") || have_flag(argc, argv, "split")) run_benchmark("scalar_split", bench_scalar_split, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "scalar") || have_flag(argc, argv, "inverse")) run_benchmark("scalar_inverse", bench_scalar_inverse, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "scalar") || have_flag(argc, argv, "inverse")) run_benchmark("scalar_inverse_var", bench_scalar_inverse_var, bench_setup, NULL, &data, 10, iters);
 
-    if (have_flag(argc, argv, "field") || have_flag(argc, argv, "normalize")) run_benchmark("field_normalize", bench_field_normalize, bench_setup, NULL, &data, 10, iters*100);
-    if (have_flag(argc, argv, "field") || have_flag(argc, argv, "normalize")) run_benchmark("field_normalize_weak", bench_field_normalize_weak, bench_setup, NULL, &data, 10, iters*100);
-    if (have_flag(argc, argv, "field") || have_flag(argc, argv, "sqr")) run_benchmark("field_sqr", bench_field_sqr, bench_setup, NULL, &data, 10, iters*10);
-    if (have_flag(argc, argv, "field") || have_flag(argc, argv, "mul")) run_benchmark("field_mul", bench_field_mul, bench_setup, NULL, &data, 10, iters*10);
-    if (have_flag(argc, argv, "field") || have_flag(argc, argv, "inverse")) run_benchmark("field_inverse", bench_field_inverse, bench_setup, NULL, &data, 10, iters);
-    if (have_flag(argc, argv, "field") || have_flag(argc, argv, "inverse")) run_benchmark("field_inverse_var", bench_field_inverse_var, bench_setup, NULL, &data, 10, iters);
-    if (have_flag(argc, argv, "field") || have_flag(argc, argv, "sqrt")) run_benchmark("field_sqrt", bench_field_sqrt, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "field") || have_flag(argc, argv, "normalize")) run_benchmark("field_normalize", bench_field_normalize, bench_setup, NULL, &data, 10, iters*100);
+    if (d || have_flag(argc, argv, "field") || have_flag(argc, argv, "normalize")) run_benchmark("field_normalize_weak", bench_field_normalize_weak, bench_setup, NULL, &data, 10, iters*100);
+    if (d || have_flag(argc, argv, "field") || have_flag(argc, argv, "sqr")) run_benchmark("field_sqr", bench_field_sqr, bench_setup, NULL, &data, 10, iters*10);
+    if (d || have_flag(argc, argv, "field") || have_flag(argc, argv, "mul")) run_benchmark("field_mul", bench_field_mul, bench_setup, NULL, &data, 10, iters*10);
+    if (d || have_flag(argc, argv, "field") || have_flag(argc, argv, "inverse")) run_benchmark("field_inverse", bench_field_inverse, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "field") || have_flag(argc, argv, "inverse")) run_benchmark("field_inverse_var", bench_field_inverse_var, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "field") || have_flag(argc, argv, "sqrt")) run_benchmark("field_sqrt", bench_field_sqrt, bench_setup, NULL, &data, 10, iters);
 
-    if (have_flag(argc, argv, "group") || have_flag(argc, argv, "double")) run_benchmark("group_double_var", bench_group_double_var, bench_setup, NULL, &data, 10, iters*10);
-    if (have_flag(argc, argv, "group") || have_flag(argc, argv, "add")) run_benchmark("group_add_var", bench_group_add_var, bench_setup, NULL, &data, 10, iters*10);
-    if (have_flag(argc, argv, "group") || have_flag(argc, argv, "add")) run_benchmark("group_add_affine", bench_group_add_affine, bench_setup, NULL, &data, 10, iters*10);
-    if (have_flag(argc, argv, "group") || have_flag(argc, argv, "add")) run_benchmark("group_add_affine_var", bench_group_add_affine_var, bench_setup, NULL, &data, 10, iters*10);
-    if (have_flag(argc, argv, "group") || have_flag(argc, argv, "jacobi")) run_benchmark("group_jacobi_var", bench_group_jacobi_var, bench_setup, NULL, &data, 10, iters);
-    if (have_flag(argc, argv, "group") || have_flag(argc, argv, "to_affine")) run_benchmark("group_to_affine_var", bench_group_to_affine_var, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "group") || have_flag(argc, argv, "double")) run_benchmark("group_double_var", bench_group_double_var, bench_setup, NULL, &data, 10, iters*10);
+    if (d || have_flag(argc, argv, "group") || have_flag(argc, argv, "add")) run_benchmark("group_add_var", bench_group_add_var, bench_setup, NULL, &data, 10, iters*10);
+    if (d || have_flag(argc, argv, "group") || have_flag(argc, argv, "add")) run_benchmark("group_add_affine", bench_group_add_affine, bench_setup, NULL, &data, 10, iters*10);
+    if (d || have_flag(argc, argv, "group") || have_flag(argc, argv, "add")) run_benchmark("group_add_affine_var", bench_group_add_affine_var, bench_setup, NULL, &data, 10, iters*10);
+    if (d || have_flag(argc, argv, "group") || have_flag(argc, argv, "jacobi")) run_benchmark("group_jacobi_var", bench_group_jacobi_var, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "group") || have_flag(argc, argv, "to_affine")) run_benchmark("group_to_affine_var", bench_group_to_affine_var, bench_setup, NULL, &data, 10, iters);
 
-    if (have_flag(argc, argv, "ecmult") || have_flag(argc, argv, "wnaf")) run_benchmark("wnaf_const", bench_wnaf_const, bench_setup, NULL, &data, 10, iters);
-    if (have_flag(argc, argv, "ecmult") || have_flag(argc, argv, "wnaf")) run_benchmark("ecmult_wnaf", bench_ecmult_wnaf, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "ecmult") || have_flag(argc, argv, "wnaf")) run_benchmark("wnaf_const", bench_wnaf_const, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "ecmult") || have_flag(argc, argv, "wnaf")) run_benchmark("ecmult_wnaf", bench_ecmult_wnaf, bench_setup, NULL, &data, 10, iters);
 
-    if (have_flag(argc, argv, "hash") || have_flag(argc, argv, "sha256")) run_benchmark("hash_sha256", bench_sha256, bench_setup, NULL, &data, 10, iters);
-    if (have_flag(argc, argv, "hash") || have_flag(argc, argv, "hmac")) run_benchmark("hash_hmac_sha256", bench_hmac_sha256, bench_setup, NULL, &data, 10, iters);
-    if (have_flag(argc, argv, "hash") || have_flag(argc, argv, "rng6979")) run_benchmark("hash_rfc6979_hmac_sha256", bench_rfc6979_hmac_sha256, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "hash") || have_flag(argc, argv, "sha256")) run_benchmark("hash_sha256", bench_sha256, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "hash") || have_flag(argc, argv, "hmac")) run_benchmark("hash_hmac_sha256", bench_hmac_sha256, bench_setup, NULL, &data, 10, iters);
+    if (d || have_flag(argc, argv, "hash") || have_flag(argc, argv, "rng6979")) run_benchmark("hash_rfc6979_hmac_sha256", bench_rfc6979_hmac_sha256, bench_setup, NULL, &data, 10, iters);
 
-    if (have_flag(argc, argv, "context") || have_flag(argc, argv, "verify")) run_benchmark("context_verify", bench_context_verify, bench_setup, NULL, &data, 10, 1 + iters/1000);
-    if (have_flag(argc, argv, "context") || have_flag(argc, argv, "sign")) run_benchmark("context_sign", bench_context_sign, bench_setup, NULL, &data, 10, 1 + iters/100);
+    if (d || have_flag(argc, argv, "context") || have_flag(argc, argv, "verify")) run_benchmark("context_verify", bench_context_verify, bench_setup, NULL, &data, 10, 1 + iters/1000);
+    if (d || have_flag(argc, argv, "context") || have_flag(argc, argv, "sign")) run_benchmark("context_sign", bench_context_sign, bench_setup, NULL, &data, 10, 1 + iters/100);
 
-#ifndef USE_NUM_NONE
-    if (have_flag(argc, argv, "num") || have_flag(argc, argv, "jacobi")) run_benchmark("num_jacobi", bench_num_jacobi, bench_setup, NULL, &data, 10, iters*10);
-#endif
     return 0;
 }

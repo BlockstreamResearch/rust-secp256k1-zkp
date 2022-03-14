@@ -1,20 +1,17 @@
-bench_inv
-bench_ecdh
+bench
 bench_ecmult
 bench_generator
 bench_rangeproof
-bench_schnorrsig
-bench_sign
-bench_verify
-bench_recover
 bench_internal
 tests
 exhaustive_tests
-gen_context
+precompute_ecmult_gen
+precompute_ecmult
 valgrind_ctime_test
 *.exe
 *.so
 *.a
+*.csv
 !.gitignore
 
 Makefile
@@ -25,6 +22,7 @@ aclocal.m4
 autom4te.cache/
 config.log
 config.status
+conftest*
 *.tar.gz
 *.la
 libtool
@@ -35,9 +33,16 @@ libtool
 *~
 *.log
 *.trs
+
+coverage/
+coverage.html
+coverage.*.html
+*.gcda
+*.gcno
+*.gcov
+
 src/libsecp256k1-config.h
 src/libsecp256k1-config.h.in
-src/ecmult_static_context.h
 build-aux/config.guess
 build-aux/config.sub
 build-aux/depcomp
@@ -54,3 +59,5 @@ build-aux/test-driver
 src/stamp-h1
 libsecp256k1.pc
 contrib/gh-pr-create.sh
+
+example_musig
