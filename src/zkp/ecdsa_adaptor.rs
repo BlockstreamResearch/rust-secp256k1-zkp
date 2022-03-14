@@ -16,7 +16,7 @@ use rand::{CryptoRng, Rng};
 use {constants, PublicKey, Secp256k1, SecretKey};
 use {from_hex, Error};
 use {Message, Signing};
-use {Signature, Verification};
+use {ecdsa::Signature, Verification};
 
 /// Represents an adaptor signature and dleq proof.
 #[derive(Debug, PartialEq, Clone, Copy, Eq)]
@@ -309,7 +309,7 @@ mod tests {
             .decrypt(&adaptor_secret)
             .expect("to be able to decrypt using the correct secret");
         SECP256K1
-            .verify(&msg, &sig, &pubkey)
+            .verify_ecdsa(&msg, &sig, &pubkey)
             .expect("signature to be valid");
         let recovered = adaptor_sig
             .recover(&SECP256K1, &sig, &adaptor)

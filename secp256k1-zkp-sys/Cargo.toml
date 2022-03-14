@@ -23,7 +23,7 @@ features = [ "recovery", "lowmemory" ]
 cc = "1.0.28"
 
 [dependencies]
-secp256k1-sys = "0.4"
+secp256k1-sys = "0.5"
 
 [features]
 default = ["std"]
