@@ -12,7 +12,7 @@ impl Tag {
         self.0
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(all(feature = "rand", feature = "std"))]
     pub(crate) fn as_inner(&self) -> &ffi::Tag {
         &self.0
     }

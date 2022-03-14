@@ -177,6 +177,7 @@ impl Generator {
     ///
     /// This is `pub(crate)` because generators have a different serialization from regular public keys.
     /// As such, certain invariants need to be upheld which is easier if we don't allow users to access the internal representation of generators.
+    #[cfg(feature = "std")] // for un-used warnings
     pub(crate) fn as_inner(&self) -> &ffi::PublicKey {
         &self.0
     }

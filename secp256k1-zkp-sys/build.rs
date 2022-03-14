@@ -38,7 +38,7 @@ fn main() {
         .include("depend/secp256k1/include")
         .include("depend/secp256k1/src")
         .flag_if_supported("-Wno-unused-function") // some ecmult stuff is defined but not used upstream
-        .define("SECP256K1_BUILD", Some("1"))
+        .define("SECP256K1_BUILD", Some(""))
         .define("ENABLE_MODULE_SURJECTIONPROOF", Some("1"))
         .define("ENABLE_MODULE_GENERATOR", Some("1"))
         .define("ENABLE_MODULE_RANGEPROOF", Some("1"))
