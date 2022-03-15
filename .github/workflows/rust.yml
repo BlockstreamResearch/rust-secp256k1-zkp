@@ -29,42 +29,42 @@ jobs:
           DO_BENCH: true
         run: ./contrib/test.sh
 
-  wasm:
-    name: Stable - Docs / WebAssembly Build
-    strategy:
-      matrix:
-        target: [ x86_64-unknown-linux-gnu, x86_64-apple-darwin ]
-        include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-            cc: clang-12
-            ar: ar
-          - target: x86_64-apple-darwin
-            os: macos-latest
-            cc: /usr/local/opt/llvm/bin/clang
-            ar: /usr/local/opt/llvm/bin/llvm-ar
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout Crate
-        uses: actions/checkout@v2
-      - name: Checkout Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - name: Building docs
-        env:
-          DO_DOCS: true
-        run: ./contrib/test.sh
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - name: Running WASM build
-        env:
-          DO_WASM: true
-          CC: ${{ matrix.cc }}
-          AR: ${{ matrix.ar }}
-        run: ./contrib/test.sh
+  # wasm:
+  #   name: Stable - Docs / WebAssembly Build
+  #   strategy:
+  #     matrix:
+  #       target: [ x86_64-unknown-linux-gnu, x86_64-apple-darwin ]
+  #       include:
+  #         - target: x86_64-unknown-linux-gnu
+  #           os: ubuntu-latest
+  #           cc: clang-12
+  #           ar: ar
+  #         - target: x86_64-apple-darwin
+  #           os: macos-latest
+  #           cc: /usr/local/opt/llvm/bin/clang
+  #           ar: /usr/local/opt/llvm/bin/llvm-ar
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - name: Checkout Crate
+  #       uses: actions/checkout@v2
+  #     - name: Checkout Toolchain
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         profile: minimal
+  #         toolchain: stable
+  #         override: true
+  #     - name: Building docs
+  #       env:
+  #         DO_DOCS: true
+  #       run: ./contrib/test.sh
+  #     - name: Install wasm-pack
+  #       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+  #     - name: Running WASM build
+  #       env:
+  #         DO_WASM: true
+  #         CC: ${{ matrix.cc }}
+  #         AR: ${{ matrix.ar }}
+  #       run: ./contrib/test.sh
 
   Tests:
     name: Tests
