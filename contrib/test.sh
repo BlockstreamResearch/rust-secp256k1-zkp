@@ -79,3 +79,5 @@ then
         cargo fmt --all -- --check
     )
 fi
+
+exit 0
