@@ -203,7 +203,7 @@ impl RangeProof {
 #[cfg(feature = "bitcoin_hashes")]
 impl ::core::fmt::Display for RangeProof {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-        use bitcoin_hashes::hex::format_hex;
+        use hashes::hex::format_hex;
 
         format_hex(self.serialize().as_slice(), f)
     }

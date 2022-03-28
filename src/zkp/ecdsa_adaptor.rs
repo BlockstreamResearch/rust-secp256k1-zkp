@@ -14,9 +14,9 @@ use rand::thread_rng;
 #[cfg(any(test, feature = "rand"))]
 use rand::{CryptoRng, Rng};
 use {constants, PublicKey, Secp256k1, SecretKey};
+use {ecdsa::Signature, Verification};
 use {from_hex, Error};
 use {Message, Signing};
-use {Signature, Verification};
 
 /// Represents an adaptor signature and dleq proof.
 #[derive(Debug, PartialEq, Clone, Copy, Eq)]
@@ -287,9 +287,11 @@ impl EcdsaAdaptorSignature {
 mod tests {
     use super::Message;
     use super::*;
+    #[cfg(not(rust_secp_fuzz))]
     use rand::{rngs::ThreadRng, thread_rng, RngCore};
     use SECP256K1;
 
+    #[cfg(not(rust_secp_fuzz))]
     fn test_ecdsa_adaptor_signature_helper(
         encrypt: fn(&Message, &SecretKey, &PublicKey, &mut ThreadRng) -> EcdsaAdaptorSignature,
     ) {
@@ -309,7 +311,7 @@ mod tests {
             .decrypt(&adaptor_secret)
             .expect("to be able to decrypt using the correct secret");
         SECP256K1
-            .verify(&msg, &sig, &pubkey)
+            .verify_ecdsa(&msg, &sig, &pubkey)
             .expect("signature to be valid");
         let recovered = adaptor_sig
             .recover(&SECP256K1, &sig, &adaptor)

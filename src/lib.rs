@@ -44,7 +44,7 @@ pub use secp256k1_zkp_sys as ffi;
 extern crate secp256k1;
 
 #[cfg(feature = "bitcoin_hashes")]
-pub use secp256k1::bitcoin_hashes as hashes;
+pub use secp256k1::hashes;
 #[cfg(any(test, feature = "std"))]
 extern crate core;
 #[cfg(any(test, feature = "rand"))]
@@ -65,12 +65,10 @@ use core::{fmt, str};
 
 pub use secp256k1::constants;
 pub use secp256k1::ecdh;
-pub use secp256k1::key;
-#[cfg(feature = "recovery")]
-pub use secp256k1::recovery;
-pub use secp256k1::schnorrsig;
+pub use secp256k1::ecdsa;
+pub use secp256k1::schnorr;
 
-pub use key::{PublicKey, SecretKey};
+pub use {PublicKey, SecretKey};
 
 pub use secp256k1::*;
 
