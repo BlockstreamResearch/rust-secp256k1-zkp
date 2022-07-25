@@ -81,6 +81,8 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
           components: rust-src
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Running WASM tests
         env:
           DO_WASM: true
