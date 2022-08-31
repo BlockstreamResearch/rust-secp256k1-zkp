@@ -212,7 +212,7 @@ impl ::core::fmt::Display for RangeProof {
 impl str::FromStr for RangeProof {
     type Err = Error;
     fn from_str(s: &str) -> Result<RangeProof, Error> {
-        let mut res = Vec::with_capacity(s.len() / 2);
+        let mut res = vec![0u8; s.len() / 2];
         match from_hex(s, &mut res) {
             Ok(_) => RangeProof::from_slice(&res),
             _ => Err(Error::InvalidRangeProof),
@@ -306,6 +306,14 @@ mod tests {
                 additional_generator,
             )
             .unwrap();
+
+        #[cfg(feature = "bitcoin_hashes")]
+        {
+            use std::str::FromStr;
+            use std::string::ToString;
+            let proof_str = proof.to_string();
+            assert_eq!(proof, RangeProof::from_str(&proof_str).unwrap());
+        }
     }
 
     #[test]

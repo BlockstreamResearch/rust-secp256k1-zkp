@@ -192,7 +192,7 @@ impl ::core::fmt::Display for SurjectionProof {
 impl str::FromStr for SurjectionProof {
     type Err = Error;
     fn from_str(s: &str) -> Result<SurjectionProof, Error> {
-        let mut res = Vec::with_capacity(s.len() / 2);
+        let mut res = vec![0u8; s.len() / 2];
         match from_hex(s, &mut res) {
             Ok(_) => SurjectionProof::from_slice(&res),
             _ => Err(Error::InvalidSurjectionProof),
@@ -288,7 +288,15 @@ mod tests {
         let bytes = proof.serialize();
         let parsed = SurjectionProof::from_slice(&bytes).unwrap();
 
-        assert_eq!(parsed, proof)
+        assert_eq!(parsed, proof);
+
+        #[cfg(feature = "bitcoin_hashes")]
+        {
+            use std::str::FromStr;
+            use std::string::ToString;
+            let proof_str = proof.to_string();
+            assert_eq!(proof, SurjectionProof::from_str(&proof_str).unwrap());
+        }
     }
 
     fn random_blinded_tag() -> (Tag, Generator, Tweak) {
