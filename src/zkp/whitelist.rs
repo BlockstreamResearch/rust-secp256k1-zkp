@@ -5,8 +5,6 @@
 #[cfg(feature = "std")]
 use std::{fmt, str};
 
-use core::ptr;
-
 use ffi::CPtr;
 #[cfg(feature = "std")]
 use from_hex;
@@ -94,8 +92,6 @@ impl WhitelistSignature {
                 online_secret_key.as_ptr(),
                 summed_secret_key.as_ptr(),
                 key_index,
-                None,
-                ptr::null_mut(),
             )
         };
         if ret != 1 {

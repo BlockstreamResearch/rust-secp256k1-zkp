@@ -1,5 +1,5 @@
 use core::{fmt, hash};
-use {types::*, Context, NonceFn, PublicKey, Signature};
+use {types::*, Context, PublicKey, Signature};
 
 /// Rangeproof maximum length
 pub const RANGEPROOF_MAX_LENGTH: size_t = 5134;
@@ -374,8 +374,6 @@ extern "C" {
         online_seckey: *const c_uchar,
         summed_seckey: *const c_uchar,
         index: size_t,
-        noncefp: NonceFn,
-        noncedata: *mut c_void,
     ) -> c_int;
 
     #[cfg_attr(
