@@ -8,7 +8,7 @@ use std::{fmt, str};
 use ffi::CPtr;
 #[cfg(feature = "std")]
 use from_hex;
-use {ffi, secp256k1, Error, PublicKey, Secp256k1, SecretKey, Signing, Verification};
+use {ffi, Error, PublicKey, Secp256k1, SecretKey, Signing, Verification};
 
 /// A whitelist ring signature.
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -85,8 +85,8 @@ impl WhitelistSignature {
                 *secp.ctx(),
                 &mut sig,
                 // These two casts are legit because PublicKey has repr(transparent).
-                online_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
-                offline_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
+                online_keys.as_c_ptr() as *const ffi::PublicKey,
+                offline_keys.as_c_ptr() as *const ffi::PublicKey,
                 n_keys,
                 whitelist_key.as_c_ptr(),
                 online_secret_key.as_ptr(),
@@ -119,8 +119,8 @@ impl WhitelistSignature {
                 *secp.ctx(),
                 &self.0,
                 // These two casts are legit because PublicKey has repr(transparent).
-                online_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
-                offline_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
+                online_keys.as_c_ptr() as *const ffi::PublicKey,
+                offline_keys.as_c_ptr() as *const ffi::PublicKey,
                 n_keys,
                 whitelist_key.as_c_ptr(),
             )

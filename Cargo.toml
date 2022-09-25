@@ -18,7 +18,6 @@ autoexamples = false # Remove when edition 2018 https://github.com/rust-lang/car
 features = [ "use-rand", "rand-std", "use-serde", "recovery" ]
 
 [features]
-unstable = ["recovery", "rand-std", "secp256k1/unstable"]
 default = ["std"]
 std = ["secp256k1-zkp-sys/std", "secp256k1/std"]
 rand-std = ["rand/std", "secp256k1/rand-std"]
@@ -30,7 +29,7 @@ use-serde = ["serde", "secp256k1/serde"]
 use-rand = ["rand", "secp256k1/rand"]
 
 [dependencies]
-secp256k1 = "0.22.1"
+secp256k1 = "0.24.0"
 secp256k1-zkp-sys = { version = "0.6.0", default-features = false, path = "./secp256k1-zkp-sys" }
 rand = { version = "0.6", default-features = false, optional = true }
 serde = { version = "1.0", default-features = false, optional = true }
