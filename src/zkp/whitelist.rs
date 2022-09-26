@@ -85,8 +85,8 @@ impl WhitelistSignature {
                 *secp.ctx(),
                 &mut sig,
                 // These two casts are legit because PublicKey has repr(transparent).
-                online_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
-                offline_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
+                online_keys.as_c_ptr() as *const ffi::PublicKey,
+                offline_keys.as_c_ptr() as *const ffi::PublicKey,
                 n_keys,
                 whitelist_key.as_c_ptr(),
                 online_secret_key.as_ptr(),
@@ -119,8 +119,8 @@ impl WhitelistSignature {
                 *secp.ctx(),
                 &self.0,
                 // These two casts are legit because PublicKey has repr(transparent).
-                online_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
-                offline_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
+                online_keys.as_c_ptr() as *const ffi::PublicKey,
+                offline_keys.as_c_ptr() as *const ffi::PublicKey,
                 n_keys,
                 whitelist_key.as_c_ptr(),
             )
@@ -239,7 +239,7 @@ mod tests {
 
             let summed_key = {
                 let mut ret = keys_offline[our_idx].clone();
-                ret.add_assign(&whitelist_sk[..]).unwrap();
+                ret.add_assign(&whitelist_sk.into()).unwrap();
                 ret
             };
 
@@ -305,7 +305,7 @@ mod tests {
         let our_idx = 100;
         let summed_key = {
             let mut ret = keys_offline[our_idx].clone();
-            ret.add_assign(&whitelist_sk[..]).unwrap();
+            ret.add_assign(&whitelist_sk.into()).unwrap();
             ret
         };
 
