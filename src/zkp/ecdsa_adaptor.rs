@@ -8,15 +8,15 @@
 //!
 
 use core::{fmt, ptr, str};
-use ffi::{self, CPtr, ECDSA_ADAPTOR_SIGNATURE_LENGTH};
+use crate::ffi::{self, CPtr, ECDSA_ADAPTOR_SIGNATURE_LENGTH};
 #[cfg(any(test, feature = "rand-std"))]
 use rand::thread_rng;
 #[cfg(any(test, feature = "rand"))]
 use rand::{CryptoRng, Rng};
-use {constants, PublicKey, Secp256k1, SecretKey};
-use {ecdsa::Signature, Verification};
-use {from_hex, Error};
-use {Message, Signing};
+use crate::{constants, PublicKey, Secp256k1, SecretKey};
+use crate::{ecdsa::Signature, Verification};
+use crate::{from_hex, Error};
+use crate::{Message, Signing};
 
 /// Represents an adaptor signature and dleq proof.
 #[derive(Debug, PartialEq, Clone, Copy, Eq)]
@@ -64,7 +64,7 @@ impl ::serde::Serialize for EcdsaAdaptorSignature {
 #[cfg(feature = "serde")]
 impl<'de> ::serde::Deserialize<'de> for EcdsaAdaptorSignature {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        use serde_util;
+        use crate::serde_util;
 
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
@@ -289,7 +289,7 @@ mod tests {
     use super::*;
     #[cfg(not(rust_secp_fuzz))]
     use rand::{rngs::ThreadRng, thread_rng, RngCore};
-    use SECP256K1;
+    use crate::SECP256K1;
 
     #[cfg(not(rust_secp_fuzz))]
     fn test_ecdsa_adaptor_signature_helper(

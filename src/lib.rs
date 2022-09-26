@@ -68,14 +68,14 @@ pub use secp256k1::ecdh;
 pub use secp256k1::ecdsa;
 pub use secp256k1::schnorr;
 
-pub use {PublicKey, SecretKey};
+pub use crate::{PublicKey, SecretKey};
 
 pub use secp256k1::*;
 
 #[cfg(feature = "serde")]
 mod serde_util;
 mod zkp;
-pub use zkp::*;
+pub use crate::zkp::*;
 
 pub use secp256k1::Error as UpstreamError;
 

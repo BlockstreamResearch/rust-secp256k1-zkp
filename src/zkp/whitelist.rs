@@ -5,10 +5,10 @@
 #[cfg(feature = "std")]
 use std::{fmt, str};
 
-use ffi::CPtr;
+use crate::ffi::CPtr;
 #[cfg(feature = "std")]
-use from_hex;
-use {ffi, secp256k1, Error, PublicKey, Secp256k1, SecretKey, Signing, Verification};
+use crate::from_hex;
+use crate::{ffi, Error, PublicKey, Secp256k1, SecretKey, Signing, Verification};
 
 /// A whitelist ring signature.
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -193,7 +193,7 @@ impl ::serde::Serialize for WhitelistSignature {
 #[cfg(all(feature = "serde", feature = "std"))]
 impl<'de> ::serde::Deserialize<'de> for WhitelistSignature {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        use serde_util;
+        use crate::serde_util;
 
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
@@ -221,7 +221,7 @@ impl CPtr for WhitelistSignature {
 mod tests {
     use super::*;
     use rand::thread_rng;
-    use SECP256K1;
+    use crate::SECP256K1;
 
     fn test_whitelist_proof_roundtrip(n_keys: usize) {
         let mut rng = thread_rng();
