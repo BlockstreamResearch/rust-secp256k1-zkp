@@ -1,12 +1,12 @@
 use crate::ffi::RANGEPROOF_MAX_LENGTH;
 use crate::from_hex;
-use std::ops::Range;
-use std::str;
 use crate::Error;
 use crate::Generator;
 use crate::PedersenCommitment;
 use crate::Verification;
 use crate::{ffi, Secp256k1, SecretKey, Signing, Tweak};
+use std::ops::Range;
+use std::str;
 
 /// Represents a range proof.
 ///
@@ -262,8 +262,8 @@ pub struct Opening {
 #[cfg(all(test, feature = "global-context"))] // use global context for convenience
 mod tests {
     use super::*;
-    use rand::thread_rng;
     use crate::{CommitmentSecrets, Tag, SECP256K1};
+    use rand::thread_rng;
 
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::wasm_bindgen_test as test;

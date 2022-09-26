@@ -1,6 +1,6 @@
-use core::{fmt, slice, str};
 use crate::ffi;
 use crate::{from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
+use core::{fmt, slice, str};
 
 /// Represents a commitment to a single u64 value.
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
@@ -237,8 +237,8 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
-    use rand::thread_rng;
     use crate::{Tag, SECP256K1};
+    use rand::thread_rng;
 
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::wasm_bindgen_test as test;

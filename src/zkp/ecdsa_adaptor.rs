@@ -7,16 +7,16 @@
 //! for details.
 //!
 
-use core::{fmt, ptr, str};
 use crate::ffi::{self, CPtr, ECDSA_ADAPTOR_SIGNATURE_LENGTH};
-#[cfg(any(test, feature = "rand-std"))]
-use rand::thread_rng;
-#[cfg(any(test, feature = "rand"))]
-use rand::{CryptoRng, Rng};
 use crate::{constants, PublicKey, Secp256k1, SecretKey};
 use crate::{ecdsa::Signature, Verification};
 use crate::{from_hex, Error};
 use crate::{Message, Signing};
+use core::{fmt, ptr, str};
+#[cfg(any(test, feature = "rand-std"))]
+use rand::thread_rng;
+#[cfg(any(test, feature = "rand"))]
+use rand::{CryptoRng, Rng};
 
 /// Represents an adaptor signature and dleq proof.
 #[derive(Debug, PartialEq, Clone, Copy, Eq)]
@@ -287,9 +287,9 @@ impl EcdsaAdaptorSignature {
 mod tests {
     use super::Message;
     use super::*;
+    use crate::SECP256K1;
     #[cfg(not(rust_secp_fuzz))]
     use rand::{rngs::ThreadRng, thread_rng, RngCore};
-    use crate::SECP256K1;
 
     #[cfg(not(rust_secp_fuzz))]
     fn test_ecdsa_adaptor_signature_helper(

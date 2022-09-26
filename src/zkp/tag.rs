@@ -1,5 +1,5 @@
-use core::fmt;
 use crate::ffi;
+use core::fmt;
 
 /// Represents a tag.
 ///

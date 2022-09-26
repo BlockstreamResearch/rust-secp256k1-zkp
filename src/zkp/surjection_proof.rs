@@ -1,9 +1,9 @@
-use core::mem::size_of;
 use crate::ffi;
 use crate::from_hex;
-use std::str;
 use crate::Verification;
 use crate::{Error, Generator, Secp256k1};
+use core::mem::size_of;
+use std::str;
 
 /// Represents a surjection proof.
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
@@ -13,8 +13,8 @@ pub struct SurjectionProof {
 
 #[cfg(feature = "rand")]
 mod with_rand {
-    use crate::{Tweak, Tag, Signing};
     use super::*;
+    use crate::{Signing, Tag, Tweak};
     use rand::Rng;
 
     impl SurjectionProof {
@@ -230,8 +230,8 @@ impl<'de> ::serde::Deserialize<'de> for SurjectionProof {
 #[cfg(all(test, feature = "global-context"))] // use global context for convenience
 mod tests {
     use super::*;
-    use rand::thread_rng;
     use crate::{Tag, Tweak, SECP256K1};
+    use rand::thread_rng;
 
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::wasm_bindgen_test as test;

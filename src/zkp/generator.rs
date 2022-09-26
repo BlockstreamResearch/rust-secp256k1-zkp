@@ -1,8 +1,8 @@
-use core::{fmt, str};
 use crate::ffi::{self, CPtr};
+use crate::{constants, from_hex, Error, Secp256k1, Signing, Tag};
+use core::{fmt, str};
 #[cfg(feature = "rand")]
 use rand::Rng;
-use crate::{constants, from_hex, Error, Secp256k1, Signing, Tag};
 
 /// Represents a blinding factor/Tweak on secp256k1 curve
 ///
