@@ -1,5 +1,18 @@
 # Unreleased
 
+# 0.7.0 - 2022-09-27
+
+- Increment MSRV to 1.41.1 and edition to 2018
+- ffi: fix signature of whitelist_sign
+- Update secp256k1 to 0.24.0 and update deprecated functions
+- Fix RangeProof and SurjectionProof from_str
+
+# 0.6.0 - 2022-03-28
+
+- Update secp256k1 to 0.22.1
+- Updates upstream to 725d895fc54cf82da1c2a9c69048656405da556d
+- Comment out WASM build
+
 # 0.5.0 - 2021-10-22
 
 - Encrypt ECDSA adaptor signatures in release builds. Previously encryption returned just zero bytes.
