@@ -1,8 +1,8 @@
+use crate::ffi::{self, CPtr};
+use crate::{constants, from_hex, Error, Secp256k1, Signing, Tag};
 use core::{fmt, str};
-use ffi::{self, CPtr};
 #[cfg(feature = "rand")]
 use rand::Rng;
-use {constants, from_hex, Error, Secp256k1, Signing, Tag};
 
 /// Represents a blinding factor/Tweak on secp256k1 curve
 ///
@@ -224,7 +224,7 @@ impl ::serde::Serialize for Generator {
 #[cfg(feature = "serde")]
 impl<'de> ::serde::Deserialize<'de> for Generator {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        use serde_util;
+        use crate::serde_util;
 
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
@@ -251,7 +251,7 @@ impl ::serde::Serialize for Tweak {
 #[cfg(feature = "serde")]
 impl<'de> ::serde::Deserialize<'de> for Tweak {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        use serde_util;
+        use crate::serde_util;
 
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))

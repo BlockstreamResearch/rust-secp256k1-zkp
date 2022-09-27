@@ -1,9 +1,9 @@
+use crate::ffi;
+use crate::from_hex;
+use crate::Verification;
+use crate::{Error, Generator, Secp256k1};
 use core::mem::size_of;
-use ffi;
-use from_hex;
 use std::str;
-use Verification;
-use {Error, Generator, Secp256k1};
 
 /// Represents a surjection proof.
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
@@ -14,8 +14,8 @@ pub struct SurjectionProof {
 #[cfg(feature = "rand")]
 mod with_rand {
     use super::*;
+    use crate::{Signing, Tag, Tweak};
     use rand::Rng;
-    use {Signing, Tag, Tweak};
 
     impl SurjectionProof {
         /// Prove that a given tag - when blinded - is contained within another set of blinded tags.
@@ -183,7 +183,7 @@ impl SurjectionProof {
 #[cfg(feature = "bitcoin_hashes")]
 impl ::core::fmt::Display for SurjectionProof {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-        use hashes::hex::format_hex;
+        use crate::hashes::hex::format_hex;
 
         format_hex(self.serialize().as_slice(), f)
     }
@@ -214,7 +214,7 @@ impl ::serde::Serialize for SurjectionProof {
 #[cfg(all(feature = "serde", feature = "bitcoin_hashes"))]
 impl<'de> ::serde::Deserialize<'de> for SurjectionProof {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<SurjectionProof, D::Error> {
-        use serde_util;
+        use crate::serde_util;
 
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
@@ -230,8 +230,8 @@ impl<'de> ::serde::Deserialize<'de> for SurjectionProof {
 #[cfg(all(test, feature = "global-context"))] // use global context for convenience
 mod tests {
     use super::*;
+    use crate::{Tag, Tweak, SECP256K1};
     use rand::thread_rng;
-    use {Tag, Tweak, SECP256K1};
 
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::wasm_bindgen_test as test;

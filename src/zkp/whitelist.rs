@@ -5,10 +5,10 @@
 #[cfg(feature = "std")]
 use std::{fmt, str};
 
-use ffi::CPtr;
+use crate::ffi::CPtr;
 #[cfg(feature = "std")]
-use from_hex;
-use {ffi, secp256k1, Error, PublicKey, Secp256k1, SecretKey, Signing, Verification};
+use crate::from_hex;
+use crate::{ffi, Error, PublicKey, Secp256k1, SecretKey, Signing, Verification};
 
 /// A whitelist ring signature.
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -85,8 +85,8 @@ impl WhitelistSignature {
                 *secp.ctx(),
                 &mut sig,
                 // These two casts are legit because PublicKey has repr(transparent).
-                online_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
-                offline_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
+                online_keys.as_c_ptr() as *const ffi::PublicKey,
+                offline_keys.as_c_ptr() as *const ffi::PublicKey,
                 n_keys,
                 whitelist_key.as_c_ptr(),
                 online_secret_key.as_ptr(),
@@ -119,8 +119,8 @@ impl WhitelistSignature {
                 *secp.ctx(),
                 &self.0,
                 // These two casts are legit because PublicKey has repr(transparent).
-                online_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
-                offline_keys.as_c_ptr() as *const secp256k1::secp256k1_sys::PublicKey,
+                online_keys.as_c_ptr() as *const ffi::PublicKey,
+                offline_keys.as_c_ptr() as *const ffi::PublicKey,
                 n_keys,
                 whitelist_key.as_c_ptr(),
             )
@@ -193,7 +193,7 @@ impl ::serde::Serialize for WhitelistSignature {
 #[cfg(all(feature = "serde", feature = "std"))]
 impl<'de> ::serde::Deserialize<'de> for WhitelistSignature {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        use serde_util;
+        use crate::serde_util;
 
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
@@ -220,8 +220,8 @@ impl CPtr for WhitelistSignature {
 #[cfg(all(test, feature = "global-context"))]
 mod tests {
     use super::*;
+    use crate::SECP256K1;
     use rand::thread_rng;
-    use SECP256K1;
 
     fn test_whitelist_proof_roundtrip(n_keys: usize) {
         let mut rng = thread_rng();
@@ -237,11 +237,10 @@ mod tests {
         for our_idx in vec![0, n_keys / 2, n_keys - 1].into_iter() {
             // sign
 
-            let summed_key = {
-                let mut ret = keys_offline[our_idx].clone();
-                ret.add_assign(&whitelist_sk[..]).unwrap();
-                ret
-            };
+            let summed_key = keys_offline[our_idx]
+                .clone()
+                .add_tweak(&whitelist_sk.into())
+                .unwrap();
 
             let signature = WhitelistSignature::new(
                 SECP256K1,
@@ -303,11 +302,10 @@ mod tests {
         let (whitelist_sk, whitelist_pk) = SECP256K1.generate_keypair(&mut rng);
 
         let our_idx = 100;
-        let summed_key = {
-            let mut ret = keys_offline[our_idx].clone();
-            ret.add_assign(&whitelist_sk[..]).unwrap();
-            ret
-        };
+        let summed_key = keys_offline[our_idx]
+            .clone()
+            .add_tweak(&whitelist_sk.into())
+            .unwrap();
 
         {
             // wrong pak

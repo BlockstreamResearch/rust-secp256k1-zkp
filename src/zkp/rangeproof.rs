@@ -1,12 +1,12 @@
-use ffi::RANGEPROOF_MAX_LENGTH;
-use from_hex;
+use crate::ffi::RANGEPROOF_MAX_LENGTH;
+use crate::from_hex;
+use crate::Error;
+use crate::Generator;
+use crate::PedersenCommitment;
+use crate::Verification;
+use crate::{ffi, Secp256k1, SecretKey, Signing, Tweak};
 use std::ops::Range;
 use std::str;
-use Error;
-use Generator;
-use PedersenCommitment;
-use Verification;
-use {ffi, Secp256k1, SecretKey, Signing, Tweak};
 
 /// Represents a range proof.
 ///
@@ -203,7 +203,7 @@ impl RangeProof {
 #[cfg(feature = "bitcoin_hashes")]
 impl ::core::fmt::Display for RangeProof {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-        use hashes::hex::format_hex;
+        use crate::hashes::hex::format_hex;
 
         format_hex(self.serialize().as_slice(), f)
     }
@@ -234,7 +234,7 @@ impl ::serde::Serialize for RangeProof {
 #[cfg(all(feature = "serde", feature = "bitcoin_hashes"))]
 impl<'de> ::serde::Deserialize<'de> for RangeProof {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<RangeProof, D::Error> {
-        use serde_util;
+        use crate::serde_util;
 
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
@@ -262,9 +262,8 @@ pub struct Opening {
 #[cfg(all(test, feature = "global-context"))] // use global context for convenience
 mod tests {
     use super::*;
+    use crate::{CommitmentSecrets, Tag, SECP256K1};
     use rand::thread_rng;
-    use SECP256K1;
-    use {CommitmentSecrets, Tag};
 
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::wasm_bindgen_test as test;

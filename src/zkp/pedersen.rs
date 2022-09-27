@@ -1,6 +1,6 @@
+use crate::ffi;
+use crate::{from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
 use core::{fmt, slice, str};
-use ffi;
-use {from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
 
 /// Represents a commitment to a single u64 value.
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
@@ -219,7 +219,7 @@ impl ::serde::Serialize for PedersenCommitment {
 #[cfg(feature = "serde")]
 impl<'de> ::serde::Deserialize<'de> for PedersenCommitment {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
-        use serde_util;
+        use crate::serde_util;
 
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
@@ -237,8 +237,8 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
+    use crate::{Tag, SECP256K1};
     use rand::thread_rng;
-    use {Tag, SECP256K1};
 
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::wasm_bindgen_test as test;
