@@ -16,7 +16,7 @@
  *
  * See the qsort_r manpage for a description of the interface.
  */
-static void rustsecp256k1zkp_v0_6_0_hsort(void *ptr, size_t count, size_t size,
+static void rustsecp256k1zkp_v0_7_0_hsort(void *ptr, size_t count, size_t size,
                             int (*cmp)(const void *, const void *, void *),
                             void *cmp_data);
 #endif

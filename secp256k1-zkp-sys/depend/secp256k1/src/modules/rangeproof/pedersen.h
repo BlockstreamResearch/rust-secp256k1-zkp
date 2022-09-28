@@ -7,16 +7,16 @@
 #ifndef _SECP256K1_PEDERSEN_H_
 #define _SECP256K1_PEDERSEN_H_
 
-#include "ecmult_gen.h"
-#include "group.h"
-#include "scalar.h"
+#include "../../ecmult_gen.h"
+#include "../../group.h"
+#include "../../scalar.h"
 
 #include <stdint.h>
 
 /** Multiply a small number with the generator: r = gn*G2 */
-static void rustsecp256k1zkp_v0_6_0_pedersen_ecmult_small(rustsecp256k1zkp_v0_6_0_gej *r, uint64_t gn, const rustsecp256k1zkp_v0_6_0_ge* genp);
+static void rustsecp256k1zkp_v0_7_0_pedersen_ecmult_small(rustsecp256k1zkp_v0_7_0_gej *r, uint64_t gn, const rustsecp256k1zkp_v0_7_0_ge* genp);
 
 /* sec * G + value * G2. */
-static void rustsecp256k1zkp_v0_6_0_pedersen_ecmult(const rustsecp256k1zkp_v0_6_0_ecmult_gen_context *ecmult_gen_ctx, rustsecp256k1zkp_v0_6_0_gej *rj, const rustsecp256k1zkp_v0_6_0_scalar *sec, uint64_t value, const rustsecp256k1zkp_v0_6_0_ge* genp);
+static void rustsecp256k1zkp_v0_7_0_pedersen_ecmult(const rustsecp256k1zkp_v0_7_0_ecmult_gen_context *ecmult_gen_ctx, rustsecp256k1zkp_v0_7_0_gej *rj, const rustsecp256k1zkp_v0_7_0_scalar *sec, uint64_t value, const rustsecp256k1zkp_v0_7_0_ge* genp);
 
 #endif
