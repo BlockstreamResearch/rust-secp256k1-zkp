@@ -9,4 +9,4 @@ index 8680d0b..0c82d19 100644
 -#include <assert.h>
  #include <string.h>
  
- #include "eckey.h"
+ #include "../../eckey.h"
