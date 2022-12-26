@@ -82,15 +82,15 @@ impl WhitelistSignature {
         let mut sig = ffi::WhitelistSignature::default();
         let ret = unsafe {
             ffi::secp256k1_whitelist_sign(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 &mut sig,
                 // These two casts are legit because PublicKey has repr(transparent).
                 online_keys.as_c_ptr() as *const ffi::PublicKey,
                 offline_keys.as_c_ptr() as *const ffi::PublicKey,
                 n_keys,
                 whitelist_key.as_c_ptr(),
-                online_secret_key.as_ptr(),
-                summed_secret_key.as_ptr(),
+                online_secret_key.as_c_ptr(),
+                summed_secret_key.as_c_ptr(),
                 key_index,
             )
         };
@@ -116,7 +116,7 @@ impl WhitelistSignature {
 
         let ret = unsafe {
             ffi::secp256k1_whitelist_verify(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 &self.0,
                 // These two casts are legit because PublicKey has repr(transparent).
                 online_keys.as_c_ptr() as *const ffi::PublicKey,

@@ -8,7 +8,8 @@ use rand::Rng;
 ///
 /// Contrary to a [`crate::SecretKey`], the value 0 is also a valid tweak.
 /// Values outside secp curve order are invalid tweaks.
-#[derive(Default)]
+#[derive(Default, Copy, Clone)]
+#[cfg_attr(not(fuzzing), derive(Eq, PartialEq))]
 pub struct Tweak([u8; constants::SECRET_KEY_SIZE]);
 impl_array_newtype!(Tweak, u8, constants::SECRET_KEY_SIZE);
 
@@ -156,10 +157,10 @@ impl Generator {
 
         let ret = unsafe {
             ffi::secp256k1_generator_generate_blinded(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 &mut generator,
-                tag.into_inner().as_ptr(),
-                blinding_factor.as_ptr(),
+                tag.into_inner().as_c_ptr(),
+                blinding_factor.as_c_ptr(),
             )
         };
         assert_eq!(ret, 1);
