@@ -1,4 +1,7 @@
-use core::{fmt, hash};
+use core::{
+    fmt,
+    hash::{self, Hash},
+};
 use {types::*, Context, PublicKey, Signature};
 
 /// Rangeproof maximum length
@@ -472,6 +475,8 @@ impl RangeProof {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
+#[cfg_attr(not(fuzzing), derive(Eq, PartialEq, Hash, Ord, PartialOrd))]
 pub struct Tag([c_uchar; 32]);
 impl_array_newtype!(Tag, c_uchar, 32);
 impl_raw_debug!(Tag);
@@ -502,6 +507,7 @@ impl From<Tag> for [u8; 32] {
 
 // TODO: Replace this with ffi::PublicKey?
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct PedersenCommitment([c_uchar; 64]);
 impl_array_newtype!(PedersenCommitment, c_uchar, 64);
 impl_raw_debug!(PedersenCommitment);
@@ -515,6 +521,23 @@ impl PedersenCommitment {
 impl Default for PedersenCommitment {
     fn default() -> Self {
         PedersenCommitment::new()
+    }
+}
+
+#[cfg(not(fuzzing))]
+impl PartialEq for PedersenCommitment {
+    fn eq(&self, other: &Self) -> bool {
+        &self.0[..] == &other.0[..]
+    }
+}
+
+#[cfg(not(fuzzing))]
+impl Eq for PedersenCommitment {}
+
+#[cfg(not(fuzzing))]
+impl Hash for PedersenCommitment {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.0.hash(state);
     }
 }
 
@@ -566,22 +589,37 @@ pub type EcdsaAdaptorNonceFn = Option<
 >;
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct EcdsaAdaptorSignature([u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH]);
 impl_array_newtype!(EcdsaAdaptorSignature, u8, ECDSA_ADAPTOR_SIGNATURE_LENGTH);
 impl_raw_debug!(EcdsaAdaptorSignature);
 
-impl From<[u8; 162]> for EcdsaAdaptorSignature {
-    fn from(bytes: [u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH]) -> Self {
-        EcdsaAdaptorSignature(bytes)
-    }
-}
-
 impl EcdsaAdaptorSignature {
-    pub fn new() -> EcdsaAdaptorSignature {
-        EcdsaAdaptorSignature([0; ECDSA_ADAPTOR_SIGNATURE_LENGTH])
+    /// Create a new (zeroed) ecdsa adaptor signature usable for the FFI interface
+    pub fn new() -> Self {
+        EcdsaAdaptorSignature([0u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH])
     }
 
-    pub fn as_bytes(&self) -> &[u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH] {
-        &self.0
+    /// Create a new ecdsa adaptor signature usable for the FFI interface from raw bytes
+    ///
+    /// # Safety
+    ///
+    /// Does not check the validity of the underlying representation. If it is
+    /// invalid the result may be assertation failures (and process aborts) from
+    /// the underlying library. You should not use this method except with data
+    /// that you obtained from the FFI interface of the same version of this
+    /// library.
+    pub unsafe fn from_array_unchecked(data: [c_uchar; ECDSA_ADAPTOR_SIGNATURE_LENGTH]) -> Self {
+        Self(data)
     }
 }
+
+#[cfg(not(fuzzing))]
+impl PartialEq for EcdsaAdaptorSignature {
+    fn eq(&self, other: &Self) -> bool {
+        &self.0[..] == &other.0[..]
+    }
+}
+
+#[cfg(not(fuzzing))]
+impl Eq for EcdsaAdaptorSignature {}

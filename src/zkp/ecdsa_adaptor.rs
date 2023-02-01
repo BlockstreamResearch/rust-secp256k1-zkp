@@ -24,7 +24,7 @@ pub struct EcdsaAdaptorSignature(ffi::EcdsaAdaptorSignature);
 
 impl fmt::LowerHex for EcdsaAdaptorSignature {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for ch in self.0.as_bytes().iter() {
+        for ch in self.0.as_ref().iter() {
             write!(f, "{:02x}", ch)?;
         }
         Ok(())
@@ -56,7 +56,7 @@ impl ::serde::Serialize for EcdsaAdaptorSignature {
         if s.is_human_readable() {
             s.collect_str(self)
         } else {
-            s.serialize_bytes(self.0.as_bytes())
+            s.serialize_bytes(self.0.as_ref())
         }
     }
 }
@@ -102,7 +102,11 @@ impl EcdsaAdaptorSignature {
             ECDSA_ADAPTOR_SIGNATURE_LENGTH => {
                 let mut ret = [0; ECDSA_ADAPTOR_SIGNATURE_LENGTH];
                 ret[..].copy_from_slice(data);
-                Ok(EcdsaAdaptorSignature(ffi::EcdsaAdaptorSignature::from(ret)))
+                unsafe {
+                    Ok(EcdsaAdaptorSignature(
+                        ffi::EcdsaAdaptorSignature::from_array_unchecked(ret),
+                    ))
+                }
             }
             _ => Err(Error::InvalidEcdsaAdaptorSignature),
         }
@@ -169,7 +173,7 @@ impl EcdsaAdaptorSignature {
 
         let res = unsafe {
             ffi::secp256k1_ecdsa_adaptor_encrypt(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 &mut adaptor_sig,
                 sk.as_c_ptr(),
                 enckey.as_c_ptr(),
@@ -198,7 +202,7 @@ impl EcdsaAdaptorSignature {
 
         let res = unsafe {
             ffi::secp256k1_ecdsa_adaptor_encrypt(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 &mut adaptor_sig,
                 sk.as_c_ptr(),
                 enckey.as_c_ptr(),
@@ -242,7 +246,7 @@ impl EcdsaAdaptorSignature {
 
         let ret = unsafe {
             ffi::secp256k1_ecdsa_adaptor_recover(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 data.as_mut_c_ptr(),
                 sig.as_c_ptr(),
                 self.as_c_ptr(),
@@ -267,7 +271,7 @@ impl EcdsaAdaptorSignature {
     ) -> Result<(), Error> {
         let res = unsafe {
             ffi::secp256k1_ecdsa_adaptor_verify(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 self.as_c_ptr(),
                 pubkey.as_c_ptr(),
                 msg.as_c_ptr(),

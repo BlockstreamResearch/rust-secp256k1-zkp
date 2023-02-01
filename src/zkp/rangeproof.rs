@@ -1,3 +1,5 @@
+use ffi::CPtr;
+
 use crate::ffi::RANGEPROOF_MAX_LENGTH;
 use crate::from_hex;
 use crate::Error;
@@ -81,13 +83,13 @@ impl RangeProof {
 
         let ret = unsafe {
             ffi::secp256k1_rangeproof_sign(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 proof.as_mut_ptr(),
                 &mut proof_length,
                 min_value,
                 commitment.as_inner(),
-                commitment_blinding.as_ptr(),
-                sk.as_ptr(),
+                commitment_blinding.as_c_ptr(),
+                sk.as_c_ptr(),
                 exp,
                 min_bits as i32,
                 value,
@@ -123,7 +125,7 @@ impl RangeProof {
 
         let ret = unsafe {
             ffi::secp256k1_rangeproof_verify(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 &mut min_value,
                 &mut max_value,
                 commitment.as_inner(),
@@ -164,12 +166,12 @@ impl RangeProof {
 
         let ret = unsafe {
             ffi::secp256k1_rangeproof_rewind(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 blinding_factor.as_mut_ptr(),
                 &mut value,
                 message.as_mut_ptr(),
                 &mut message_length,
-                sk.as_ptr(),
+                sk.as_c_ptr(),
                 &mut min_value,
                 &mut max_value,
                 commitment.as_inner(),

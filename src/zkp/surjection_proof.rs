@@ -15,6 +15,7 @@ pub struct SurjectionProof {
 mod with_rand {
     use super::*;
     use crate::{Signing, Tag, Tweak};
+    use ffi::CPtr;
     use rand::Rng;
 
     impl SurjectionProof {
@@ -49,7 +50,7 @@ mod with_rand {
 
             let ret = unsafe {
                 ffi::secp256k1_surjectionproof_initialize(
-                    *secp.ctx(),
+                    secp.ctx().as_ptr(),
                     &mut proof,
                     &mut domain_index,
                     domain_tags.as_ptr(),
@@ -70,7 +71,7 @@ mod with_rand {
 
             let ret = unsafe {
                 ffi::secp256k1_surjectionproof_generate(
-                    *secp.ctx(),
+                    secp.ctx().as_ptr(),
                     &mut proof,
                     domain_blinded_tags.as_ptr(),
                     domain.len(),
@@ -80,8 +81,8 @@ mod with_rand {
                         .get(domain_index)
                         .ok_or(Error::CannotProveSurjection)?
                         .2
-                        .as_ptr(), // TODO: Return dedicated error here?
-                    codomain_blinding_factor.as_ptr(),
+                        .as_c_ptr(), // TODO: Return dedicated error here?
+                    codomain_blinding_factor.as_c_ptr(),
                 )
             };
 
@@ -168,7 +169,7 @@ impl SurjectionProof {
 
         let ret = unsafe {
             ffi::secp256k1_surjectionproof_verify(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 &self.inner,
                 domain_blinded_tags.as_ptr(),
                 domain_blinded_tags.len(),

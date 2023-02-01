@@ -1,3 +1,5 @@
+use ffi::CPtr;
+
 use crate::ffi;
 use crate::{from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
 use core::{fmt, slice, str};
@@ -58,9 +60,9 @@ impl PedersenCommitment {
 
         let ret = unsafe {
             ffi::secp256k1_pedersen_commit(
-                *secp.ctx(),
+                secp.ctx().as_ptr(),
                 &mut commitment,
-                blinding_factor.as_ptr(),
+                blinding_factor.as_c_ptr(),
                 value,
                 generator.as_inner(),
             )
@@ -141,12 +143,12 @@ pub fn compute_adaptive_blinding_factor<C: Signing>(
 
     let (vbf, gbf) = secrets
         .iter_mut()
-        .map(|(s_v, s_g)| (s_v.as_mut_ptr(), s_g.as_ptr()))
+        .map(|(s_v, s_g)| (s_v.as_mut_c_ptr(), s_g.as_c_ptr()))
         .unzip::<_, _, Vec<_>, Vec<_>>();
 
     let ret = unsafe {
         ffi::secp256k1_pedersen_blind_generator_blind_sum(
-            *secp.ctx(),
+            secp.ctx().as_ptr(),
             values.as_ptr(),
             gbf.as_ptr(),
             vbf.as_ptr(),
@@ -172,7 +174,13 @@ pub fn verify_commitments_sum_to_equal<C: Signing>(
     let b = b.iter().map(|c| &c.0).collect::<Vec<_>>();
 
     let ret = unsafe {
-        ffi::secp256k1_pedersen_verify_tally(*secp.ctx(), a.as_ptr(), a.len(), b.as_ptr(), b.len())
+        ffi::secp256k1_pedersen_verify_tally(
+            secp.ctx().as_ptr(),
+            a.as_ptr(),
+            a.len(),
+            b.as_ptr(),
+            b.len(),
+        )
     };
 
     ret == 1
