@@ -184,9 +184,9 @@ impl SurjectionProof {
 #[cfg(feature = "bitcoin_hashes")]
 impl ::core::fmt::Display for SurjectionProof {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-        use crate::hashes::hex::format_hex;
+        use bitcoin_private::hex::display::DisplayHex;
 
-        format_hex(self.serialize().as_slice(), f)
+        write!(f, "{:x}", &self.serialize().as_slice().as_hex())
     }
 }
 
