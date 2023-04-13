@@ -23,19 +23,19 @@ extern "C" {
  *  will have identical representation. (That is, memcmp may return nonzero
  *  even for identical signatures.)
  *
- *  To obtain these properties, instead use rustsecp256k1zkp_v0_7_0_whitelist_signature_parse
- *  and rustsecp256k1zkp_v0_7_0_whitelist_signature_serialize to encode/decode signatures
+ *  To obtain these properties, instead use rustsecp256k1zkp_v0_8_0_whitelist_signature_parse
+ *  and rustsecp256k1zkp_v0_8_0_whitelist_signature_serialize to encode/decode signatures
  *  into a well-defined format.
  *
  *  The representation is exposed to allow creation of these objects on the
  *  stack; please *do not* use these internals directly. To learn the number
- *  of keys for a signature, use `rustsecp256k1zkp_v0_7_0_whitelist_signature_n_keys`.
+ *  of keys for a signature, use `rustsecp256k1zkp_v0_8_0_whitelist_signature_n_keys`.
  */
 typedef struct {
     size_t n_keys;
     /* e0, scalars */
     unsigned char data[32 * (1 + SECP256K1_WHITELIST_MAX_N_KEYS)];
-} rustsecp256k1zkp_v0_7_0_whitelist_signature;
+} rustsecp256k1zkp_v0_8_0_whitelist_signature;
 
 /** Parse a whitelist signature
  *
@@ -57,9 +57,9 @@ typedef struct {
  *  scalar values overflow or are zero, the resulting sig value is guaranteed
  *  to fail validation for any set of keys.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_whitelist_signature_parse(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_whitelist_signature *sig,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_whitelist_signature_parse(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_whitelist_signature *sig,
     const unsigned char *input,
     size_t input_len
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
@@ -69,8 +69,8 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_whitelist_signature_parse(
  *  Returns: the number of keys for the given signature
  *  In: sig: a pointer to a signature object
  */
-SECP256K1_API size_t rustsecp256k1zkp_v0_7_0_whitelist_signature_n_keys(
-    const rustsecp256k1zkp_v0_7_0_whitelist_signature *sig
+SECP256K1_API size_t rustsecp256k1zkp_v0_8_0_whitelist_signature_n_keys(
+    const rustsecp256k1zkp_v0_8_0_whitelist_signature *sig
 ) SECP256K1_ARG_NONNULL(1);
 
 /** Serialize a whitelist signature
@@ -81,13 +81,13 @@ SECP256K1_API size_t rustsecp256k1zkp_v0_7_0_whitelist_signature_n_keys(
  *  In/Out: output_len: length of the above array, updated with the actual serialized length
  *  In:     sig:        a pointer to an initialized signature object
  *
- *  See rustsecp256k1zkp_v0_7_0_whitelist_signature_parse for details about the encoding.
+ *  See rustsecp256k1zkp_v0_8_0_whitelist_signature_parse for details about the encoding.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_whitelist_signature_serialize(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_whitelist_signature_serialize(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
     unsigned char *output,
     size_t *output_len,
-    const rustsecp256k1zkp_v0_7_0_whitelist_signature *sig
+    const rustsecp256k1zkp_v0_8_0_whitelist_signature *sig
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
 
 /** Compute a whitelist signature
@@ -110,13 +110,13 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_whitelist_signature_serialize(
  * for each public key pair (offline_i, offline_i). Here H means sha256 of the
  * compressed serialization of the key.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_whitelist_sign(
-  const rustsecp256k1zkp_v0_7_0_context* ctx,
-  rustsecp256k1zkp_v0_7_0_whitelist_signature *sig,
-  const rustsecp256k1zkp_v0_7_0_pubkey *online_pubkeys,
-  const rustsecp256k1zkp_v0_7_0_pubkey *offline_pubkeys,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_whitelist_sign(
+  const rustsecp256k1zkp_v0_8_0_context* ctx,
+  rustsecp256k1zkp_v0_8_0_whitelist_signature *sig,
+  const rustsecp256k1zkp_v0_8_0_pubkey *online_pubkeys,
+  const rustsecp256k1zkp_v0_8_0_pubkey *offline_pubkeys,
   const size_t n_keys,
-  const rustsecp256k1zkp_v0_7_0_pubkey *sub_pubkey,
+  const rustsecp256k1zkp_v0_8_0_pubkey *sub_pubkey,
   const unsigned char *online_seckey,
   const unsigned char *summed_seckeyx,
   const size_t index
@@ -132,13 +132,13 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_whitelist_sign(
  *         n_keys: the number of entries in each of the above two arrays
  *         sub_pubkey: the key to be whitelisted
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_whitelist_verify(
-  const rustsecp256k1zkp_v0_7_0_context* ctx,
-  const rustsecp256k1zkp_v0_7_0_whitelist_signature *sig,
-  const rustsecp256k1zkp_v0_7_0_pubkey *online_pubkeys,
-  const rustsecp256k1zkp_v0_7_0_pubkey *offline_pubkeys,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_whitelist_verify(
+  const rustsecp256k1zkp_v0_8_0_context* ctx,
+  const rustsecp256k1zkp_v0_8_0_whitelist_signature *sig,
+  const rustsecp256k1zkp_v0_8_0_pubkey *online_pubkeys,
+  const rustsecp256k1zkp_v0_8_0_pubkey *offline_pubkeys,
   const size_t n_keys,
-  const rustsecp256k1zkp_v0_7_0_pubkey *sub_pubkey
+  const rustsecp256k1zkp_v0_8_0_pubkey *sub_pubkey
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(6);
 
 #ifdef __cplusplus
