@@ -18,14 +18,19 @@ This prefix ensures that no symbol collision can happen:
 To update the vendored sources, use the `vendor-libsecp.sh` script:
 
 ```
-$ ./vendor-libsecp.sh depend <version-code> <rev>
+$ ./vendor-libsecp.sh <rev>
 ```
 
-- Where `<version-code>` is the secp256k1-zkp-sys version number underscored: `0_1_2`.
-- Where `<rev>` is the git revision of libsecp256k1-zkp to checkout.
+Where `<rev>` is the git revision of libsecp256k1 to checkout. If you do not
+specify a revision, the script will simply clone the repo and use whatever
+revision the default branch is pointing to.
 
 ## Linking to external symbols
 
 For the more exotic use cases, this crate can be used with existing libsecp256k1-zkp
 symbols by using the `external-symbols` feature. How to setup rustc to link
 against those existing symbols is left as an exercise to the reader.
+
+## Minimum Supported Rust Version
+
+This library should always compile with any combination of features on **Rust 1.48.0**.

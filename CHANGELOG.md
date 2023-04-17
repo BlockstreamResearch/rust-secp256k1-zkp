@@ -1,5 +1,11 @@
 # Unreleased
 
+# 0.8.0 - 2023-04-13
+
+- Increment MSRV to 1.48.0
+- Increment `secp256k1` dependency to 0.27.0
+- Update upstream to 1d256089004a19bdbead7c5676e52c8e07b09fce
+
 # 0.7.0 - 2022-09-27
 
 - Increment MSRV to 1.41.1 and edition to 2018

@@ -9,11 +9,9 @@ extern "C" {
 
 #include <stddef.h>
 
-/** This module implements a Schnorr-based multi-signature scheme called MuSig2
- * (https://eprint.iacr.org/2020/1261, see Appendix B for the exact variant).
- * Signatures are compatible with BIP-340 ("Schnorr").
- * There's an example C source file in the module's directory
- * (examples/musig.c) that demonstrates how it can be used.
+/** This module implements BIP MuSig2 v1.0.0-rc.3, a multi-signature scheme
+ * compatible with BIP-340 ("Schnorr"). You can find an example demonstrating
+ * the musig module in examples/musig.c.
  *
  * The module also supports BIP-341 ("Taproot") public key tweaking and adaptor
  * signatures as described in
@@ -22,12 +20,8 @@ extern "C" {
  * It is recommended to read the documentation in this include file carefully.
  * Further notes on API usage can be found in src/modules/musig/musig.md
  *
- * You may know that the MuSig2 scheme uses two "nonces" instead of one. This
- * is not wrong, but only a technical detail we don't want to bother the user
- * with. Therefore, the API only uses the singular term "nonce".
- *
- * Since the first version of MuSig is essentially replaced by MuSig2, when
- * writing MuSig or musig here we mean MuSig2.
+ * Since the first version of MuSig is essentially replaced by MuSig2, we use
+ * MuSig, musig and MuSig2 synonymously unless noted otherwise.
  */
 
 /** Opaque data structures
@@ -40,16 +34,16 @@ extern "C" {
 
 /** Opaque data structure that caches information about public key aggregation.
  *
- *  Guaranteed to be 165 bytes in size. It can be safely copied/moved. No
+ *  Guaranteed to be 197 bytes in size. It can be safely copied/moved. No
  *  serialization and parsing functions (yet).
  */
 typedef struct {
-    unsigned char data[165];
-} rustsecp256k1zkp_v0_7_0_musig_keyagg_cache;
+    unsigned char data[197];
+} rustsecp256k1zkp_v0_8_0_musig_keyagg_cache;
 
 /** Opaque data structure that holds a signer's _secret_ nonce.
  *
- *  Guaranteed to be 68 bytes in size.
+ *  Guaranteed to be 132 bytes in size.
  *
  *  WARNING: This structure MUST NOT be copied or read or written to directly. A
  *  signer who is online throughout the whole process and can keep this
@@ -63,8 +57,8 @@ typedef struct {
  *  leak the secret signing key.
  */
 typedef struct {
-    unsigned char data[68];
-} rustsecp256k1zkp_v0_7_0_musig_secnonce;
+    unsigned char data[132];
+} rustsecp256k1zkp_v0_8_0_musig_secnonce;
 
 /** Opaque data structure that holds a signer's public nonce.
 *
@@ -73,7 +67,7 @@ typedef struct {
 */
 typedef struct {
     unsigned char data[132];
-} rustsecp256k1zkp_v0_7_0_musig_pubnonce;
+} rustsecp256k1zkp_v0_8_0_musig_pubnonce;
 
 /** Opaque data structure that holds an aggregate public nonce.
  *
@@ -83,7 +77,7 @@ typedef struct {
  */
 typedef struct {
     unsigned char data[132];
-} rustsecp256k1zkp_v0_7_0_musig_aggnonce;
+} rustsecp256k1zkp_v0_8_0_musig_aggnonce;
 
 /** Opaque data structure that holds a MuSig session.
  *
@@ -93,7 +87,7 @@ typedef struct {
  */
 typedef struct {
     unsigned char data[133];
-} rustsecp256k1zkp_v0_7_0_musig_session;
+} rustsecp256k1zkp_v0_8_0_musig_session;
 
 /** Opaque data structure that holds a partial MuSig signature.
  *
@@ -102,7 +96,7 @@ typedef struct {
  */
 typedef struct {
     unsigned char data[36];
-} rustsecp256k1zkp_v0_7_0_musig_partial_sig;
+} rustsecp256k1zkp_v0_8_0_musig_partial_sig;
 
 /** Parse a signer's public nonce.
  *
@@ -111,9 +105,9 @@ typedef struct {
  *  Out:   nonce: pointer to a nonce object
  *  In:     in66: pointer to the 66-byte nonce to be parsed
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_pubnonce_parse(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_musig_pubnonce* nonce,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_pubnonce_parse(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_musig_pubnonce* nonce,
     const unsigned char *in66
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -124,10 +118,10 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_pubnonce_parse(
  *  Out:   out66: pointer to a 66-byte array to store the serialized nonce
  *  In:    nonce: pointer to the nonce
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_pubnonce_serialize(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_pubnonce_serialize(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
     unsigned char *out66,
-    const rustsecp256k1zkp_v0_7_0_musig_pubnonce* nonce
+    const rustsecp256k1zkp_v0_8_0_musig_pubnonce* nonce
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Parse an aggregate public nonce.
@@ -137,9 +131,9 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_pubnonce_serialize(
  *  Out:   nonce: pointer to a nonce object
  *  In:     in66: pointer to the 66-byte nonce to be parsed
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_aggnonce_parse(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_musig_aggnonce* nonce,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_aggnonce_parse(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_musig_aggnonce* nonce,
     const unsigned char *in66
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -150,10 +144,10 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_aggnonce_parse(
  *  Out:   out66: pointer to a 66-byte array to store the serialized nonce
  *  In:    nonce: pointer to the nonce
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_aggnonce_serialize(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_aggnonce_serialize(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
     unsigned char *out66,
-    const rustsecp256k1zkp_v0_7_0_musig_aggnonce* nonce
+    const rustsecp256k1zkp_v0_8_0_musig_aggnonce* nonce
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Serialize a MuSig partial signature
@@ -163,10 +157,10 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_aggnonce_serialize(
  *  Out:   out32: pointer to a 32-byte array to store the serialized signature
  *  In:      sig: pointer to the signature
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_partial_sig_serialize(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_partial_sig_serialize(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
     unsigned char *out32,
-    const rustsecp256k1zkp_v0_7_0_musig_partial_sig* sig
+    const rustsecp256k1zkp_v0_8_0_musig_partial_sig* sig
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Parse a MuSig partial signature.
@@ -180,9 +174,9 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_partial_sig_serialize(
  *  encoded numbers are out of range, signature verification with it is
  *  guaranteed to fail for every message and public key.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_partial_sig_parse(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_musig_partial_sig* sig,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_partial_sig_parse(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_musig_partial_sig* sig,
     const unsigned char *in32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -190,8 +184,8 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_partial_sig_parse(
  *
  *  Different orders of `pubkeys` result in different `agg_pk`s.
  *
- *  The pubkeys can be sorted before combining with `rustsecp256k1zkp_v0_7_0_xonly_sort` which
- *  ensures the same `agg_pk` result for the same multiset of pubkeys.
+ *  Before aggregating, the pubkeys can be sorted with `rustsecp256k1zkp_v0_8_0_pubkey_sort`
+ *  which ensures the same `agg_pk` result for the same multiset of pubkeys.
  *  This is useful to do before `pubkey_agg`, such that the order of pubkeys
  *  does not affect the aggregate public key.
  *
@@ -214,19 +208,19 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_partial_sig_parse(
  *                    aggregate public key.
  *         n_pubkeys: length of pubkeys array. Must be greater than 0.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_pubkey_agg(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_scratch_space *scratch,
-    rustsecp256k1zkp_v0_7_0_xonly_pubkey *agg_pk,
-    rustsecp256k1zkp_v0_7_0_musig_keyagg_cache *keyagg_cache,
-    const rustsecp256k1zkp_v0_7_0_xonly_pubkey * const* pubkeys,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_pubkey_agg(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_scratch_space *scratch,
+    rustsecp256k1zkp_v0_8_0_xonly_pubkey *agg_pk,
+    rustsecp256k1zkp_v0_8_0_musig_keyagg_cache *keyagg_cache,
+    const rustsecp256k1zkp_v0_8_0_pubkey * const* pubkeys,
     size_t n_pubkeys
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(5);
 
 /** Obtain the aggregate public key from a keyagg_cache.
  *
  *  This is only useful if you need the non-xonly public key, in particular for
- *  ordinary (non-xonly) tweaking or batch-verifying multiple key aggregations
+ *  plain (non-xonly) tweaking or batch-verifying multiple key aggregations
  *  (not implemented).
  *
  *  Returns: 0 if the arguments are invalid, 1 otherwise
@@ -235,31 +229,31 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_pubkey_agg(
  *  In: keyagg_cache: pointer to a `musig_keyagg_cache` struct initialized by
  *                    `musig_pubkey_agg`
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_pubkey_get(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_pubkey *agg_pk,
-    rustsecp256k1zkp_v0_7_0_musig_keyagg_cache *keyagg_cache
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_musig_pubkey_get(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_pubkey *agg_pk,
+    rustsecp256k1zkp_v0_8_0_musig_keyagg_cache *keyagg_cache
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
-/** Apply ordinary "EC" tweaking to a public key in a given keyagg_cache by
+/** Apply plain "EC" tweaking to a public key in a given keyagg_cache by
  *  adding the generator multiplied with `tweak32` to it. This is useful for
  *  deriving child keys from an aggregate public key via BIP32.
  *
- *  The tweaking method is the same as `rustsecp256k1zkp_v0_7_0_ec_pubkey_tweak_add`. So after
+ *  The tweaking method is the same as `rustsecp256k1zkp_v0_8_0_ec_pubkey_tweak_add`. So after
  *  the following pseudocode buf and buf2 have identical contents (absent
  *  earlier failures).
  *
- *  rustsecp256k1zkp_v0_7_0_musig_pubkey_agg(..., keyagg_cache, pubkeys, ...)
- *  rustsecp256k1zkp_v0_7_0_musig_pubkey_get(..., agg_pk, keyagg_cache)
- *  rustsecp256k1zkp_v0_7_0_musig_pubkey_ec_tweak_add(..., output_pk, tweak32, keyagg_cache)
- *  rustsecp256k1zkp_v0_7_0_ec_pubkey_serialize(..., buf, output_pk)
- *  rustsecp256k1zkp_v0_7_0_ec_pubkey_tweak_add(..., agg_pk, tweak32)
- *  rustsecp256k1zkp_v0_7_0_ec_pubkey_serialize(..., buf2, agg_pk)
+ *  rustsecp256k1zkp_v0_8_0_musig_pubkey_agg(..., keyagg_cache, pubkeys, ...)
+ *  rustsecp256k1zkp_v0_8_0_musig_pubkey_get(..., agg_pk, keyagg_cache)
+ *  rustsecp256k1zkp_v0_8_0_musig_pubkey_ec_tweak_add(..., output_pk, tweak32, keyagg_cache)
+ *  rustsecp256k1zkp_v0_8_0_ec_pubkey_serialize(..., buf, output_pk)
+ *  rustsecp256k1zkp_v0_8_0_ec_pubkey_tweak_add(..., agg_pk, tweak32)
+ *  rustsecp256k1zkp_v0_8_0_ec_pubkey_serialize(..., buf2, agg_pk)
  *
  *  This function is required if you want to _sign_ for a tweaked aggregate key.
  *  On the other hand, if you are only computing a public key, but not intending
  *  to create a signature for it, you can just use
- *  `rustsecp256k1zkp_v0_7_0_ec_pubkey_tweak_add`.
+ *  `rustsecp256k1zkp_v0_8_0_ec_pubkey_tweak_add`.
  *
  *  Returns: 0 if the arguments are invalid or the resulting public key would be
  *           invalid (only when the tweak is the negation of the corresponding
@@ -271,15 +265,15 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_pub
  *  In/Out: keyagg_cache: pointer to a `musig_keyagg_cache` struct initialized by
  *                       `musig_pubkey_agg`
  *  In:          tweak32: pointer to a 32-byte tweak. If the tweak is invalid
- *                        according to `rustsecp256k1zkp_v0_7_0_ec_seckey_verify`, this function
+ *                        according to `rustsecp256k1zkp_v0_8_0_ec_seckey_verify`, this function
  *                        returns 0. For uniformly random 32-byte arrays the
  *                        chance of being invalid is negligible (around 1 in
  *                        2^128).
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_pubkey_ec_tweak_add(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_pubkey *output_pubkey,
-    rustsecp256k1zkp_v0_7_0_musig_keyagg_cache *keyagg_cache,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_musig_pubkey_ec_tweak_add(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_pubkey *output_pubkey,
+    rustsecp256k1zkp_v0_8_0_musig_keyagg_cache *keyagg_cache,
     const unsigned char *tweak32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
 
@@ -287,19 +281,19 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_pub
  *  generator multiplied with `tweak32` to it. This is useful for creating
  *  Taproot outputs.
  *
- *  The tweaking method is the same as `rustsecp256k1zkp_v0_7_0_xonly_pubkey_tweak_add`. So in
+ *  The tweaking method is the same as `rustsecp256k1zkp_v0_8_0_xonly_pubkey_tweak_add`. So in
  *  the following pseudocode xonly_pubkey_tweak_add_check (absent earlier
  *  failures) returns 1.
  *
- *  rustsecp256k1zkp_v0_7_0_musig_pubkey_agg(..., agg_pk, keyagg_cache, pubkeys, ...)
- *  rustsecp256k1zkp_v0_7_0_musig_pubkey_xonly_tweak_add(..., output_pk, tweak32, keyagg_cache)
- *  rustsecp256k1zkp_v0_7_0_xonly_pubkey_serialize(..., buf, output_pk)
- *  rustsecp256k1zkp_v0_7_0_xonly_pubkey_tweak_add_check(..., buf, ..., agg_pk, tweak32)
+ *  rustsecp256k1zkp_v0_8_0_musig_pubkey_agg(..., agg_pk, keyagg_cache, pubkeys, ...)
+ *  rustsecp256k1zkp_v0_8_0_musig_pubkey_xonly_tweak_add(..., output_pk, tweak32, keyagg_cache)
+ *  rustsecp256k1zkp_v0_8_0_xonly_pubkey_serialize(..., buf, output_pk)
+ *  rustsecp256k1zkp_v0_8_0_xonly_pubkey_tweak_add_check(..., buf, ..., agg_pk, tweak32)
  *
  *  This function is required if you want to _sign_ for a tweaked aggregate key.
  *  On the other hand, if you are only computing a public key, but not intending
  *  to create a signature for it, you can just use
- *  `rustsecp256k1zkp_v0_7_0_xonly_pubkey_tweak_add`.
+ *  `rustsecp256k1zkp_v0_8_0_xonly_pubkey_tweak_add`.
  *
  *  Returns: 0 if the arguments are invalid or the resulting public key would be
  *           invalid (only when the tweak is the negation of the corresponding
@@ -311,15 +305,15 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_pub
  *  In/Out: keyagg_cache: pointer to a `musig_keyagg_cache` struct initialized by
  *                       `musig_pubkey_agg`
  *  In:          tweak32: pointer to a 32-byte tweak. If the tweak is invalid
- *                        according to rustsecp256k1zkp_v0_7_0_ec_seckey_verify, this function
+ *                        according to rustsecp256k1zkp_v0_8_0_ec_seckey_verify, this function
  *                        returns 0. For uniformly random 32-byte arrays the
  *                        chance of being invalid is negligible (around 1 in
  *                        2^128).
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_pubkey_xonly_tweak_add(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_pubkey *output_pubkey,
-    rustsecp256k1zkp_v0_7_0_musig_keyagg_cache *keyagg_cache,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_musig_pubkey_xonly_tweak_add(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_pubkey *output_pubkey,
+    rustsecp256k1zkp_v0_8_0_musig_keyagg_cache *keyagg_cache,
     const unsigned char *tweak32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
 
@@ -353,10 +347,13 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_pub
  *  Out:     secnonce: pointer to a structure to store the secret nonce
  *           pubnonce: pointer to a structure to store the public nonce
  *  In:  session_id32: a 32-byte session_id32 as explained above. Must be unique to this
- *                     call to rustsecp256k1zkp_v0_7_0_musig_nonce_gen and must be uniformly random
+ *                     call to rustsecp256k1zkp_v0_8_0_musig_nonce_gen and must be uniformly random
  *                     unless you really know what you are doing.
  *             seckey: the 32-byte secret key that will later be used for signing, if
  *                     already known (can be NULL)
+ *             pubkey: public key of the signer creating the nonce. The secnonce
+ *                     output of this function cannot be used to sign for any
+ *                     other public key.
  *              msg32: the 32-byte message that will later be signed, if already known
  *                     (can be NULL)
  *       keyagg_cache: pointer to the keyagg_cache that was used to create the aggregate
@@ -365,16 +362,17 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_pub
  *      extra_input32: an optional 32-byte array that is input to the nonce
  *                     derivation function (can be NULL)
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_nonce_gen(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_musig_secnonce *secnonce,
-    rustsecp256k1zkp_v0_7_0_musig_pubnonce *pubnonce,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_nonce_gen(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_musig_secnonce *secnonce,
+    rustsecp256k1zkp_v0_8_0_musig_pubnonce *pubnonce,
     const unsigned char *session_id32,
     const unsigned char *seckey,
+    const rustsecp256k1zkp_v0_8_0_pubkey *pubkey,
     const unsigned char *msg32,
-    const rustsecp256k1zkp_v0_7_0_musig_keyagg_cache *keyagg_cache,
+    const rustsecp256k1zkp_v0_8_0_musig_keyagg_cache *keyagg_cache,
     const unsigned char *extra_input32
-) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
+) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(6);
 
 /** Aggregates the nonces of all signers into a single nonce
  *
@@ -392,10 +390,10 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_nonce_gen(
  *          n_pubnonces: number of elements in the pubnonces array. Must be
  *                       greater than 0.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_nonce_agg(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_musig_aggnonce  *aggnonce,
-    const rustsecp256k1zkp_v0_7_0_musig_pubnonce * const* pubnonces,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_nonce_agg(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_musig_aggnonce  *aggnonce,
+    const rustsecp256k1zkp_v0_8_0_musig_pubnonce * const* pubnonces,
     size_t n_pubnonces
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -420,13 +418,13 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_nonce_agg(
  *                      key if this signing session is part of an adaptor
  *                      signature protocol (can be NULL)
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_nonce_process(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_musig_session *session,
-    const rustsecp256k1zkp_v0_7_0_musig_aggnonce  *aggnonce,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_musig_nonce_process(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_musig_session *session,
+    const rustsecp256k1zkp_v0_8_0_musig_aggnonce  *aggnonce,
     const unsigned char *msg32,
-    const rustsecp256k1zkp_v0_7_0_musig_keyagg_cache *keyagg_cache,
-    const rustsecp256k1zkp_v0_7_0_pubkey *adaptor
+    const rustsecp256k1zkp_v0_8_0_musig_keyagg_cache *keyagg_cache,
+    const rustsecp256k1zkp_v0_8_0_pubkey *adaptor
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5);
 
 /** Produces a partial signature
@@ -436,26 +434,33 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_non
  *  reuse. However, this is of course easily defeated if the secnonce has been
  *  copied (or serialized). Remember that nonce reuse will leak the secret key!
  *
+ *  For signing to succeed, the secnonce provided to this function must have
+ *  been generated for the provided keypair. This means that when signing for a
+ *  keypair consisting of a seckey and pubkey, the secnonce must have been
+ *  created by calling musig_nonce_gen with that pubkey. Otherwise, the
+ *  illegal_callback is called.
+ *
  *  Returns: 0 if the arguments are invalid or the provided secnonce has already
  *           been used for signing, 1 otherwise
  *  Args:         ctx: pointer to a context object
  *  Out:  partial_sig: pointer to struct to store the partial signature
  *  In/Out:  secnonce: pointer to the secnonce struct created in
  *                     musig_nonce_gen that has been never used in a
- *                     partial_sign call before
+ *                     partial_sign call before and has been created for the
+ *                     keypair
  *  In:       keypair: pointer to keypair to sign the message with
  *       keyagg_cache: pointer to the keyagg_cache that was output when the
  *                     aggregate public key for this session
  *            session: pointer to the session that was created with
  *                     musig_nonce_process
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_partial_sign(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    rustsecp256k1zkp_v0_7_0_musig_partial_sig *partial_sig,
-    rustsecp256k1zkp_v0_7_0_musig_secnonce *secnonce,
-    const rustsecp256k1zkp_v0_7_0_keypair *keypair,
-    const rustsecp256k1zkp_v0_7_0_musig_keyagg_cache *keyagg_cache,
-    const rustsecp256k1zkp_v0_7_0_musig_session *session
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_partial_sign(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    rustsecp256k1zkp_v0_8_0_musig_partial_sig *partial_sig,
+    rustsecp256k1zkp_v0_8_0_musig_secnonce *secnonce,
+    const rustsecp256k1zkp_v0_8_0_keypair *keypair,
+    const rustsecp256k1zkp_v0_8_0_musig_keyagg_cache *keyagg_cache,
+    const rustsecp256k1zkp_v0_8_0_musig_session *session
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5) SECP256K1_ARG_NONNULL(6);
 
 /** Verifies an individual signer's partial signature
@@ -490,13 +495,13 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_partial_sign(
  *           session: pointer to the session that was created with
  *                    `musig_nonce_process`
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_partial_sig_verify(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
-    const rustsecp256k1zkp_v0_7_0_musig_partial_sig *partial_sig,
-    const rustsecp256k1zkp_v0_7_0_musig_pubnonce *pubnonce,
-    const rustsecp256k1zkp_v0_7_0_xonly_pubkey *pubkey,
-    const rustsecp256k1zkp_v0_7_0_musig_keyagg_cache *keyagg_cache,
-    const rustsecp256k1zkp_v0_7_0_musig_session *session
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_musig_partial_sig_verify(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
+    const rustsecp256k1zkp_v0_8_0_musig_partial_sig *partial_sig,
+    const rustsecp256k1zkp_v0_8_0_musig_pubnonce *pubnonce,
+    const rustsecp256k1zkp_v0_8_0_pubkey *pubkey,
+    const rustsecp256k1zkp_v0_8_0_musig_keyagg_cache *keyagg_cache,
+    const rustsecp256k1zkp_v0_8_0_musig_session *session
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5) SECP256K1_ARG_NONNULL(6);
 
 /** Aggregates partial signatures
@@ -511,11 +516,11 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_par
  *             n_sigs: number of elements in the partial_sigs array. Must be
  *                     greater than 0.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_partial_sig_agg(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_partial_sig_agg(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
     unsigned char *sig64,
-    const rustsecp256k1zkp_v0_7_0_musig_session *session,
-    const rustsecp256k1zkp_v0_7_0_musig_partial_sig * const* partial_sigs,
+    const rustsecp256k1zkp_v0_8_0_musig_session *session,
+    const rustsecp256k1zkp_v0_8_0_musig_partial_sig * const* partial_sigs,
     size_t n_sigs
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
 
@@ -531,10 +536,10 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_partial_sig_agg(
  *  In:       session: pointer to the session that was created with
  *                     musig_nonce_process
  */
-SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_nonce_parity(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_8_0_musig_nonce_parity(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
     int *nonce_parity,
-    const rustsecp256k1zkp_v0_7_0_musig_session *session
+    const rustsecp256k1zkp_v0_8_0_musig_session *session
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Creates a signature from a pre-signature and an adaptor.
@@ -553,8 +558,8 @@ SECP256K1_API int rustsecp256k1zkp_v0_7_0_musig_nonce_parity(
  *       nonce_parity: the output of `musig_nonce_parity` called with the
  *                     session used for producing the pre-signature
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_adapt(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_musig_adapt(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
     unsigned char *sig64,
     const unsigned char *pre_sig64,
     const unsigned char *sec_adaptor32,
@@ -582,8 +587,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_ada
  *       nonce_parity: the output of `musig_nonce_parity` called with the
  *                     session used for producing sig64
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_7_0_musig_extract_adaptor(
-    const rustsecp256k1zkp_v0_7_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_musig_extract_adaptor(
+    const rustsecp256k1zkp_v0_8_0_context* ctx,
     unsigned char *sec_adaptor32,
     const unsigned char *sig64,
     const unsigned char *pre_sig64,
