@@ -1,12 +1,6 @@
 #!/bin/sh -ex
 
-FEATURES="bitcoin_hashes global-context lowmemory use-rand rand-std recovery use-serde"
-
-# Use toolchain if explicitly specified
-if [ -n "$TOOLCHAIN" ]
-then
-    alias cargo="cargo +$TOOLCHAIN"
-fi
+FEATURES="bitcoin_hashes global-context lowmemory rand rand-std recovery serde"
 
 cargo --version
 rustc --version
@@ -34,15 +28,13 @@ if [ "$DO_FEATURE_MATRIX" = true ]; then
     done
 
     # Other combos
-    RUSTFLAGS='--cfg=rust_secp_fuzz' RUSTDOCFLAGS=$RUSTFLAGS cargo test --all
-    RUSTFLAGS='--cfg=rust_secp_fuzz' RUSTDOCFLAGS=$RUSTFLAGS cargo test --all --features="$FEATURES"
+    RUSTFLAGS='--cfg=rust_secp_fuzz' cargo test --all
+    RUSTFLAGS='--cfg=rust_secp_fuzz' cargo test --all --features="$FEATURES"
     cargo test --all --features="rand rand-std"
     cargo test --all --features="rand serde"
 
-    if [ "$DO_BENCH" = true ]; then  # proxy for us having a nightly compiler
-        cargo test --all --all-features
-        RUSTFLAGS='--cfg=rust_secp_fuzz' RUSTDOCFLAGS='--cfg=rust_secp_fuzz' cargo test --all --all-features
-    fi
+    cargo test --all --all-features
+    RUSTFLAGS='--cfg=rust_secp_fuzz' RUSTDOCFLAGS='--cfg=rust_secp_fuzz' cargo test --all --all-features
 fi
 
 # Docs
@@ -71,7 +63,6 @@ fi
 if [ "$DO_LINT" = true ]
 then
     (
-        rustup component add rustfmt
         cargo fmt --all -- --check
     )
 fi
