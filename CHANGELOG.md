@@ -1,5 +1,9 @@
 # Unreleased
 
+# 0.9.1 - 2023-06-09
+
+- Add `Hash` derive to `Tweak`
+
 # 0.9.0 - 2023-06-08
 
 - Rename `use-serde` to `serde` and `use-rand` to `rand`
