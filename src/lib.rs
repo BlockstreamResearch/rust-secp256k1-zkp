@@ -32,7 +32,6 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![warn(missing_docs)]
 #![cfg_attr(all(not(test), not(feature = "std")), no_std)]
-#![cfg_attr(all(test, feature = "unstable"), feature(test))]
 
 /// Re-export of the internal FFI bindings crate
 pub extern crate secp256k1_zkp_sys;
@@ -53,8 +52,6 @@ pub extern crate actual_rand as rand;
 pub extern crate actual_serde as serde;
 #[cfg(all(test, feature = "serde"))]
 extern crate serde_test;
-#[cfg(all(test, feature = "unstable"))]
-extern crate test;
 #[cfg(all(test, target_arch = "wasm32"))]
 #[macro_use]
 extern crate wasm_bindgen_test;

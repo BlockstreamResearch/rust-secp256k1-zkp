@@ -67,11 +67,6 @@ if [ "$DO_ASAN" = true ]; then
     cargo test --lib --all --features="$FEATURES" -Zbuild-std --target x86_64-unknown-linux-gnu
 fi
 
-# Bench
-if [ "$DO_BENCH" = true ]; then
-    cargo bench --all --features="unstable"
-fi
-
 # Lint if told to
 if [ "$DO_LINT" = true ]
 then

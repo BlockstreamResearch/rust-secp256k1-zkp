@@ -22,10 +22,6 @@ jobs:
         env:
           DO_ASAN: true
         run: ./contrib/test.sh
-      - name: Running benchmarks
-        env:
-          DO_BENCH: true
-        run: ./contrib/test.sh
       - name: Building docs
         env:
           DO_DOCS: true
