@@ -52,7 +52,7 @@ pub extern crate rand;
 extern crate rand_core;
 /// Re-export of the `serde` crate
 #[cfg(feature = "serde")]
-pub extern crate serde;
+pub extern crate actual_serde as serde;
 #[cfg(all(test, feature = "serde"))]
 extern crate serde_test;
 #[cfg(all(test, feature = "unstable"))]

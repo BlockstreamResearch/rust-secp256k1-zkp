@@ -28,15 +28,15 @@ recovery = ["secp256k1-zkp-sys/recovery", "secp256k1/recovery"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory", "secp256k1/lowmemory"]
 global-context = ["std", "rand-std", "secp256k1/global-context"]
 bitcoin_hashes = ["secp256k1/bitcoin_hashes"]
-use-serde = ["serde", "secp256k1/serde"]
+serde = ["actual-serde", "secp256k1/serde"]
 use-rand = ["rand", "secp256k1/rand"]
 
 [dependencies]
+actual-serde = { package = "serde", version = "1.0", default-features = false, optional = true }
 secp256k1 = "0.27.0"
 secp256k1-zkp-sys = { version = "0.8.0", default-features = false, path = "./secp256k1-zkp-sys" }
 rand = { version = "0.8", default-features = false, optional = true }
-serde = { version = "1.0", default-features = false, optional = true }
-bitcoin-private = "0.1.0"
+internals = { package = "bitcoin-private", version = "0.1.0" }
 
 [dev-dependencies]
 rand = "0.8"
