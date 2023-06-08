@@ -1,5 +1,11 @@
 # Unreleased
 
+# 0.9.0 - 2023-06-08
+
+- Rename `use-serde` to `serde` and `use-rand` to `rand`
+- Remove unused `unstable` feature
+- Add `PartialOrd`, `Ord` and `Hash` back to `Tweak`
+
 # 0.8.0 - 2023-04-13
 
 - Increment MSRV to 1.48.0
