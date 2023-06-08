@@ -426,6 +426,12 @@ impl PartialEq for SurjectionProof {
 
 impl Eq for SurjectionProof {}
 
+impl Default for SurjectionProof {
+    fn default() -> Self {
+        SurjectionProof::new()
+    }
+}
+
 impl hash::Hash for SurjectionProof {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         self.n_inputs.hash(state);
@@ -527,7 +533,7 @@ impl Default for PedersenCommitment {
 #[cfg(not(fuzzing))]
 impl PartialEq for PedersenCommitment {
     fn eq(&self, other: &Self) -> bool {
-        &self.0[..] == &other.0[..]
+        self.0[..] == other.0[..]
     }
 }
 
@@ -594,6 +600,12 @@ pub struct EcdsaAdaptorSignature([u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH]);
 impl_array_newtype!(EcdsaAdaptorSignature, u8, ECDSA_ADAPTOR_SIGNATURE_LENGTH);
 impl_raw_debug!(EcdsaAdaptorSignature);
 
+impl Default for EcdsaAdaptorSignature {
+    fn default() -> EcdsaAdaptorSignature {
+        EcdsaAdaptorSignature::new()
+    }
+}
+
 impl EcdsaAdaptorSignature {
     /// Create a new (zeroed) ecdsa adaptor signature usable for the FFI interface
     pub fn new() -> Self {
@@ -617,7 +629,7 @@ impl EcdsaAdaptorSignature {
 #[cfg(not(fuzzing))]
 impl PartialEq for EcdsaAdaptorSignature {
     fn eq(&self, other: &Self) -> bool {
-        &self.0[..] == &other.0[..]
+        self.0[..] == other.0[..]
     }
 }
 
