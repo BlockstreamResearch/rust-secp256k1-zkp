@@ -1,7 +1,7 @@
 use crate::ffi::{self, CPtr};
 use crate::{constants, from_hex, Error, Secp256k1, Signing, Tag};
 use core::{fmt, str};
-#[cfg(feature = "rand")]
+#[cfg(feature = "actual-rand")]
 use rand::Rng;
 
 /// Represents a blinding factor/Tweak on secp256k1 curve
@@ -9,7 +9,7 @@ use rand::Rng;
 /// Contrary to a [`crate::SecretKey`], the value 0 is also a valid tweak.
 /// Values outside secp curve order are invalid tweaks.
 #[derive(Default, Copy, Clone)]
-#[cfg_attr(not(fuzzing), derive(Eq, PartialEq))]
+#[cfg_attr(not(fuzzing), derive(Eq, PartialEq, PartialOrd, Ord))]
 pub struct Tweak([u8; constants::SECRET_KEY_SIZE]);
 secp256k1_zkp_sys::impl_array_newtype!(Tweak, u8, constants::SECRET_KEY_SIZE);
 
@@ -56,7 +56,7 @@ impl str::FromStr for Tweak {
 
 impl Tweak {
     /// Generate a new random Tweak
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "actual-rand")]
     pub fn new<R: Rng + ?Sized>(rng: &mut R) -> Tweak {
         let mut ret = [0u8; constants::SECRET_KEY_SIZE];
         rng.fill_bytes(&mut ret);
@@ -110,7 +110,7 @@ impl Tweak {
 /// Represents a generator on the secp256k1 curve.
 ///
 /// A generator is a public key internally but has a slightly different serialization with the first byte being tweaked.
-#[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct Generator(ffi::PublicKey);
 
 impl Generator {

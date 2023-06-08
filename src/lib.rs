@@ -29,9 +29,9 @@
 //!
 
 // Coding conventions
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![warn(missing_docs)]
 #![cfg_attr(all(not(test), not(feature = "std")), no_std)]
-#![cfg_attr(all(test, feature = "unstable"), feature(test))]
 
 /// Re-export of the internal FFI bindings crate
 pub extern crate secp256k1_zkp_sys;
@@ -42,20 +42,16 @@ extern crate secp256k1;
 
 #[cfg(feature = "bitcoin_hashes")]
 pub use secp256k1::hashes;
-#[cfg(any(test, feature = "std"))]
-extern crate core;
 /// Re-export of the `rand` crate
-#[cfg(any(test, feature = "rand"))]
-pub extern crate rand;
-#[cfg(test)]
-extern crate rand_core;
+#[cfg(feature = "actual-rand")]
+pub extern crate actual_rand as rand;
 /// Re-export of the `serde` crate
 #[cfg(feature = "serde")]
-pub extern crate serde;
+pub extern crate actual_serde as serde;
+#[cfg(any(test, feature = "std"))]
+extern crate core;
 #[cfg(all(test, feature = "serde"))]
 extern crate serde_test;
-#[cfg(all(test, feature = "unstable"))]
-extern crate test;
 #[cfg(all(test, target_arch = "wasm32"))]
 #[macro_use]
 extern crate wasm_bindgen_test;
