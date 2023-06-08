@@ -339,7 +339,7 @@ mod tests {
             // wrong n_keys
             let sig = unsafe {
                 let sig = correct_signature.clone();
-                let mut ptr = sig.as_c_ptr() as *mut ffi::WhitelistSignature;
+                let ptr = sig.as_c_ptr() as *mut ffi::WhitelistSignature;
                 (*ptr).n_keys -= 1;
                 sig
             };
