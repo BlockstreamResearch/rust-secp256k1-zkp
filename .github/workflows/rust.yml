@@ -3,21 +3,19 @@ on: [push, pull_request]
 name: Continuous integration
 
 jobs:
-  bench_nightly:
-    name: Nightly - ASan + Bench
+  Nightly:
+    name: Nightly - ASan + Bench + Docs
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust:
-          - nightly
     steps:
       - name: Checkout Crate
         uses: actions/checkout@v2
+      - name: Install clang for ASan
+        run: sudo apt-get install -y clang
       - name: Checkout Toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ matrix.rust }}
+          toolchain: nightly
           override: true
           components: rust-src
       - name: Running address sanitizer
@@ -28,43 +26,10 @@ jobs:
         env:
           DO_BENCH: true
         run: ./contrib/test.sh
-
-  # wasm:
-  #   name: Stable - Docs / WebAssembly Build
-  #   strategy:
-  #     matrix:
-  #       target: [ x86_64-unknown-linux-gnu, x86_64-apple-darwin ]
-  #       include:
-  #         - target: x86_64-unknown-linux-gnu
-  #           os: ubuntu-latest
-  #           cc: clang-12
-  #           ar: ar
-  #         - target: x86_64-apple-darwin
-  #           os: macos-latest
-  #           cc: /usr/local/opt/llvm/bin/clang
-  #           ar: /usr/local/opt/llvm/bin/llvm-ar
-  #   runs-on: ${{ matrix.os }}
-  #   steps:
-  #     - name: Checkout Crate
-  #       uses: actions/checkout@v2
-  #     - name: Checkout Toolchain
-  #       uses: actions-rs/toolchain@v1
-  #       with:
-  #         profile: minimal
-  #         toolchain: stable
-  #         override: true
-  #     - name: Building docs
-  #       env:
-  #         DO_DOCS: true
-  #       run: ./contrib/test.sh
-  #     - name: Install wasm-pack
-  #       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-  #     - name: Running WASM build
-  #       env:
-  #         DO_WASM: true
-  #         CC: ${{ matrix.cc }}
-  #         AR: ${{ matrix.ar }}
-  #       run: ./contrib/test.sh
+      - name: Building docs
+        env:
+          DO_DOCS: true
+        run: ./contrib/test.sh
 
   Tests:
     name: Tests
@@ -96,6 +61,31 @@ jobs:
       - name: Running cargo
         env:
           DO_FEATURE_MATRIX: true
+        run: ./contrib/test.sh
+
+  WASM:
+    name: WASM
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [stable, beta, nightly] # No 1.29 because WASM requires Rust 1.30
+    steps:
+      - name: Checkout Crate
+        uses: actions/checkout@v2
+      - name: Install clang
+        run: sudo apt-get install -y clang
+      - name: Checkout Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+          components: rust-src
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Running WASM tests
+        env:
+          DO_WASM: true
         run: ./contrib/test.sh
 
   ReleaseTests:

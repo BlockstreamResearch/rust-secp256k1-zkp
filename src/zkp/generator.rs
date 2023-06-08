@@ -11,7 +11,7 @@ use rand::Rng;
 #[derive(Default, Copy, Clone)]
 #[cfg_attr(not(fuzzing), derive(Eq, PartialEq))]
 pub struct Tweak([u8; constants::SECRET_KEY_SIZE]);
-impl_array_newtype!(Tweak, u8, constants::SECRET_KEY_SIZE);
+secp256k1_zkp_sys::impl_array_newtype!(Tweak, u8, constants::SECRET_KEY_SIZE);
 
 /// The zero Tweak
 pub const ZERO_TWEAK: Tweak = Tweak([
@@ -21,7 +21,7 @@ pub const ZERO_TWEAK: Tweak = Tweak([
 impl fmt::Debug for Tweak {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Tweak(")?;
-        for i in self[..].iter().cloned() {
+        for i in self[..].iter() {
             write!(f, "{:02x}", i)?;
         }
         write!(f, ")")

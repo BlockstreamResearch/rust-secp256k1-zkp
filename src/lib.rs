@@ -29,15 +29,11 @@
 //!
 
 // Coding conventions
-#![deny(non_upper_case_globals)]
-#![deny(non_camel_case_types)]
-#![deny(non_snake_case)]
-#![deny(unused_mut)]
 #![warn(missing_docs)]
 #![cfg_attr(all(not(test), not(feature = "std")), no_std)]
 #![cfg_attr(all(test, feature = "unstable"), feature(test))]
 
-#[macro_use]
+/// Re-export secp256k1_zkp_sys
 pub extern crate secp256k1_zkp_sys;
 pub use secp256k1_zkp_sys as ffi;
 
@@ -47,10 +43,13 @@ extern crate secp256k1;
 pub use secp256k1::hashes;
 #[cfg(any(test, feature = "std"))]
 extern crate core;
+/// Re-export rand
 #[cfg(any(test, feature = "rand"))]
 pub extern crate rand;
-#[cfg(any(test))]
+/// Re-export rand_core
+#[cfg(test)]
 extern crate rand_core;
+/// Re-export serde
 #[cfg(feature = "serde")]
 pub extern crate serde;
 #[cfg(all(test, feature = "serde"))]

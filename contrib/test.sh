@@ -59,6 +59,7 @@ fi
 
 # Address Sanitizer
 if [ "$DO_ASAN" = true ]; then
+    clang --version
     cargo clean
     CC='clang -fsanitize=address -fno-omit-frame-pointer'                                        \
     RUSTFLAGS='-Zsanitizer=address -Clinker=clang -Cforce-frame-pointers=yes'                    \
@@ -79,3 +80,5 @@ then
         cargo fmt --all -- --check
     )
 fi
+
+exit 0

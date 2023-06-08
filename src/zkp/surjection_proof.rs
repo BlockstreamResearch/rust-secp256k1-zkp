@@ -143,6 +143,7 @@ impl SurjectionProof {
     }
 
     /// Find the length of surjection proof when serialized
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         unsafe {
             ffi::secp256k1_surjectionproof_serialized_size(
