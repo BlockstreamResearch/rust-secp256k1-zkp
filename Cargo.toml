@@ -17,6 +17,7 @@ edition = "2018"
 # Should make docs.rs show all functions, even those behind non-default features
 [package.metadata.docs.rs]
 features = [ "use-rand", "rand-std", "use-serde", "recovery" ]
+rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 unstable = ["recovery", "rand-std"]
