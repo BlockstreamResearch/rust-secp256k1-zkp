@@ -65,6 +65,7 @@ impl RangeProof {
     }
 
     /// Prove that `commitment` hides a value within a range, with the lower bound set to `min_value`.
+    #[allow(clippy::too_many_arguments)]
     pub fn new<C: Signing>(
         secp: &Secp256k1<C>,
         min_value: u64,
