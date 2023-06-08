@@ -42,14 +42,14 @@ extern crate secp256k1;
 
 #[cfg(feature = "bitcoin_hashes")]
 pub use secp256k1::hashes;
-#[cfg(any(test, feature = "std"))]
-extern crate core;
 /// Re-export of the `rand` crate
 #[cfg(feature = "actual-rand")]
 pub extern crate actual_rand as rand;
 /// Re-export of the `serde` crate
 #[cfg(feature = "serde")]
 pub extern crate actual_serde as serde;
+#[cfg(any(test, feature = "std"))]
+extern crate core;
 #[cfg(all(test, feature = "serde"))]
 extern crate serde_test;
 #[cfg(all(test, target_arch = "wasm32"))]
