@@ -13,10 +13,10 @@ use crate::{ecdsa::Signature, Verification};
 use crate::{from_hex, Error};
 use crate::{Message, Signing};
 use core::{fmt, ptr, str};
-#[cfg(any(test, feature = "rand-std"))]
-use rand::thread_rng;
-#[cfg(any(test, feature = "rand"))]
-use rand::{CryptoRng, Rng};
+#[cfg(feature = "rand-std")]
+use crate::rand::thread_rng;
+#[cfg(feature = "actual-rand")]
+use crate::rand::{CryptoRng, Rng};
 
 /// Represents an adaptor signature and dleq proof.
 #[derive(Debug, PartialEq, Clone, Copy, Eq)]
@@ -131,7 +131,7 @@ impl EcdsaAdaptorSignature {
     /// The nonce derivation process is strengthened against side channel
     /// attacks by providing auxiliary randomness using the ThreadRng random number generator.
     /// Requires compilation with "rand-std" feature.
-    #[cfg(any(test, feature = "rand-std"))]
+    #[cfg(feature = "rand-std")]
     pub fn encrypt<C: Signing>(
         secp: &Secp256k1<C>,
         msg: &Message,
@@ -147,7 +147,7 @@ impl EcdsaAdaptorSignature {
     /// The nonce derivation process is strengthened against side channel
     /// attacks by providing auxiliary randomness using the provided random number generator.
     /// Requires compilation with "rand" feature.
-    #[cfg(any(test, feature = "rand"))]
+    #[cfg(feature = "actual-rand")]
     pub fn encrypt_with_rng<C: Signing, R: Rng + CryptoRng>(
         secp: &Secp256k1<C>,
         msg: &Message,
@@ -293,7 +293,7 @@ mod tests {
     use super::*;
     use crate::SECP256K1;
     #[cfg(not(rust_secp_fuzz))]
-    use rand::{rngs::ThreadRng, thread_rng, RngCore};
+    use crate::rand::{rngs::ThreadRng, thread_rng, RngCore};
 
     #[cfg(not(rust_secp_fuzz))]
     fn test_ecdsa_adaptor_signature_helper(

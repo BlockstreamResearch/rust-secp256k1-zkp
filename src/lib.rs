@@ -46,10 +46,8 @@ pub use secp256k1::hashes;
 #[cfg(any(test, feature = "std"))]
 extern crate core;
 /// Re-export of the `rand` crate
-#[cfg(any(test, feature = "rand"))]
-pub extern crate rand;
-#[cfg(test)]
-extern crate rand_core;
+#[cfg(feature = "actual-rand")]
+pub extern crate actual_rand as rand;
 /// Re-export of the `serde` crate
 #[cfg(feature = "serde")]
 pub extern crate actual_serde as serde;

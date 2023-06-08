@@ -12,7 +12,7 @@ impl Tag {
         self.0
     }
 
-    #[cfg(all(feature = "rand", feature = "std"))]
+    #[cfg(all(feature = "actual-rand", feature = "std"))]
     pub(crate) fn as_inner(&self) -> &ffi::Tag {
         &self.0
     }
@@ -39,7 +39,7 @@ impl fmt::LowerHex for Tag {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "rand-std"))]
 impl Tag {
     pub fn random() -> Self {
         use rand::thread_rng;

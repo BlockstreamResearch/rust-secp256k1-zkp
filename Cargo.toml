@@ -23,29 +23,26 @@ rustdoc-args = ["--cfg", "docsrs"]
 unstable = ["recovery", "rand-std"]
 default = ["std"]
 std = ["secp256k1-zkp-sys/std", "secp256k1/std"]
-rand-std = ["rand/std", "secp256k1/rand-std"]
+rand-std = ["actual-rand/std", "secp256k1/rand-std"]
 recovery = ["secp256k1-zkp-sys/recovery", "secp256k1/recovery"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory", "secp256k1/lowmemory"]
 global-context = ["std", "rand-std", "secp256k1/global-context"]
 bitcoin_hashes = ["secp256k1/bitcoin_hashes"]
 serde = ["actual-serde", "secp256k1/serde"]
-use-rand = ["rand", "secp256k1/rand"]
+rand = ["actual-rand", "secp256k1/rand"]
 
 [dependencies]
 actual-serde = { package = "serde", version = "1.0", default-features = false, optional = true }
+actual-rand = { package = "rand", version = "0.8", default-features = false, optional = true }
 secp256k1 = "0.27.0"
 secp256k1-zkp-sys = { version = "0.8.0", default-features = false, path = "./secp256k1-zkp-sys" }
-rand = { version = "0.8", default-features = false, optional = true }
 internals = { package = "bitcoin-private", version = "0.1.0" }
 
 [dev-dependencies]
-rand = "0.8"
-rand_core = "0.6"
 serde_test = "1.0"
 
 [target.wasm32-unknown-unknown.dev-dependencies]
 wasm-bindgen-test = "0.3"
-rand = { version = "0.8" }
 getrandom = { version = "0.2", features = ["js"] }
 
 [lib]
