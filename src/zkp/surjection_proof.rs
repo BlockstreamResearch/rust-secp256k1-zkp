@@ -153,6 +153,14 @@ impl SurjectionProof {
         }
     }
 
+    /// Whether the proof has zero length
+    ///
+    /// Always returns `false` since a surjection proof must contain at least
+    /// one 32-byte hash.
+    pub fn is_empty(&self) -> bool {
+        false
+    }
+
     /// Verify a surjection proof.
     #[must_use]
     pub fn verify<C: Verification>(

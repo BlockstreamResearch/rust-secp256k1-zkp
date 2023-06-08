@@ -33,8 +33,9 @@
 #![cfg_attr(all(not(test), not(feature = "std")), no_std)]
 #![cfg_attr(all(test, feature = "unstable"), feature(test))]
 
-/// Re-export secp256k1_zkp_sys
+/// Re-export of the internal FFI bindings crate
 pub extern crate secp256k1_zkp_sys;
+/// Re-export of the internal FFI bindings crate under the alternate name `ffi`
 pub use secp256k1_zkp_sys as ffi;
 
 extern crate secp256k1;
@@ -43,13 +44,12 @@ extern crate secp256k1;
 pub use secp256k1::hashes;
 #[cfg(any(test, feature = "std"))]
 extern crate core;
-/// Re-export rand
+/// Re-export of the `rand` crate
 #[cfg(any(test, feature = "rand"))]
 pub extern crate rand;
-/// Re-export rand_core
 #[cfg(test)]
 extern crate rand_core;
-/// Re-export serde
+/// Re-export of the `serde` crate
 #[cfg(feature = "serde")]
 pub extern crate serde;
 #[cfg(all(test, feature = "serde"))]
