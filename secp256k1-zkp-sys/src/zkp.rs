@@ -533,7 +533,8 @@ impl From<Tag> for [u8; 32] {
 
 // TODO: Replace this with ffi::PublicKey?
 #[repr(C)]
-#[derive(Copy, Clone, PartialOrd, Ord)]
+#[derive(Copy, Clone)]
+#[cfg_attr(not(fuzzing), derive(Ord, PartialOrd))]
 pub struct PedersenCommitment([c_uchar; 64]);
 impl_array_newtype!(PedersenCommitment, c_uchar, 64);
 impl_raw_debug!(PedersenCommitment);
