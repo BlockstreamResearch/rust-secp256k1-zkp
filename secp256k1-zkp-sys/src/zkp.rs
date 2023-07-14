@@ -426,6 +426,26 @@ impl PartialEq for SurjectionProof {
 
 impl Eq for SurjectionProof {}
 
+impl Ord for SurjectionProof {
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        match self.n_inputs.cmp(&other.n_inputs) {
+            core::cmp::Ordering::Equal => {}
+            ord => return ord,
+        }
+        match self.used_inputs.cmp(&other.used_inputs) {
+            core::cmp::Ordering::Equal => {}
+            ord => return ord,
+        }
+        self.data.cmp(&other.data)
+    }
+}
+
+impl PartialOrd for SurjectionProof {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 impl Default for SurjectionProof {
     fn default() -> Self {
         SurjectionProof::new()
@@ -454,7 +474,7 @@ impl SurjectionProof {
 
 #[cfg(feature = "std")]
 #[repr(C)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct RangeProof(Box<[c_uchar]>);
 
 #[cfg(feature = "std")]
@@ -514,6 +534,8 @@ impl From<Tag> for [u8; 32] {
 // TODO: Replace this with ffi::PublicKey?
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[cfg_attr(not(fuzzing), derive(Ord, PartialOrd))]
+
 pub struct PedersenCommitment([c_uchar; 64]);
 impl_array_newtype!(PedersenCommitment, c_uchar, 64);
 impl_raw_debug!(PedersenCommitment);

@@ -5,7 +5,7 @@ use crate::{from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
 use core::{fmt, slice, str};
 
 /// Represents a commitment to a single u64 value.
-#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
+#[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, PartialOrd, Ord)]
 pub struct PedersenCommitment(ffi::PedersenCommitment);
 
 impl PedersenCommitment {
