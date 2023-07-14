@@ -13,7 +13,7 @@ use std::str;
 /// Represents a range proof.
 ///
 /// TODO: Store rangeproof info
-#[derive(Debug, PartialEq, Clone, Eq, Hash)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash, PartialOrd, Ord)]
 pub struct RangeProof {
     inner: ffi::RangeProof,
 }
