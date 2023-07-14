@@ -6,7 +6,7 @@ use core::mem::size_of;
 use std::str;
 
 /// Represents a surjection proof.
-#[derive(Debug, PartialEq, Clone, Eq, Hash)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash, PartialOrd, Ord)]
 pub struct SurjectionProof {
     inner: ffi::SurjectionProof,
 }
