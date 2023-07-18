@@ -1,5 +1,9 @@
 # Unreleased
 
+# 0.9.2 - 2023-07-18
+
+- Impl `Ord` for `RangeProof`, `SurjectionProof` and `PedersenCommitment`
+
 # 0.9.1 - 2023-06-09
 
 - Add `Hash` derive to `Tweak`
