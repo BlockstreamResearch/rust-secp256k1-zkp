@@ -1,6 +1,6 @@
 [package]
 name = "secp256k1-zkp"
-version = "0.9.2"
+version = "0.10.0"
 authors = [ "Dawid Ciężarkiewicz <dpc@ucore.info>",
             "Andrew Poelstra <apoelstra@wpsoftware.net>",
             "Lucas Soriano <lucas@comit.network>",
@@ -26,15 +26,15 @@ rand-std = ["actual-rand/std", "secp256k1/rand-std"]
 recovery = ["secp256k1-zkp-sys/recovery", "secp256k1/recovery"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory", "secp256k1/lowmemory"]
 global-context = ["std", "rand-std", "secp256k1/global-context"]
-bitcoin_hashes = ["secp256k1/bitcoin_hashes"]
+hashes = ["secp256k1/hashes"]
 serde = ["actual-serde", "secp256k1/serde"]
 rand = ["actual-rand", "secp256k1/rand"]
 
 [dependencies]
 actual-serde = { package = "serde", version = "1.0", default-features = false, optional = true }
 actual-rand = { package = "rand", version = "0.8", default-features = false, optional = true }
-secp256k1 = "0.27.0"
-secp256k1-zkp-sys = { version = "0.8.1", default-features = false, path = "./secp256k1-zkp-sys" }
+secp256k1 = "0.28.0"
+secp256k1-zkp-sys = { version = "0.9.0", default-features = false, path = "./secp256k1-zkp-sys" }
 internals = { package = "bitcoin-private", version = "0.1.0" }
 
 [dev-dependencies]

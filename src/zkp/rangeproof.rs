@@ -203,7 +203,7 @@ impl RangeProof {
     }
 }
 
-#[cfg(feature = "bitcoin_hashes")]
+#[cfg(feature = "hashes")]
 impl ::core::fmt::Display for RangeProof {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         use internals::hex::display::DisplayHex;
@@ -223,7 +223,7 @@ impl str::FromStr for RangeProof {
     }
 }
 
-#[cfg(all(feature = "serde", feature = "bitcoin_hashes"))]
+#[cfg(all(feature = "serde", feature = "hashes"))]
 impl ::serde::Serialize for RangeProof {
     fn serialize<S: ::serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         if s.is_human_readable() {
@@ -234,7 +234,7 @@ impl ::serde::Serialize for RangeProof {
     }
 }
 
-#[cfg(all(feature = "serde", feature = "bitcoin_hashes"))]
+#[cfg(all(feature = "serde", feature = "hashes"))]
 impl<'de> ::serde::Deserialize<'de> for RangeProof {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<RangeProof, D::Error> {
         use crate::serde_util;
@@ -309,7 +309,7 @@ mod tests {
             )
             .unwrap();
 
-        #[cfg(feature = "bitcoin_hashes")]
+        #[cfg(feature = "hashes")]
         {
             use std::str::FromStr;
             use std::string::ToString;

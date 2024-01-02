@@ -190,7 +190,7 @@ impl SurjectionProof {
     }
 }
 
-#[cfg(feature = "bitcoin_hashes")]
+#[cfg(feature = "hashes")]
 impl ::core::fmt::Display for SurjectionProof {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         use internals::hex::display::DisplayHex;
@@ -210,7 +210,7 @@ impl str::FromStr for SurjectionProof {
     }
 }
 
-#[cfg(all(feature = "serde", feature = "bitcoin_hashes"))]
+#[cfg(all(feature = "serde", feature = "hashes"))]
 impl ::serde::Serialize for SurjectionProof {
     fn serialize<S: ::serde::Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
         if s.is_human_readable() {
@@ -221,7 +221,7 @@ impl ::serde::Serialize for SurjectionProof {
     }
 }
 
-#[cfg(all(feature = "serde", feature = "bitcoin_hashes"))]
+#[cfg(all(feature = "serde", feature = "hashes"))]
 impl<'de> ::serde::Deserialize<'de> for SurjectionProof {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<SurjectionProof, D::Error> {
         use crate::serde_util;
@@ -300,7 +300,7 @@ mod tests {
 
         assert_eq!(parsed, proof);
 
-        #[cfg(feature = "bitcoin_hashes")]
+        #[cfg(feature = "hashes")]
         {
             use std::str::FromStr;
             use std::string::ToString;

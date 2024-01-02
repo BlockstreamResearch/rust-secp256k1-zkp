@@ -1,4 +1,10 @@
-# Unreleased
+# 0.10.0 - 2024-01-02
+
+- update `secp256k1` to 0.28.0
+- update `secp256k1-sys` to 0.9.0
+- update `hashes` to 0.13.0
+- rename `bitcoin_hashes` feature to `hashes`
+- bump MSRV to 1.56.1
 
 # 0.9.2 - 2023-07-18
 
