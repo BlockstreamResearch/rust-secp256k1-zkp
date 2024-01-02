@@ -1,6 +1,6 @@
 #!/bin/sh -ex
 
-FEATURES="bitcoin_hashes global-context lowmemory rand rand-std recovery serde"
+FEATURES="hashes global-context lowmemory rand rand-std recovery serde"
 
 cargo --version
 rustc --version

@@ -40,7 +40,7 @@ pub use secp256k1_zkp_sys as ffi;
 
 extern crate secp256k1;
 
-#[cfg(feature = "bitcoin_hashes")]
+#[cfg(feature = "hashes")]
 pub use secp256k1::hashes;
 /// Re-export of the `rand` crate
 #[cfg(feature = "actual-rand")]

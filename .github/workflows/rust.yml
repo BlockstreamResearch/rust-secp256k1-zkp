@@ -32,12 +32,12 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.48.0
+          - 1.56.1
           - beta
           - stable
         os: [ ubuntu-latest, macos-latest ]
         exclude:
-          - rust: 1.48.0
+          - rust: 1.56.1
             os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
@@ -89,12 +89,12 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.48.0
+          - 1.56.1
           - beta
           - stable
         os: [ ubuntu-latest, macos-latest ]
         exclude:
-          - rust: 1.48.0
+          - rust: 1.56.1
             os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
