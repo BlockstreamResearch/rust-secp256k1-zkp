@@ -33,4 +33,4 @@ against those existing symbols is left as an exercise to the reader.
 
 ## Minimum Supported Rust Version
 
-This library should always compile with any combination of features on **Rust 1.48.0**.
+This library should always compile with any combination of features on **Rust 1.56.1**.
