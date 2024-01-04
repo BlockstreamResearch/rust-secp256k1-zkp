@@ -8,8 +8,7 @@ use rand::Rng;
 ///
 /// Contrary to a [`crate::SecretKey`], the value 0 is also a valid tweak.
 /// Values outside secp curve order are invalid tweaks.
-#[derive(Default, Copy, Clone)]
-#[cfg_attr(not(fuzzing), derive(Eq, PartialEq, PartialOrd, Ord, Hash))]
+#[derive(Default, Copy, Clone, Eq, PartialEq, PartialOrd, Ord, Hash)]
 pub struct Tweak([u8; constants::SECRET_KEY_SIZE]);
 secp256k1_zkp_sys::impl_array_newtype!(Tweak, u8, constants::SECRET_KEY_SIZE);
 

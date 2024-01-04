@@ -501,8 +501,7 @@ impl RangeProof {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
-#[cfg_attr(not(fuzzing), derive(Eq, PartialEq, Hash, Ord, PartialOrd))]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct Tag([c_uchar; 32]);
 impl_array_newtype!(Tag, c_uchar, 32);
 impl_raw_debug!(Tag);
@@ -533,8 +532,7 @@ impl From<Tag> for [u8; 32] {
 
 // TODO: Replace this with ffi::PublicKey?
 #[repr(C)]
-#[derive(Copy, Clone)]
-#[cfg_attr(not(fuzzing), derive(Ord, PartialOrd))]
+#[derive(Copy, Clone, Ord, PartialOrd)]
 pub struct PedersenCommitment([c_uchar; 64]);
 impl_array_newtype!(PedersenCommitment, c_uchar, 64);
 impl_raw_debug!(PedersenCommitment);
@@ -551,17 +549,14 @@ impl Default for PedersenCommitment {
     }
 }
 
-#[cfg(not(fuzzing))]
 impl PartialEq for PedersenCommitment {
     fn eq(&self, other: &Self) -> bool {
         self.0[..] == other.0[..]
     }
 }
 
-#[cfg(not(fuzzing))]
 impl Eq for PedersenCommitment {}
 
-#[cfg(not(fuzzing))]
 impl Hash for PedersenCommitment {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         self.0.hash(state);
@@ -647,12 +642,10 @@ impl EcdsaAdaptorSignature {
     }
 }
 
-#[cfg(not(fuzzing))]
 impl PartialEq for EcdsaAdaptorSignature {
     fn eq(&self, other: &Self) -> bool {
         self.0[..] == other.0[..]
     }
 }
 
-#[cfg(not(fuzzing))]
 impl Eq for EcdsaAdaptorSignature {}
