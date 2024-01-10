@@ -1,3 +1,7 @@
+# 0.10.1 - 2024-01-10
+
+- Fix compilation when `cfg(fuzzing)` is set
+
 # 0.10.0 - 2024-01-02
 
 - update `secp256k1` to 0.28.0
