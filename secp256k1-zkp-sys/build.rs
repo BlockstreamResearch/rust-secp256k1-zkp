@@ -44,6 +44,9 @@ fn main() {
         .define("ENABLE_MODULE_RANGEPROOF", Some("1"))
         .define("ENABLE_MODULE_ECDSA_ADAPTOR", Some("1"))
         .define("ENABLE_MODULE_WHITELIST", Some("1"))
+        .define("ENABLE_MODULE_EXTRAKEYS", Some("1"))
+        .define("ENABLE_MODULE_MUSIG", Some("1"))
+        .define("ENABLE_MODULE_SCHNORRSIG", Some("1"))
         .define("ECMULT_GEN_PREC_BITS", Some("4"))
         // TODO these three should be changed to use libgmp, at least until secp PR 290 is merged
         .define("USE_NUM_NONE", Some("1"))
