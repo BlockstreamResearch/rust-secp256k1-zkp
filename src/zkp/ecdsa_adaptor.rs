@@ -302,14 +302,14 @@ mod tests {
         let mut rng = thread_rng();
         let (seckey, pubkey) = SECP256K1.generate_keypair(&mut rng);
         let (adaptor_secret, adaptor) = SECP256K1.generate_keypair(&mut rng);
-        let msg = Message::from_slice(&[2u8; 32]).unwrap();
+        let msg = Message::from_digest_slice(&[2u8; 32]).unwrap();
         let adaptor_sig = encrypt(&msg, &seckey, &adaptor, &mut rng);
 
         adaptor_sig
-            .verify(&SECP256K1, &msg, &pubkey, &adaptor)
+            .verify(SECP256K1, &msg, &pubkey, &adaptor)
             .expect("adaptor signature to be valid");
         adaptor_sig
-            .verify(&SECP256K1, &msg, &adaptor, &pubkey)
+            .verify(SECP256K1, &msg, &adaptor, &pubkey)
             .expect_err("adaptor signature to be invalid");
         let sig = adaptor_sig
             .decrypt(&adaptor_secret)
@@ -318,7 +318,7 @@ mod tests {
             .verify_ecdsa(&msg, &sig, &pubkey)
             .expect("signature to be valid");
         let recovered = adaptor_sig
-            .recover(&SECP256K1, &sig, &adaptor)
+            .recover(SECP256K1, &sig, &adaptor)
             .expect("to be able to recover the secret");
         assert_eq!(adaptor_secret, recovered);
     }
@@ -327,7 +327,7 @@ mod tests {
     #[cfg(not(rust_secp_fuzz))]
     fn test_ecdsa_adaptor_signature_encrypt() {
         test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, _| {
-            EcdsaAdaptorSignature::encrypt(&SECP256K1, msg, sk, adaptor)
+            EcdsaAdaptorSignature::encrypt(SECP256K1, msg, sk, adaptor)
         })
     }
 
@@ -335,7 +335,7 @@ mod tests {
     #[cfg(not(rust_secp_fuzz))]
     fn test_ecdsa_adaptor_signature_encrypt_with_rng() {
         test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, rng| {
-            EcdsaAdaptorSignature::encrypt_with_rng(&SECP256K1, msg, sk, adaptor, rng)
+            EcdsaAdaptorSignature::encrypt_with_rng(SECP256K1, msg, sk, adaptor, rng)
         })
     }
 
@@ -345,7 +345,7 @@ mod tests {
         test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, rng| {
             let mut aux_rand = [0; 32];
             rng.fill_bytes(&mut aux_rand);
-            EcdsaAdaptorSignature::encrypt_with_aux_rand(&SECP256K1, msg, sk, adaptor, &aux_rand)
+            EcdsaAdaptorSignature::encrypt_with_aux_rand(SECP256K1, msg, sk, adaptor, &aux_rand)
         })
     }
 
@@ -353,7 +353,7 @@ mod tests {
     #[cfg(not(rust_secp_fuzz))]
     fn test_ecdsa_adaptor_signature_encrypt_no_aux_rand() {
         test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, _| {
-            EcdsaAdaptorSignature::encrypt_no_aux_rand(&SECP256K1, msg, sk, adaptor)
+            EcdsaAdaptorSignature::encrypt_no_aux_rand(SECP256K1, msg, sk, adaptor)
         })
     }
 
@@ -371,7 +371,7 @@ mod tests {
             .unwrap();
 
         adaptor_sig
-            .verify(&SECP256K1, &msg, &pubkey, &encryption_key)
+            .verify(SECP256K1, &msg, &pubkey, &encryption_key)
             .expect("adaptor signature verification to pass");
 
         let sig = compact_sig_from_str("424d14a5471c048ab87b3b83f6085d125d5864249ae4297a57c84e74710bb67329e80e0ee60e57af3e625bbae1672b1ecaa58effe613426b024fa1621d903394");
@@ -381,7 +381,7 @@ mod tests {
                 .unwrap();
 
         let recovered = adaptor_sig
-            .recover(&SECP256K1, &sig, &encryption_key)
+            .recover(SECP256K1, &sig, &encryption_key)
             .expect("to be able to recover the decryption key");
 
         assert_eq!(expected_decryption_key, recovered);
@@ -401,7 +401,7 @@ mod tests {
             .unwrap();
 
         adaptor_sig
-            .verify(&SECP256K1, &msg, &pubkey, &encryption_key)
+            .verify(SECP256K1, &msg, &pubkey, &encryption_key)
             .expect_err("providing a wrong proof should fail validation");
     }
 
@@ -416,7 +416,7 @@ mod tests {
 
         let sig = compact_sig_from_str("f7f7fe6bd056fc4abd70d335f72d0aa1e8406bba68f3e579e4789475323564a452c46176c7fb40aa37d5651341f55697dab27d84a213b30c93011a7790bace8c");
         adaptor_sig
-            .recover(&SECP256K1, &sig, &encryption_key)
+            .recover(SECP256K1, &sig, &encryption_key)
             .expect_err("providing wrong r value should prevent us from recovering decryption key");
     }
 
@@ -435,7 +435,7 @@ mod tests {
                 .parse()
                 .unwrap();
         let recovered = adaptor_sig
-            .recover(&SECP256K1, &sig, &encryption_key)
+            .recover(SECP256K1, &sig, &encryption_key)
             .expect("with high s we should still be able to recover the decryption key");
 
         assert_eq!(expected_decryption_key, recovered);
@@ -487,7 +487,7 @@ mod tests {
     fn msg_from_str(input: &str) -> Message {
         let mut buf = [0u8; 32];
         from_hex(input, &mut buf).unwrap();
-        Message::from_slice(&buf).unwrap()
+        Message::from_digest_slice(&buf).unwrap()
     }
 
     fn compact_sig_from_str(input: &str) -> Signature {
