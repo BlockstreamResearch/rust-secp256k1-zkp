@@ -3,7 +3,7 @@
 //!
 //! WARNING: ECDSA adaptor signatures are insecure when the secret key is reused
 //! in certain other crypto schemes. See
-//! https://github.com/ElementsProject/secp256k1-zkp/blob/6955af5ca8930aa674e5fdbc4343e722b25e0ca8/include/secp256k1_ecdsa_adaptor.h#L14
+//! <https://github.com/ElementsProject/secp256k1-zkp/blob/6955af5ca8930aa674e5fdbc4343e722b25e0ca8/include/secp256k1_ecdsa_adaptor.h#L14>
 //! for details.
 //!
 

@@ -94,7 +94,7 @@ impl PedersenCommitment {
 ///
 /// A Pedersen commitment of the form `P = vT' + r'G` can be expressed as `vT + (vr + r')G` if `T' = T + rG` with:
 /// - `v` = `value`
-/// - `T` being a public key generated from a [`Tag`]
+/// - `T` being a public key generated from a [`crate::Tag`]
 /// - `r` = `generator_blinding_factor`
 /// - `r'` = `value_blinding_factor`
 #[derive(Debug)]
