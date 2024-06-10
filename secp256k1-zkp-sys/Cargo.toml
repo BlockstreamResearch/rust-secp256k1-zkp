@@ -30,3 +30,6 @@ default = ["std"]
 recovery = ["secp256k1-sys/recovery"]
 lowmemory = ["secp256k1-sys/lowmemory"]
 std = []
+
+[lints.rust]
+unexpected_cfgs = { level = "deny", check-cfg = [ "cfg(rust_secp_zkp_no_symbol_renaming)" ] }

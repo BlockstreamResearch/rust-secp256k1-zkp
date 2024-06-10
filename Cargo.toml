@@ -46,3 +46,6 @@ getrandom = { version = "0.2", features = ["js"] }
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[lints.rust]
+unexpected_cfgs = { level = "deny", check-cfg = [ "cfg(rust_secp_fuzz)" ] }
