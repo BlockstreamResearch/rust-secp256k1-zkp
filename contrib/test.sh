@@ -8,6 +8,11 @@ rustc --version
 # Make all cargo invocations verbose
 export CARGO_TERM_VERBOSE=true
 
+# Pin dependencies as required if we are using MSRV toolchain.
+if cargo --version | grep "1\.56"; then
+    cargo update -p cc --precise 1.0.94
+fi
+
 # Defaults / sanity checks
 cargo build --all
 cargo test --all

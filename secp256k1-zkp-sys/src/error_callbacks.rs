@@ -8,7 +8,7 @@
 use secp256k1_sys::types::{c_char, c_void};
 
 #[no_mangle]
-#[cfg(not(feature = "external-symbols"))]
+#[cfg(not(rust_secp_zkp_no_symbol_renaming))]
 pub unsafe extern "C" fn rustsecp256k1zkp_v0_8_0_default_illegal_callback_fn(
     _: *const c_char,
     _data: *mut c_void,
@@ -17,7 +17,7 @@ pub unsafe extern "C" fn rustsecp256k1zkp_v0_8_0_default_illegal_callback_fn(
 }
 
 #[no_mangle]
-#[cfg(not(feature = "external-symbols"))]
+#[cfg(not(rust_secp_zkp_no_symbol_renaming))]
 pub unsafe extern "C" fn rustsecp256k1zkp_v0_8_0_default_error_callback_fn(
     _: *const c_char,
     _data: *mut c_void,

@@ -238,7 +238,6 @@ mod tests {
             // sign
 
             let summed_key = keys_offline[our_idx]
-                .clone()
                 .add_tweak(&whitelist_sk.into())
                 .unwrap();
 
@@ -303,7 +302,6 @@ mod tests {
 
         let our_idx = 100;
         let summed_key = keys_offline[our_idx]
-            .clone()
             .add_tweak(&whitelist_sk.into())
             .unwrap();
 
@@ -398,7 +396,7 @@ mod tests {
             // incorrectly serialized with byte changed
             let mut encoded = correct_signature.serialize();
             let len = encoded.len();
-            encoded[len - 1] = encoded[len - 1] ^ 0x01;
+            encoded[len - 1] ^= 0x01;
             let decoded = WhitelistSignature::from_slice(&encoded).unwrap();
             assert_eq!(
                 Err(Error::InvalidWhitelistProof),

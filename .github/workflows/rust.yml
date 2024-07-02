@@ -107,4 +107,4 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
       - name: Running cargo in release mode
-        run: cargo test --features="global-context" --release
+        run: cargo update -p cc --precise 1.0.94 && cargo test --features="global-context" --release
