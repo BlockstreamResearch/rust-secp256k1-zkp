@@ -1,10 +1,10 @@
 diff --git a/secp256k1-zkp-sys/depend/secp256k1/src/modules/surjection/surjection_impl.h b/secp256k1-zkp-sys/depend/secp256k1/src/modules/surjection/surjection_impl.h
-index 8680d0b..0c82d19 100644
+index e125cbc..8ac4fbe 100644
 --- a/secp256k1-zkp-sys/depend/secp256k1/src/modules/surjection/surjection_impl.h
 +++ b/secp256k1-zkp-sys/depend/secp256k1/src/modules/surjection/surjection_impl.h
 @@ -7,7 +7,6 @@
- #ifndef _SECP256K1_SURJECTION_IMPL_H_
- #define _SECP256K1_SURJECTION_IMPL_H_
+ #ifndef SECP256K1_SURJECTION_IMPL_H
+ #define SECP256K1_SURJECTION_IMPL_H
  
 -#include <assert.h>
  #include <string.h>
