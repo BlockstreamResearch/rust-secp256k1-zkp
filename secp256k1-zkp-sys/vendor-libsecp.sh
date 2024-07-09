@@ -94,10 +94,10 @@ echo "$SOURCE_REV" >> ./secp256k1-HEAD-revision.txt
 
 # To support compiling for WASM, we need to remove all methods that use malloc.
 # To compensate, the secp_context_create and _destroy methods are redefined in Rust.
-patch "$DIR/include/secp256k1.h" "./secp256k1.h.patch"
-patch "$DIR/src/secp256k1.c" "./secp256k1.c.patch"
-patch "$DIR/src/scratch_impl.h" "./scratch_impl.h.patch"
-patch "$DIR/src/util.h" "./util.h.patch"
+git apply "./secp256k1.h.patch"
+git apply "./secp256k1.c.patch"
+git apply "./scratch_impl.h.patch"
+git apply "./util.h.patch"
 git apply "./surjection_impl.h.patch"
 git apply "./surjection_main_impl.h.patch"
 

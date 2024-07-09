@@ -4,8 +4,8 @@
  * file COPYING or https://www.opensource.org/licenses/mit-license.php.*
  ***********************************************************************/
 
-#ifndef SECP256K1_HSORT_IMPL_H_
-#define SECP256K1_HSORT_IMPL_H_
+#ifndef SECP256K1_HSORT_IMPL_H
+#define SECP256K1_HSORT_IMPL_H
 
 #include "hsort.h"
 
@@ -96,7 +96,7 @@ static SECP256K1_INLINE void heap_down(unsigned char *a, size_t i, size_t heap_s
 }
 
 /* In-place heap sort. */
-static void rustsecp256k1zkp_v0_8_0_hsort(void *ptr, size_t count, size_t size,
+static void rustsecp256k1zkp_v0_10_0_hsort(void *ptr, size_t count, size_t size,
                             int (*cmp)(const void *, const void *, void *),
                             void *cmp_data ) {
     size_t i;

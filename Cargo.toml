@@ -1,6 +1,6 @@
 [package]
 name = "secp256k1-zkp"
-version = "0.10.1"
+version = "0.11.0"
 authors = [ "Dawid Ciężarkiewicz <dpc@ucore.info>",
             "Andrew Poelstra <apoelstra@wpsoftware.net>",
             "Lucas Soriano <lucas@comit.network>",
@@ -34,7 +34,7 @@ rand = ["actual-rand", "secp256k1/rand"]
 actual-serde = { package = "serde", version = "1.0", default-features = false, optional = true }
 actual-rand = { package = "rand", version = "0.8", default-features = false, optional = true }
 secp256k1 = "0.29.0"
-secp256k1-zkp-sys = { version = "0.9.0", default-features = false, path = "./secp256k1-zkp-sys" }
+secp256k1-zkp-sys = { version = "0.10.0", default-features = false, path = "./secp256k1-zkp-sys" }
 internals = { package = "bitcoin-private", version = "0.1.0" }
 
 [dev-dependencies]

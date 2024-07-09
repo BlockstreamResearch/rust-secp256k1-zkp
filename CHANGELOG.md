@@ -1,3 +1,7 @@
+# 0.11.0 - 2024-07-09
+
+- Update upstream to 6152622613fdf1c5af6f31f74c427c4e9ee120ce
+
 # 0.10.1 - 2024-01-10
 
 - Fix compilation when `cfg(fuzzing)` is set

@@ -1,22 +1,105 @@
-226,228d225
-< SECP256K1_API secp256k1_context* secp256k1_context_create(
-<     unsigned int flags
-< ) SECP256K1_WARN_UNUSED_RESULT;
-231,233d227
-< SECP256K1_API secp256k1_context* secp256k1_context_clone(
-<     const secp256k1_context* ctx
-< ) SECP256K1_ARG_NONNULL(1) SECP256K1_WARN_UNUSED_RESULT;
-248,250d241
-< SECP256K1_API void secp256k1_context_destroy(
-<     secp256k1_context* ctx
-< ) SECP256K1_ARG_NONNULL(1);
-327,330d317
-< SECP256K1_API SECP256K1_WARN_UNUSED_RESULT secp256k1_scratch_space* secp256k1_scratch_space_create(
-<     const secp256k1_context* ctx,
-<     size_t size
-< ) SECP256K1_ARG_NONNULL(1);
-338,341d324
-< SECP256K1_API void secp256k1_scratch_space_destroy(
-<     const secp256k1_context* ctx,
-<     secp256k1_scratch_space* scratch
-< ) SECP256K1_ARG_NONNULL(1);
+diff --git a/secp256k1-zkp-sys/depend/secp256k1/include/secp256k1.h b/secp256k1-zkp-sys/depend/secp256k1/include/secp256k1.h
+index f4053f2..aa2d18b 100644
+--- a/secp256k1-zkp-sys/depend/secp256k1/include/secp256k1.h
++++ b/secp256k1-zkp-sys/depend/secp256k1/include/secp256k1.h
+@@ -257,70 +257,6 @@ SECP256K1_DEPRECATED("Use secp256k1_context_static instead");
+  */
+ SECP256K1_API void secp256k1_selftest(void);
+ 
+-
+-/** Create a secp256k1 context object (in dynamically allocated memory).
+- *
+- *  This function uses malloc to allocate memory. It is guaranteed that malloc is
+- *  called at most once for every call of this function. If you need to avoid dynamic
+- *  memory allocation entirely, see secp256k1_context_static and the functions in
+- *  secp256k1_preallocated.h.
+- *
+- *  Returns: pointer to a newly created context object.
+- *  In:      flags: Always set to SECP256K1_CONTEXT_NONE (see below).
+- *
+- *  The only valid non-deprecated flag in recent library versions is
+- *  SECP256K1_CONTEXT_NONE, which will create a context sufficient for all functionality
+- *  offered by the library. All other (deprecated) flags will be treated as equivalent
+- *  to the SECP256K1_CONTEXT_NONE flag. Though the flags parameter primarily exists for
+- *  historical reasons, future versions of the library may introduce new flags.
+- *
+- *  If the context is intended to be used for API functions that perform computations
+- *  involving secret keys, e.g., signing and public key generation, then it is highly
+- *  recommended to call secp256k1_context_randomize on the context before calling
+- *  those API functions. This will provide enhanced protection against side-channel
+- *  leakage, see secp256k1_context_randomize for details.
+- *
+- *  Do not create a new context object for each operation, as construction and
+- *  randomization can take non-negligible time.
+- */
+-SECP256K1_API secp256k1_context *secp256k1_context_create(
+-    unsigned int flags
+-) SECP256K1_WARN_UNUSED_RESULT;
+-
+-/** Copy a secp256k1 context object (into dynamically allocated memory).
+- *
+- *  This function uses malloc to allocate memory. It is guaranteed that malloc is
+- *  called at most once for every call of this function. If you need to avoid dynamic
+- *  memory allocation entirely, see the functions in secp256k1_preallocated.h.
+- *
+- *  Cloning secp256k1_context_static is not possible, and should not be emulated by
+- *  the caller (e.g., using memcpy). Create a new context instead.
+- *
+- *  Returns: pointer to a newly created context object.
+- *  Args:    ctx: pointer to a context to copy (not secp256k1_context_static).
+- */
+-SECP256K1_API secp256k1_context *secp256k1_context_clone(
+-    const secp256k1_context *ctx
+-) SECP256K1_ARG_NONNULL(1) SECP256K1_WARN_UNUSED_RESULT;
+-
+-/** Destroy a secp256k1 context object (created in dynamically allocated memory).
+- *
+- *  The context pointer may not be used afterwards.
+- *
+- *  The context to destroy must have been created using secp256k1_context_create
+- *  or secp256k1_context_clone. If the context has instead been created using
+- *  secp256k1_context_preallocated_create or secp256k1_context_preallocated_clone, the
+- *  behaviour is undefined. In that case, secp256k1_context_preallocated_destroy must
+- *  be used instead.
+- *
+- *  Args:   ctx: pointer to a context to destroy, constructed using
+- *               secp256k1_context_create or secp256k1_context_clone
+- *               (i.e., not secp256k1_context_static).
+- */
+-SECP256K1_API void secp256k1_context_destroy(
+-    secp256k1_context *ctx
+-) SECP256K1_ARG_NONNULL(1);
+-
+ /** Set a callback function to be called when an illegal argument is passed to
+  *  an API call. It will only trigger for violations that are mentioned
+  *  explicitly in the header.
+@@ -392,29 +328,6 @@ SECP256K1_API void secp256k1_context_set_error_callback(
+     const void *data
+ ) SECP256K1_ARG_NONNULL(1);
+ 
+-/** Create a secp256k1 scratch space object.
+- *
+- *  Returns: a newly created scratch space.
+- *  Args: ctx:  pointer to a context object.
+- *  In:   size: amount of memory to be available as scratch space. Some extra
+- *              (<100 bytes) will be allocated for extra accounting.
+- */
+-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT secp256k1_scratch_space *secp256k1_scratch_space_create(
+-    const secp256k1_context *ctx,
+-    size_t size
+-) SECP256K1_ARG_NONNULL(1);
+-
+-/** Destroy a secp256k1 scratch space.
+- *
+- *  The pointer may not be used afterwards.
+- *  Args:       ctx: pointer to a context object.
+- *          scratch: space to destroy
+- */
+-SECP256K1_API void secp256k1_scratch_space_destroy(
+-    const secp256k1_context *ctx,
+-    secp256k1_scratch_space *scratch
+-) SECP256K1_ARG_NONNULL(1);
+-
+ /** Parse a variable-length public key into the pubkey object.
+  *
+  *  Returns: 1 if the public key was fully valid.

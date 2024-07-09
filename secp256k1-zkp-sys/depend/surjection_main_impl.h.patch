@@ -1,16 +1,16 @@
 diff --git a/secp256k1-zkp-sys/depend/secp256k1/src/modules/surjection/main_impl.h b/secp256k1-zkp-sys/depend/secp256k1/src/modules/surjection/main_impl.h
-index 5367fe5..afa5103 100644
+index f1d7d42..3aadd75 100644
 --- a/secp256k1-zkp-sys/depend/secp256k1/src/modules/surjection/main_impl.h
 +++ b/secp256k1-zkp-sys/depend/secp256k1/src/modules/surjection/main_impl.h
 @@ -6,7 +6,6 @@
- #ifndef SECP256K1_MODULE_SURJECTION_MAIN
- #define SECP256K1_MODULE_SURJECTION_MAIN
+ #ifndef SECP256K1_MODULE_SURJECTION_MAIN_H
+ #define SECP256K1_MODULE_SURJECTION_MAIN_H
  
 -#include <assert.h>
  #include <string.h>
  
- #if defined HAVE_CONFIG_H
-@@ -172,48 +172,6 @@ static size_t secp256k1_surjectionproof_csprng_next(secp256k1_surjectionproof_cs
+ #include "../../../include/secp256k1_rangeproof.h"
+@@ -168,48 +167,6 @@ static size_t secp256k1_surjectionproof_csprng_next(secp256k1_surjectionproof_cs
      }
  }
  

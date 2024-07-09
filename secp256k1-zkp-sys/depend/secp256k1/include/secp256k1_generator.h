@@ -1,5 +1,5 @@
-#ifndef _SECP256K1_GENERATOR_
-# define _SECP256K1_GENERATOR_
+#ifndef SECP256K1_GENERATOR_H
+# define SECP256K1_GENERATOR_H
 
 #include "secp256k1.h"
 
@@ -15,59 +15,59 @@ extern "C" {
  *  guaranteed to be portable between different platforms or versions. It is
  *  however guaranteed to be 64 bytes in size, and can be safely copied/moved.
  *  If you need to convert to a format suitable for storage, transmission, or
- *  comparison, use rustsecp256k1zkp_v0_8_0_generator_serialize and rustsecp256k1zkp_v0_8_0_generator_parse.
+ *  comparison, use rustsecp256k1zkp_v0_10_0_generator_serialize and rustsecp256k1zkp_v0_10_0_generator_parse.
  */
 typedef struct {
     unsigned char data[64];
-} rustsecp256k1zkp_v0_8_0_generator;
+} rustsecp256k1zkp_v0_10_0_generator;
 
 /**
  * Static constant generator 'h' maintained for historical reasons.
  */
-SECP256K1_API extern const rustsecp256k1zkp_v0_8_0_generator *rustsecp256k1zkp_v0_8_0_generator_h;
+SECP256K1_API const rustsecp256k1zkp_v0_10_0_generator *rustsecp256k1zkp_v0_10_0_generator_h;
 
 /** Parse a 33-byte generator byte sequence into a generator object.
  *
  *  Returns: 1 if input contains a valid generator.
- *  Args: ctx:      a secp256k1 context object.
+ *  Args: ctx:      pointer to a context object
  *  Out:  gen:      pointer to the output generator object
  *  In:   input:    pointer to a 33-byte serialized generator
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_generator_parse(
-    const rustsecp256k1zkp_v0_8_0_context* ctx,
-    rustsecp256k1zkp_v0_8_0_generator* gen,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_generator_parse(
+    const rustsecp256k1zkp_v0_10_0_context *ctx,
+    rustsecp256k1zkp_v0_10_0_generator *gen,
     const unsigned char *input
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Serialize a 33-byte generator into a serialized byte sequence.
  *
  *  Returns: 1 always.
- *  Args:   ctx:        a secp256k1 context object.
- *  Out:    output:     a pointer to a 33-byte byte array
- *  In:     gen:        a pointer to a generator
+ *  Args:   ctx:        pointer to a context object
+ *  Out:    output:     pointer to a 33-byte byte array
+ *  In:     gen:        pointer to a generator object
  */
-SECP256K1_API int rustsecp256k1zkp_v0_8_0_generator_serialize(
-    const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_10_0_generator_serialize(
+    const rustsecp256k1zkp_v0_10_0_context *ctx,
     unsigned char *output,
-    const rustsecp256k1zkp_v0_8_0_generator* gen
+    const rustsecp256k1zkp_v0_10_0_generator *gen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Generate a generator for the curve.
  *
  *  Returns: 0 in the highly unlikely case the seed is not acceptable,
  *           1 otherwise.
- *  Args: ctx:     a secp256k1 context object
- *  Out:  gen:     a generator object
- *  In:   seed32:  a 32-byte seed
+ *  Args: ctx:     pointer to a context object
+ *  Out:  gen:     pointer to a the new generator object
+ *  In:   seed32:  32-byte seed
  *
  *  If successful a valid generator will be placed in gen. The produced
  *  generators are distributed uniformly over the curve, and will not have a
  *  known discrete logarithm with respect to any other generator produced,
  *  or to the base generator G.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_generator_generate(
-    const rustsecp256k1zkp_v0_8_0_context* ctx,
-    rustsecp256k1zkp_v0_8_0_generator* gen,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_generator_generate(
+    const rustsecp256k1zkp_v0_10_0_context *ctx,
+    rustsecp256k1zkp_v0_10_0_generator *gen,
     const unsigned char *seed32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -75,18 +75,18 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_generator
  *
  *  Returns: 0 in the highly unlikely case the seed is not acceptable or when
  *           blind is out of range. 1 otherwise.
- *  Args: ctx:     a secp256k1 context object, initialized for signing
- *  Out:  gen:     a generator object
- *  In:   seed32:  a 32-byte seed
- *        blind32: a 32-byte secret value to blind the generator with.
+ *  Args: ctx:     pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static)
+ *  Out:  gen:     pointer to a generator object
+ *  In:   seed32:  32-byte seed
+ *        blind32: 32-byte secret value to blind the generator with.
  *
- *  The result is equivalent to first calling rustsecp256k1zkp_v0_8_0_generator_generate,
- *  converting the result to a public key, calling rustsecp256k1zkp_v0_8_0_ec_pubkey_tweak_add,
+ *  The result is equivalent to first calling rustsecp256k1zkp_v0_10_0_generator_generate,
+ *  converting the result to a public key, calling rustsecp256k1zkp_v0_10_0_ec_pubkey_tweak_add,
  *  and then converting back to generator form.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_generator_generate_blinded(
-    const rustsecp256k1zkp_v0_8_0_context* ctx,
-    rustsecp256k1zkp_v0_8_0_generator* gen,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_generator_generate_blinded(
+    const rustsecp256k1zkp_v0_10_0_context *ctx,
+    rustsecp256k1zkp_v0_10_0_generator *gen,
     const unsigned char *seed32,
     const unsigned char *blind32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
@@ -97,38 +97,38 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_generator
  *  guaranteed to be portable between different platforms or versions. It is
  *  however guaranteed to be 64 bytes in size, and can be safely copied/moved.
  *  If you need to convert to a format suitable for storage, transmission, or
- *  comparison, use rustsecp256k1zkp_v0_8_0_pedersen_commitment_serialize and
- *  rustsecp256k1zkp_v0_8_0_pedersen_commitment_parse.
+ *  comparison, use rustsecp256k1zkp_v0_10_0_pedersen_commitment_serialize and
+ *  rustsecp256k1zkp_v0_10_0_pedersen_commitment_parse.
  */
 typedef struct {
     unsigned char data[64];
-} rustsecp256k1zkp_v0_8_0_pedersen_commitment;
+} rustsecp256k1zkp_v0_10_0_pedersen_commitment;
 
 /** Parse a 33-byte commitment into a commitment object.
  *
  *  Returns: 1 if input contains a valid commitment.
- *  Args: ctx:      a secp256k1 context object.
+ *  Args: ctx:      pointer to a context object
  *  Out:  commit:   pointer to the output commitment object
  *  In:   input:    pointer to a 33-byte serialized commitment key
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_pedersen_commitment_parse(
-    const rustsecp256k1zkp_v0_8_0_context* ctx,
-    rustsecp256k1zkp_v0_8_0_pedersen_commitment* commit,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_pedersen_commitment_parse(
+    const rustsecp256k1zkp_v0_10_0_context *ctx,
+    rustsecp256k1zkp_v0_10_0_pedersen_commitment *commit,
     const unsigned char *input
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Serialize a commitment object into a serialized byte sequence.
  *
  *  Returns: 1 always.
- *  Args:   ctx:        a secp256k1 context object.
- *  Out:    output:     a pointer to a 33-byte byte array
- *  In:     commit:     a pointer to a rustsecp256k1zkp_v0_8_0_pedersen_commitment containing an
+ *  Args:   ctx:        pointer to a context object
+ *  Out:    output:     pointer to a 33-byte byte array
+ *  In:     commit:     pointer to a rustsecp256k1zkp_v0_10_0_pedersen_commitment containing an
  *                      initialized commitment
  */
-SECP256K1_API int rustsecp256k1zkp_v0_8_0_pedersen_commitment_serialize(
-    const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_10_0_pedersen_commitment_serialize(
+    const rustsecp256k1zkp_v0_10_0_context *ctx,
     unsigned char *output,
-    const rustsecp256k1zkp_v0_8_0_pedersen_commitment* commit
+    const rustsecp256k1zkp_v0_10_0_pedersen_commitment *commit
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Generate a pedersen commitment.
@@ -136,7 +136,7 @@ SECP256K1_API int rustsecp256k1zkp_v0_8_0_pedersen_commitment_serialize(
  *          0: Error. The blinding factor is larger than the group order
  *             (probability for random 32 byte number < 2^-127) or results in the
  *             point at infinity. Retry with a different factor.
- *  In:     ctx:        pointer to a context object, initialized for signing and Pedersen commitment (cannot be NULL)
+ *  In:     ctx:        pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static)
  *          blind:      pointer to a 32-byte blinding factor (cannot be NULL)
  *          value:      unsigned 64-bit integer value to commit to.
  *          gen:        additional generator 'h'
@@ -144,12 +144,12 @@ SECP256K1_API int rustsecp256k1zkp_v0_8_0_pedersen_commitment_serialize(
  *
  *  Blinding factors can be generated and verified in the same way as secp256k1 private keys for ECDSA.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_pedersen_commit(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
-  rustsecp256k1zkp_v0_8_0_pedersen_commitment *commit,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_pedersen_commit(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
+  rustsecp256k1zkp_v0_10_0_pedersen_commitment *commit,
   const unsigned char *blind,
   uint64_t value,
-  const rustsecp256k1zkp_v0_8_0_generator *gen
+  const rustsecp256k1zkp_v0_10_0_generator *gen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(5);
 
 /** Computes the sum of multiple positive and negative blinding factors.
@@ -163,8 +163,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_pedersen_
  *          npositive:       how many of the initial factors should be treated with a positive sign.
  *  Out:    blind_out:  pointer to a 32-byte array for the sum (cannot be NULL)
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_pedersen_blind_sum(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_pedersen_blind_sum(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
   unsigned char *blind_out,
   const unsigned char * const *blinds,
   size_t n,
@@ -187,11 +187,11 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_pedersen_
  * A all blinding factors and all values must sum to zero.
  *
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_pedersen_verify_tally(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
-  const rustsecp256k1zkp_v0_8_0_pedersen_commitment * const* commits,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_pedersen_verify_tally(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
+  const rustsecp256k1zkp_v0_10_0_pedersen_commitment * const *commits,
   size_t pcnt,
-  const rustsecp256k1zkp_v0_8_0_pedersen_commitment * const* ncommits,
+  const rustsecp256k1zkp_v0_10_0_pedersen_commitment * const *ncommits,
   size_t ncnt
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(4);
 
@@ -225,11 +225,11 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_pedersen_
  *                          May not be NULL unless `n_total` is 0.
  *                          the last value will be modified to get the total sum to zero.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_pedersen_blind_generator_blind_sum(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_pedersen_blind_generator_blind_sum(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
   const uint64_t *value,
-  const unsigned char* const* generator_blind,
-  unsigned char* const* blinding_factor,
+  const unsigned char * const *generator_blind,
+  unsigned char * const *blinding_factor,
   size_t n_total,
   size_t n_inputs
 );

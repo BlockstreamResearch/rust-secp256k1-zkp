@@ -1,3 +1,7 @@
+# 0.10.0 - 2024-07-09
+
+- Update upstream to 6152622613fdf1c5af6f31f74c427c4e9ee120ce
+
 # 0.9.1 - 2023-01-03
 
 - Many changes; restart CHANGELOG.

@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "secp256k1.h"
+
 /** This module implements single signer ECDSA adaptor signatures following
  *  "One-Time Verifiably Encrypted Signatures A.K.A. Adaptor Signatures" by
  *  Lloyd Fournier
@@ -29,7 +31,7 @@ extern "C" {
 
 /** A pointer to a function to deterministically generate a nonce.
  *
- *  Same as rustsecp256k1zkp_v0_8_0_nonce_function_hardened with the exception of using the
+ *  Same as rustsecp256k1zkp_v0_10_0_nonce_function_hardened with the exception of using the
  *  compressed 33-byte encoding for the pubkey argument.
  *
  *  Returns: 1 if a nonce was successfully generated. 0 will cause signing to
@@ -45,7 +47,7 @@ extern "C" {
  *  Except for test cases, this function should compute some cryptographic hash of
  *  the message, the key, the pubkey, the algorithm description, and data.
  */
-typedef int (*rustsecp256k1zkp_v0_8_0_nonce_function_hardened_ecdsa_adaptor)(
+typedef int (*rustsecp256k1zkp_v0_10_0_nonce_function_hardened_ecdsa_adaptor)(
     unsigned char *nonce32,
     const unsigned char *msg32,
     const unsigned char *key32,
@@ -59,7 +61,7 @@ typedef int (*rustsecp256k1zkp_v0_8_0_nonce_function_hardened_ecdsa_adaptor)(
  *  assumed to be a pointer to 32 bytes of auxiliary random data as defined in BIP-340.
  *  The hash will be tagged with algo after removing all terminating null bytes.
  */
-SECP256K1_API extern const rustsecp256k1zkp_v0_8_0_nonce_function_hardened_ecdsa_adaptor rustsecp256k1zkp_v0_8_0_nonce_function_ecdsa_adaptor;
+SECP256K1_API const rustsecp256k1zkp_v0_10_0_nonce_function_hardened_ecdsa_adaptor rustsecp256k1zkp_v0_10_0_nonce_function_ecdsa_adaptor;
 
 /** Encrypted Signing
  *
@@ -69,27 +71,27 @@ SECP256K1_API extern const rustsecp256k1zkp_v0_8_0_nonce_function_hardened_ecdsa
  *  this file and applied the suggested countermeasures.
  *
  *  Returns: 1 on success, 0 on failure
- *  Args:             ctx: a secp256k1 context object, initialized for signing
+ *  Args:             ctx: pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static)
  *  Out:   adaptor_sig162: pointer to 162 byte to store the returned signature
  *  In:          seckey32: pointer to 32 byte secret key that will be used for
  *                         signing
  *                 enckey: pointer to the encryption public key
  *                  msg32: pointer to the 32-byte message hash to sign
  *                noncefp: pointer to a nonce generation function. If NULL,
- *                         rustsecp256k1zkp_v0_8_0_nonce_function_ecdsa_adaptor is used
+ *                         rustsecp256k1zkp_v0_10_0_nonce_function_ecdsa_adaptor is used
  *                  ndata: pointer to arbitrary data used by the nonce generation
  *                         function (can be NULL). If it is non-NULL and
- *                         rustsecp256k1zkp_v0_8_0_nonce_function_ecdsa_adaptor is used, then
+ *                         rustsecp256k1zkp_v0_10_0_nonce_function_ecdsa_adaptor is used, then
  *                         ndata must be a pointer to 32-byte auxiliary randomness
  *                         as per BIP-340.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_8_0_ecdsa_adaptor_encrypt(
-    const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_adaptor_encrypt(
+    const rustsecp256k1zkp_v0_10_0_context *ctx,
     unsigned char *adaptor_sig162,
     unsigned char *seckey32,
-    const rustsecp256k1zkp_v0_8_0_pubkey *enckey,
+    const rustsecp256k1zkp_v0_10_0_pubkey *enckey,
     const unsigned char *msg32,
-    rustsecp256k1zkp_v0_8_0_nonce_function_hardened_ecdsa_adaptor noncefp,
+    rustsecp256k1zkp_v0_10_0_nonce_function_hardened_ecdsa_adaptor noncefp,
     void *ndata
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5);
 
@@ -99,19 +101,19 @@ SECP256K1_API int rustsecp256k1zkp_v0_8_0_ecdsa_adaptor_encrypt(
  *  and the completed ECDSA signature.
  *
  *  Returns: 1 on success, 0 on failure
- *  Args:            ctx: a secp256k1 context object, initialized for verification
+ *  Args:            ctx: pointer to a context object
  *  In:   adaptor_sig162: pointer to 162-byte signature to verify
  *                pubkey: pointer to the public key corresponding to the secret key
  *                        used for signing
  *                 msg32: pointer to the 32-byte message hash being verified
  *                enckey: pointer to the adaptor encryption public key
  */
-SECP256K1_API int rustsecp256k1zkp_v0_8_0_ecdsa_adaptor_verify(
-    const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_adaptor_verify(
+    const rustsecp256k1zkp_v0_10_0_context *ctx,
     const unsigned char *adaptor_sig162,
-    const rustsecp256k1zkp_v0_8_0_pubkey *pubkey,
+    const rustsecp256k1zkp_v0_10_0_pubkey *pubkey,
     const unsigned char *msg32,
-    const rustsecp256k1zkp_v0_8_0_pubkey *enckey
+    const rustsecp256k1zkp_v0_10_0_pubkey *enckey
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5);
 
 /** Signature Decryption
@@ -119,15 +121,15 @@ SECP256K1_API int rustsecp256k1zkp_v0_8_0_ecdsa_adaptor_verify(
  *  Derives an ECDSA signature from an adaptor signature and an adaptor decryption key.
  *
  *  Returns: 1 on success, 0 on failure
- *  Args:              ctx: a secp256k1 context object
+ *  Args:              ctx: pointer to a context object
  *  Out:               sig: pointer to the ECDSA signature to create
  *  In:           deckey32: pointer to 32-byte decryption secret key for the adaptor
  *                          encryption public key
  *          adaptor_sig162: pointer to 162-byte adaptor sig
  */
-SECP256K1_API int rustsecp256k1zkp_v0_8_0_ecdsa_adaptor_decrypt(
-    const rustsecp256k1zkp_v0_8_0_context* ctx,
-    rustsecp256k1zkp_v0_8_0_ecdsa_signature *sig,
+SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_adaptor_decrypt(
+    const rustsecp256k1zkp_v0_10_0_context *ctx,
+    rustsecp256k1zkp_v0_10_0_ecdsa_signature *sig,
     const unsigned char *deckey32,
     const unsigned char *adaptor_sig162
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
@@ -138,7 +140,7 @@ SECP256K1_API int rustsecp256k1zkp_v0_8_0_ecdsa_adaptor_decrypt(
  *  signature.
  *
  *  Returns: 1 on success, 0 on failure
- *  Args:             ctx: a secp256k1 context object, initialized for signing
+ *  Args:             ctx: pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static)
  *  Out:         deckey32: pointer to 32-byte adaptor decryption key for the adaptor
  *                         encryption public key
  *  In:               sig: pointer to ECDSA signature to recover the adaptor decryption
@@ -147,12 +149,12 @@ SECP256K1_API int rustsecp256k1zkp_v0_8_0_ecdsa_adaptor_decrypt(
  *                         decryption key from
  *                 enckey: pointer to the adaptor encryption public key
  */
-SECP256K1_API int rustsecp256k1zkp_v0_8_0_ecdsa_adaptor_recover(
-    const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_adaptor_recover(
+    const rustsecp256k1zkp_v0_10_0_context *ctx,
     unsigned char *deckey32,
-    const rustsecp256k1zkp_v0_8_0_ecdsa_signature *sig,
+    const rustsecp256k1zkp_v0_10_0_ecdsa_signature *sig,
     const unsigned char *adaptor_sig162,
-    const rustsecp256k1zkp_v0_8_0_pubkey *enckey
+    const rustsecp256k1zkp_v0_10_0_pubkey *enckey
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5);
 
 #ifdef __cplusplus

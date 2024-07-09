@@ -1,17 +1,19 @@
-71,86d70
-< static SECP256K1_INLINE void *checked_malloc(const secp256k1_callback* cb, size_t size) {
-<     void *ret = malloc(size);
-<     if (ret == NULL) {
-<         secp256k1_callback_call(cb, "Out of memory");
-<     }
-<     return ret;
-< }
-< 
-< static SECP256K1_INLINE void *checked_realloc(const secp256k1_callback* cb, void *ptr, size_t size) {
-<     void *ret = realloc(ptr, size);
-<     if (ret == NULL) {
-<         secp256k1_callback_call(cb, "Out of memory");
-<     }
-<     return ret;
-< }
-< 
+diff --git a/secp256k1-zkp-sys/depend/secp256k1/src/util.h b/secp256k1-zkp-sys/depend/secp256k1/src/util.h
+index 10ea516..4066d2a 100644
+--- a/secp256k1-zkp-sys/depend/secp256k1/src/util.h
++++ b/secp256k1-zkp-sys/depend/secp256k1/src/util.h
+@@ -153,14 +153,6 @@ static const secp256k1_callback default_error_callback = {
+ #define VERIFY_CHECK(cond)
+ #endif
+ 
+-static SECP256K1_INLINE void *checked_malloc(const secp256k1_callback* cb, size_t size) {
+-    void *ret = malloc(size);
+-    if (ret == NULL) {
+-        secp256k1_callback_call(cb, "Out of memory");
+-    }
+-    return ret;
+-}
+-
+ #if defined(__BIGGEST_ALIGNMENT__)
+ #define ALIGNMENT __BIGGEST_ALIGNMENT__
+ #else
