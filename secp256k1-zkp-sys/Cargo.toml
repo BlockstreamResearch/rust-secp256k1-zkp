@@ -1,6 +1,6 @@
 [package]
 name = "secp256k1-zkp-sys"
-version = "0.9.1"
+version = "0.10.0"
 authors = [ "Dawid Ciężarkiewicz <dpc@ucore.info>",
             "Andrew Poelstra <apoelstra@wpsoftware.net>",
             "Steven Roose <steven@stevenroose.org>",
@@ -13,7 +13,7 @@ description = "FFI for `libsecp256k1-zkp` library."
 keywords = [ "secp256k1", "libsecp256k1-zkp", "ffi" ]
 readme = "README.md"
 build = "build.rs"
-links = "rustsecp256k1zkp_v0_8_0"
+links = "rustsecp256k1zkp_v0_10_0"
 
 # Should make docs.rs show all functions, even those behind non-default features
 [package.metadata.docs.rs]

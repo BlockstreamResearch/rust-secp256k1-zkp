@@ -1,5 +1,5 @@
-#ifndef _SECP256K1_RANGEPROOF_
-# define _SECP256K1_RANGEPROOF_
+#ifndef SECP256K1_RANGEPROOF_H
+# define SECP256K1_RANGEPROOF_H
 
 #include "secp256k1.h"
 #include "secp256k1_generator.h"
@@ -22,7 +22,7 @@ extern "C" {
 /** Verify a proof that a committed value is within a range.
  * Returns 1: Value is within the range [0..2^64), the specifically proven range is in the min/max value outputs.
  *         0: Proof failed or other error.
- * In:   ctx: pointer to a context object, initialized for range-proof and commitment (cannot be NULL)
+ * In:   ctx: pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static)
  *       commit: the commitment being proved. (cannot be NULL)
  *       proof: pointer to character array with the proof. (cannot be NULL)
  *       plen: length of proof in bytes.
@@ -32,22 +32,22 @@ extern "C" {
  * Out:  min_value: pointer to a unsigned int64 which will be updated with the minimum value that commit could have. (cannot be NULL)
  *       max_value: pointer to a unsigned int64 which will be updated with the maximum value that commit could have. (cannot be NULL)
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproof_verify(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_rangeproof_verify(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
   uint64_t *min_value,
   uint64_t *max_value,
-  const rustsecp256k1zkp_v0_8_0_pedersen_commitment *commit,
+  const rustsecp256k1zkp_v0_10_0_pedersen_commitment *commit,
   const unsigned char *proof,
   size_t plen,
   const unsigned char *extra_commit,
   size_t extra_commit_len,
-  const rustsecp256k1zkp_v0_8_0_generator* gen
+  const rustsecp256k1zkp_v0_10_0_generator *gen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5) SECP256K1_ARG_NONNULL(9);
 
 /** Verify a range proof proof and rewind the proof to recover information sent by its author.
  *  Returns 1: Value is within the range [0..2^64), the specifically proven range is in the min/max value outputs, and the value and blinding were recovered.
  *          0: Proof failed, rewind failed, or other error.
- *  In:   ctx: pointer to a context object, initialized for range-proof and Pedersen commitment (cannot be NULL)
+ *  In:   ctx: pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static)
  *        commit: the commitment being proved. (cannot be NULL)
  *        proof: pointer to character array with the proof. (cannot be NULL)
  *        plen: length of proof in bytes.
@@ -64,8 +64,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproo
  *        min_value: pointer to an unsigned int64 which will be updated with the minimum value that commit could have. (cannot be NULL)
  *        max_value: pointer to an unsigned int64 which will be updated with the maximum value that commit could have. (cannot be NULL)
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproof_rewind(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_rangeproof_rewind(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
   unsigned char *blind_out,
   uint64_t *value_out,
   unsigned char *message_out,
@@ -73,18 +73,18 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproo
   const unsigned char *nonce,
   uint64_t *min_value,
   uint64_t *max_value,
-  const rustsecp256k1zkp_v0_8_0_pedersen_commitment *commit,
+  const rustsecp256k1zkp_v0_10_0_pedersen_commitment *commit,
   const unsigned char *proof,
   size_t plen,
   const unsigned char *extra_commit,
   size_t extra_commit_len,
-  const rustsecp256k1zkp_v0_8_0_generator *gen
+  const rustsecp256k1zkp_v0_10_0_generator *gen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(6) SECP256K1_ARG_NONNULL(7) SECP256K1_ARG_NONNULL(8) SECP256K1_ARG_NONNULL(9) SECP256K1_ARG_NONNULL(10) SECP256K1_ARG_NONNULL(14);
 
 /** Author a proof that a committed value is within a range.
  *  Returns 1: Proof successfully created.
  *          0: Error
- *  In:     ctx:    pointer to a context object, initialized for range-proof, signing, and Pedersen commitment (cannot be NULL)
+ *  In:     ctx:    pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static)
  *          proof:  pointer to array to receive the proof, can be up to 5134 bytes. (cannot be NULL)
  *          min_value: constructs a proof where the verifer can tell the minimum value is at least the specified amount.
  *          commit: the commitment being proved.
@@ -109,12 +109,12 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproo
  *  This can randomly fail with probability around one in 2^100. If this happens, buy a lottery ticket and retry with a different nonce or blinding.
  *
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproof_sign(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_rangeproof_sign(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
   unsigned char *proof,
   size_t *plen,
   uint64_t min_value,
-  const rustsecp256k1zkp_v0_8_0_pedersen_commitment *commit,
+  const rustsecp256k1zkp_v0_10_0_pedersen_commitment *commit,
   const unsigned char *blind,
   const unsigned char *nonce,
   int exp,
@@ -124,7 +124,7 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproo
   size_t msg_len,
   const unsigned char *extra_commit,
   size_t extra_commit_len,
-  const rustsecp256k1zkp_v0_8_0_generator *gen
+  const rustsecp256k1zkp_v0_10_0_generator *gen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(5) SECP256K1_ARG_NONNULL(6) SECP256K1_ARG_NONNULL(7) SECP256K1_ARG_NONNULL(15);
 
 /** Extract some basic information from a range-proof.
@@ -138,8 +138,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproo
  *        min_value: pointer to an unsigned int64 which will be updated with the minimum value that commit could have. (cannot be NULL)
  *        max_value: pointer to an unsigned int64 which will be updated with the maximum value that commit could have. (cannot be NULL)
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproof_info(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_rangeproof_info(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
   int *exp,
   int *mantissa,
   uint64_t *min_value,
@@ -152,7 +152,7 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproo
  *
  * An actual rangeproof may be smaller, for example if the actual value
  * is less than both the provided `max_value` and 2^`min_bits`, or if
- * the `exp` parameter to `rustsecp256k1zkp_v0_8_0_rangeproof_sign` is set such that
+ * the `exp` parameter to `rustsecp256k1zkp_v0_10_0_rangeproof_sign` is set such that
  * the proven range is compressed. In particular this function will always
  * overestimate the size of single-value proofs. Also, if `min_value`
  * is set to 0 in the proof, the result will usually, but not always,
@@ -169,8 +169,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_rangeproo
  *      max_value: the maximum value that might be passed for `value` for the proof.
  *       min_bits: the value that will be passed as `min_bits` for the proof.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT size_t rustsecp256k1zkp_v0_8_0_rangeproof_max_size(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT size_t rustsecp256k1zkp_v0_10_0_rangeproof_max_size(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
   uint64_t max_value,
   int min_bits
 ) SECP256K1_ARG_NONNULL(1);

@@ -1,4 +1,4 @@
-include_HEADERS += include/rustsecp256k1zkp_v0_8_0_bppp.h
+include_HEADERS += include/rustsecp256k1zkp_v0_10_0_bppp.h
 noinst_HEADERS += src/modules/bppp/bppp_util.h
 noinst_HEADERS += src/modules/bppp/main_impl.h
 noinst_HEADERS += src/modules/bppp/bppp_transcript_impl.h
@@ -8,6 +8,6 @@ noinst_HEADERS += src/modules/bppp/tests_impl.h
 if USE_BENCHMARK
 noinst_PROGRAMS += bench_bppp
 bench_bppp_SOURCES = src/bench_bppp.c
-bench_bppp_LDADD = libsecp256k1.la $(SECP_LIBS)
-bench_bppp_LDFLAGS = -static
+bench_bppp_LDADD = libsecp256k1.la
+bench_bppp_CPPFLAGS = $(SECP_CONFIG_DEFINES)
 endif

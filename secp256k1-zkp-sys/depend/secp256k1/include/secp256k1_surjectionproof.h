@@ -1,5 +1,5 @@
-#ifndef _SECP256K1_SURJECTIONPROOF_
-#define _SECP256K1_SURJECTIONPROOF_
+#ifndef SECP256K1_SURJECTIONPROOF_H
+#define SECP256K1_SURJECTIONPROOF_H
 
 #include "secp256k1.h"
 #include "secp256k1_rangeproof.h"
@@ -32,8 +32,8 @@ extern "C" {
  *  will have identical representation. (That is, memcmp may return nonzero
  *  even for identical proofs.)
  *
- *  To obtain these properties, instead use rustsecp256k1zkp_v0_8_0_surjectionproof_parse
- *  and rustsecp256k1zkp_v0_8_0_surjectionproof_serialize to encode/decode proofs into a
+ *  To obtain these properties, instead use rustsecp256k1zkp_v0_10_0_surjectionproof_parse
+ *  and rustsecp256k1zkp_v0_10_0_surjectionproof_serialize to encode/decode proofs into a
  *  well-defined format.
  *
  *  The representation is exposed to allow creation of these objects on the
@@ -41,7 +41,7 @@ extern "C" {
  */
 typedef struct {
 #ifdef VERIFY
-    /** Mark whether this proof has gone through `rustsecp256k1zkp_v0_8_0_surjectionproof_initialize` */
+    /** Mark whether this proof has gone through `rustsecp256k1zkp_v0_10_0_surjectionproof_initialize` */
     int initialized;
 #endif
     /** Total number of input asset tags */
@@ -50,15 +50,15 @@ typedef struct {
     unsigned char used_inputs[SECP256K1_SURJECTIONPROOF_MAX_N_INPUTS / 8];
     /** Borromean signature: e0, scalars */
     unsigned char data[32 * (1 + SECP256K1_SURJECTIONPROOF_MAX_USED_INPUTS)];
-} rustsecp256k1zkp_v0_8_0_surjectionproof;
+} rustsecp256k1zkp_v0_10_0_surjectionproof;
 
 #ifndef USE_REDUCED_SURJECTION_PROOF_SIZE
 /** Parse a surjection proof
  *
  *  Returns: 1 when the proof could be parsed, 0 otherwise.
- *  Args: ctx:    a secp256k1 context object
- *  Out:  proof:  a pointer to a proof object
- *  In:   input:  a pointer to the array to parse
+ *  Args: ctx:      pointer to a context object
+ *  Out:  proof:    pointer to a proof object
+ *  In:   input:    pointer to the array to parse
  *        inputlen: length of the array pointed to by input
  *
  *  The proof must consist of:
@@ -68,9 +68,9 @@ typedef struct {
  *    - `m` big-endian 32-byte borromean signature s values, where `m`
  *      is the number of set bits in the bitmap
  */
-SECP256K1_API int rustsecp256k1zkp_v0_8_0_surjectionproof_parse(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
-  rustsecp256k1zkp_v0_8_0_surjectionproof *proof,
+SECP256K1_API int rustsecp256k1zkp_v0_10_0_surjectionproof_parse(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
+  rustsecp256k1zkp_v0_10_0_surjectionproof *proof,
   const unsigned char *input,
   size_t inputlen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
@@ -79,20 +79,19 @@ SECP256K1_API int rustsecp256k1zkp_v0_8_0_surjectionproof_parse(
 /** Serialize a surjection proof
  *
  *  Returns: 1 if enough space was available to serialize, 0 otherwise
- *  Args:   ctx:        a secp256k1 context object
- *  Out:    output:     a pointer to an array to store the serialization
- *  In/Out: outputlen:  a pointer to an integer which is initially set to the
- *                      size of output, and is overwritten with the written
- *                      size.
- *  In:     proof:      a pointer to an initialized proof object
+ *  Args:   ctx:        pointer to a context object
+ *  Out:    output:     pointer to an array to store the serialization
+ *  In/Out: outputlen:  pointer to an integer which is initially set to the size
+ *                      of output, and is overwritten with the written size.
+ *  In:     proof:      pointer to an initialized proof object
  *
- *  See rustsecp256k1zkp_v0_8_0_surjectionproof_parse for details about the encoding.
+ *  See rustsecp256k1zkp_v0_10_0_surjectionproof_parse for details about the encoding.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_8_0_surjectionproof_serialize(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_10_0_surjectionproof_serialize(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
   unsigned char *output,
   size_t *outputlen,
-  const rustsecp256k1zkp_v0_8_0_surjectionproof *proof
+  const rustsecp256k1zkp_v0_10_0_surjectionproof *proof
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
 
 /** Data structure that holds a fixed asset tag.
@@ -103,43 +102,43 @@ SECP256K1_API int rustsecp256k1zkp_v0_8_0_surjectionproof_serialize(
  */
 typedef struct {
     unsigned char data[32];
-} rustsecp256k1zkp_v0_8_0_fixed_asset_tag;
+} rustsecp256k1zkp_v0_10_0_fixed_asset_tag;
 
 /** Returns the total number of inputs a proof expects to be over.
  *
  * Returns: the number of inputs for the given proof
  * In:   ctx: pointer to a context object
- *     proof: a pointer to a proof object
+ *     proof: pointer to a proof object
  */
-SECP256K1_API size_t rustsecp256k1zkp_v0_8_0_surjectionproof_n_total_inputs(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
-  const rustsecp256k1zkp_v0_8_0_surjectionproof* proof
+SECP256K1_API size_t rustsecp256k1zkp_v0_10_0_surjectionproof_n_total_inputs(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
+  const rustsecp256k1zkp_v0_10_0_surjectionproof *proof
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2);
 
 /** Returns the actual number of inputs that a proof uses
  *
  * Returns: the number of inputs for the given proof
  * In:   ctx: pointer to a context object
- *     proof: a pointer to a proof object
+ *     proof: pointer to a proof object
  */
-SECP256K1_API size_t rustsecp256k1zkp_v0_8_0_surjectionproof_n_used_inputs(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
-  const rustsecp256k1zkp_v0_8_0_surjectionproof* proof
+SECP256K1_API size_t rustsecp256k1zkp_v0_10_0_surjectionproof_n_used_inputs(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
+  const rustsecp256k1zkp_v0_10_0_surjectionproof *proof
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2);
 
 /** Returns the total size this proof would take, in bytes, when serialized
  *
  * Returns: the total size
  * In:   ctx: pointer to a context object
- *     proof: a pointer to a proof object
+ *     proof: pointer to a proof object
  */
-SECP256K1_API size_t rustsecp256k1zkp_v0_8_0_surjectionproof_serialized_size(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
-  const rustsecp256k1zkp_v0_8_0_surjectionproof* proof
+SECP256K1_API size_t rustsecp256k1zkp_v0_10_0_surjectionproof_serialized_size(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
+  const rustsecp256k1zkp_v0_10_0_surjectionproof *proof
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2);
 
 /** Surjection proof initialization function; decides on inputs to use
- *  To be used to initialize stack-allocated rustsecp256k1zkp_v0_8_0_surjectionproof struct
+ *  To be used to initialize stack-allocated rustsecp256k1zkp_v0_10_0_surjectionproof struct
  * Returns 0: inputs could not be selected
  *         n: inputs were selected after n iterations of random selection
  *
@@ -156,19 +155,19 @@ SECP256K1_API size_t rustsecp256k1zkp_v0_8_0_surjectionproof_serialized_size(
  *                        limited to 256 the probability of giving up is smaller than
  *                        (255/256)^(n_input_tags_to_use*max_n_iterations).
  *
- *         random_seed32: a random seed to be used for input selection
+ *         random_seed32: random seed to be used for input selection
  * Out:            proof: The proof whose bitvector will be initialized. In case of failure,
  *                        the state of the proof is undefined.
  *          input_index: The index of the actual input that is secretly mapped to the output
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_surjectionproof_initialize(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
-  rustsecp256k1zkp_v0_8_0_surjectionproof* proof,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_surjectionproof_initialize(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
+  rustsecp256k1zkp_v0_10_0_surjectionproof *proof,
   size_t *input_index,
-  const rustsecp256k1zkp_v0_8_0_fixed_asset_tag* fixed_input_tags,
+  const rustsecp256k1zkp_v0_10_0_fixed_asset_tag *fixed_input_tags,
   const size_t n_input_tags,
   const size_t n_input_tags_to_use,
-  const rustsecp256k1zkp_v0_8_0_fixed_asset_tag* fixed_output_tag,
+  const rustsecp256k1zkp_v0_10_0_fixed_asset_tag *fixed_output_tag,
   const size_t n_max_iterations,
   const unsigned char *random_seed32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(7);
@@ -179,8 +178,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_surjectio
  *         n: inputs were selected after n iterations of random selection
  *
  * In:               ctx: pointer to a context object
- *           proof_out_p: a pointer to a pointer to `rustsecp256k1zkp_v0_8_0_surjectionproof*`.
- *                        the newly-allocated struct pointer will be saved here.
+ *           proof_out_p: pointer to a pointer to `rustsecp256k1zkp_v0_10_0_surjectionproof*`.
+ *                        The newly-allocated struct pointer will be saved here.
  *      fixed_input_tags: fixed input tags `A_i` for all inputs. (If the fixed tag is not known,
  *                        e.g. in a coinjoin with others' inputs, an ephemeral tag can be given;
  *                        this won't match the output tag but might be used in the anonymity set.)
@@ -192,51 +191,51 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_surjectio
  *                        limited to 256 the probability of giving up is smaller than
  *                        (255/256)^(n_input_tags_to_use*max_n_iterations).
  *
- *         random_seed32: a random seed to be used for input selection
- * Out:      proof_out_p: The pointer to newly-allocated proof whose bitvector will be initialized.
+ *         random_seed32: random seed to be used for input selection
+ * Out:      proof_out_p: pointer to newly-allocated proof whose bitvector will be initialized.
  *                        In case of failure, the pointer will be NULL.
  *          input_index: The index of the actual input that is secretly mapped to the output
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_surjectionproof_allocate_initialized(
-        const rustsecp256k1zkp_v0_8_0_context* ctx,
-        rustsecp256k1zkp_v0_8_0_surjectionproof** proof_out_p,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_surjectionproof_allocate_initialized(
+        const rustsecp256k1zkp_v0_10_0_context *ctx,
+        rustsecp256k1zkp_v0_10_0_surjectionproof **proof_out_p,
         size_t *input_index,
-        const rustsecp256k1zkp_v0_8_0_fixed_asset_tag* fixed_input_tags,
+        const rustsecp256k1zkp_v0_10_0_fixed_asset_tag *fixed_input_tags,
         const size_t n_input_tags,
         const size_t n_input_tags_to_use,
-        const rustsecp256k1zkp_v0_8_0_fixed_asset_tag* fixed_output_tag,
+        const rustsecp256k1zkp_v0_10_0_fixed_asset_tag *fixed_output_tag,
         const size_t n_max_iterations,
         const unsigned char *random_seed32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(7);
 
 /** Surjection proof destroy function
- *  deallocates the struct that was allocated with rustsecp256k1zkp_v0_8_0_surjectionproof_allocate_initialized
+ *  deallocates the struct that was allocated with rustsecp256k1zkp_v0_10_0_surjectionproof_allocate_initialized
  *
- * In:               proof: pointer to rustsecp256k1zkp_v0_8_0_surjectionproof struct
+ * In:               proof: pointer to rustsecp256k1zkp_v0_10_0_surjectionproof struct
  */
-SECP256K1_API void rustsecp256k1zkp_v0_8_0_surjectionproof_destroy(
-        rustsecp256k1zkp_v0_8_0_surjectionproof* proof
+SECP256K1_API void rustsecp256k1zkp_v0_10_0_surjectionproof_destroy(
+        rustsecp256k1zkp_v0_10_0_surjectionproof *proof
 ) SECP256K1_ARG_NONNULL(1);
 
 /** Surjection proof generation function
  * Returns 0: proof could not be created
  *         1: proof was successfully created
  *
- * In:                   ctx: pointer to a context object, initialized for signing and verification
+ * In:                   ctx: pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static)
  *      ephemeral_input_tags: the ephemeral asset tag of all inputs
  *    n_ephemeral_input_tags: the number of entries in the ephemeral_input_tags array
  *      ephemeral_output_tag: the ephemeral asset tag of the output
  *               input_index: the index of the input that actually maps to the output
  *        input_blinding_key: the blinding key of the input
  *       output_blinding_key: the blinding key of the output
- * In/Out: proof: The produced surjection proof. Must have already gone through `rustsecp256k1zkp_v0_8_0_surjectionproof_initialize`
+ * In/Out: proof: The produced surjection proof. Must have already gone through `rustsecp256k1zkp_v0_10_0_surjectionproof_initialize`
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_surjectionproof_generate(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
-  rustsecp256k1zkp_v0_8_0_surjectionproof* proof,
-  const rustsecp256k1zkp_v0_8_0_generator* ephemeral_input_tags,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_surjectionproof_generate(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
+  rustsecp256k1zkp_v0_10_0_surjectionproof *proof,
+  const rustsecp256k1zkp_v0_10_0_generator *ephemeral_input_tags,
   size_t n_ephemeral_input_tags,
-  const rustsecp256k1zkp_v0_8_0_generator* ephemeral_output_tag,
+  const rustsecp256k1zkp_v0_10_0_generator *ephemeral_output_tag,
   size_t input_index,
   const unsigned char *input_blinding_key,
   const unsigned char *output_blinding_key
@@ -248,18 +247,18 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_8_0_surjectio
  * Returns 0: proof was invalid
  *         1: proof was valid
  *
- * In:     ctx: pointer to a context object, initialized for signing and verification
+ * In:     ctx: pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static)
  *         proof: proof to be verified
  *      ephemeral_input_tags: the ephemeral asset tag of all inputs
  *    n_ephemeral_input_tags: the number of entries in the ephemeral_input_tags array
  *      ephemeral_output_tag: the ephemeral asset tag of the output
  */
-SECP256K1_API int rustsecp256k1zkp_v0_8_0_surjectionproof_verify(
-  const rustsecp256k1zkp_v0_8_0_context* ctx,
-  const rustsecp256k1zkp_v0_8_0_surjectionproof* proof,
-  const rustsecp256k1zkp_v0_8_0_generator* ephemeral_input_tags,
+SECP256K1_API int rustsecp256k1zkp_v0_10_0_surjectionproof_verify(
+  const rustsecp256k1zkp_v0_10_0_context *ctx,
+  const rustsecp256k1zkp_v0_10_0_surjectionproof *proof,
+  const rustsecp256k1zkp_v0_10_0_generator *ephemeral_input_tags,
   size_t n_ephemeral_input_tags,
-  const rustsecp256k1zkp_v0_8_0_generator* ephemeral_output_tag
+  const rustsecp256k1zkp_v0_10_0_generator *ephemeral_output_tag
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(5);
 #endif
 

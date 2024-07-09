@@ -1,4 +1,4 @@
-include_HEADERS += include/rustsecp256k1zkp_v0_8_0_rangeproof.h
+include_HEADERS += include/rustsecp256k1zkp_v0_10_0_rangeproof.h
 noinst_HEADERS += src/modules/rangeproof/main_impl.h
 noinst_HEADERS += src/modules/rangeproof/borromean.h
 noinst_HEADERS += src/modules/rangeproof/borromean_impl.h
@@ -8,6 +8,6 @@ noinst_HEADERS += src/modules/rangeproof/tests_impl.h
 if USE_BENCHMARK
 noinst_PROGRAMS += bench_rangeproof
 bench_rangeproof_SOURCES = src/bench_rangeproof.c
-bench_rangeproof_LDADD = libsecp256k1.la $(SECP_LIBS)
-bench_rangeproof_LDFLAGS = -static
+bench_rangeproof_LDADD = libsecp256k1.la
+bench_rangeproof_CPPFLAGS = $(SECP_CONFIG_DEFINES)
 endif
