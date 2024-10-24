@@ -1,3 +1,7 @@
+# 0.10.1 - 2024-10-24
+
+- Fix compilation on target wasm32-unknown-unknown
+
 # 0.10.0 - 2024-07-09
 
 - Update upstream to 6152622613fdf1c5af6f31f74c427c4e9ee120ce
