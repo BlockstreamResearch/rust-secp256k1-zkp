@@ -12,22 +12,22 @@
 static void test_ecdsa_s2c_tagged_hash(void) {
     unsigned char tag_data[14] = "s2c/ecdsa/data";
     unsigned char tag_point[15] = "s2c/ecdsa/point";
-    rustsecp256k1zkp_v0_10_0_sha256 sha;
-    rustsecp256k1zkp_v0_10_0_sha256 sha_optimized;
+    rustsecp256k1zkp_v0_10_1_sha256 sha;
+    rustsecp256k1zkp_v0_10_1_sha256 sha_optimized;
     unsigned char output[32];
     unsigned char output_optimized[32];
 
-    rustsecp256k1zkp_v0_10_0_sha256_initialize_tagged(&sha, tag_data, sizeof(tag_data));
-    rustsecp256k1zkp_v0_10_0_s2c_ecdsa_data_sha256_tagged(&sha_optimized);
-    rustsecp256k1zkp_v0_10_0_sha256_finalize(&sha, output);
-    rustsecp256k1zkp_v0_10_0_sha256_finalize(&sha_optimized, output_optimized);
-    CHECK(rustsecp256k1zkp_v0_10_0_memcmp_var(output, output_optimized, 32) == 0);
+    rustsecp256k1zkp_v0_10_1_sha256_initialize_tagged(&sha, tag_data, sizeof(tag_data));
+    rustsecp256k1zkp_v0_10_1_s2c_ecdsa_data_sha256_tagged(&sha_optimized);
+    rustsecp256k1zkp_v0_10_1_sha256_finalize(&sha, output);
+    rustsecp256k1zkp_v0_10_1_sha256_finalize(&sha_optimized, output_optimized);
+    CHECK(rustsecp256k1zkp_v0_10_1_memcmp_var(output, output_optimized, 32) == 0);
 
-    rustsecp256k1zkp_v0_10_0_sha256_initialize_tagged(&sha, tag_point, sizeof(tag_point));
-    rustsecp256k1zkp_v0_10_0_s2c_ecdsa_point_sha256_tagged(&sha_optimized);
-    rustsecp256k1zkp_v0_10_0_sha256_finalize(&sha, output);
-    rustsecp256k1zkp_v0_10_0_sha256_finalize(&sha_optimized, output_optimized);
-    CHECK(rustsecp256k1zkp_v0_10_0_memcmp_var(output, output_optimized, 32) == 0);
+    rustsecp256k1zkp_v0_10_1_sha256_initialize_tagged(&sha, tag_point, sizeof(tag_point));
+    rustsecp256k1zkp_v0_10_1_s2c_ecdsa_point_sha256_tagged(&sha_optimized);
+    rustsecp256k1zkp_v0_10_1_sha256_finalize(&sha, output);
+    rustsecp256k1zkp_v0_10_1_sha256_finalize(&sha_optimized, output_optimized);
+    CHECK(rustsecp256k1zkp_v0_10_1_memcmp_var(output, output_optimized, 32) == 0);
 }
 
 static void run_s2c_opening_test(void) {
@@ -40,100 +40,100 @@ static void run_s2c_opening_test(void) {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x02
     };
-    rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening opening;
+    rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening opening;
 
     /* First parsing, then serializing works */
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_parse(CTX, &opening, input) == 1);
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_serialize(CTX, output, &opening) == 1);
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_parse(CTX, &opening, input) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_parse(CTX, &opening, input) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_serialize(CTX, output, &opening) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_parse(CTX, &opening, input) == 1);
 
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_parse(CTX, NULL, input));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_parse(CTX, &opening, NULL));
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_parse(CTX, &opening, input) == 1);
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_parse(CTX, NULL, input));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_parse(CTX, &opening, NULL));
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_parse(CTX, &opening, input) == 1);
 
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_serialize(CTX, NULL, &opening));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_serialize(CTX, output, NULL));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_serialize(CTX, NULL, &opening));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_serialize(CTX, output, NULL));
 
     /* Invalid pubkey makes parsing fail but they are not API errors */
     input[0] = 0;  /* bad oddness bit */
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_parse(CTX, &opening, input) == 0);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_parse(CTX, &opening, input) == 0);
     input[0] = 2;
     input[31] = 1; /* point not on the curve */
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_parse(CTX, &opening, input) == 0);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_parse(CTX, &opening, input) == 0);
 
     /* Try parsing and serializing a bunch of openings */
     for (i = 0; i < COUNT; i++) {
         /* This is expected to fail in about 50% of iterations because the
          * points' x-coordinates are uniformly random */
-        if (rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_parse(CTX, &opening, input) == 1) {
-            CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_serialize(CTX, output, &opening) == 1);
-            CHECK(rustsecp256k1zkp_v0_10_0_memcmp_var(output, input, sizeof(output)) == 0);
+        if (rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_parse(CTX, &opening, input) == 1) {
+            CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_serialize(CTX, output, &opening) == 1);
+            CHECK(rustsecp256k1zkp_v0_10_1_memcmp_var(output, input, sizeof(output)) == 0);
         }
-        rustsecp256k1zkp_v0_10_0_testrand256(&input[1]);
+        rustsecp256k1zkp_v0_10_1_testrand256(&input[1]);
         /* Set pubkey oddness tag to first bit of input[1] */
         input[0] = (input[1] & 1) + 2;
     }
 }
 
 static void test_ecdsa_s2c_api(void) {
-    rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening s2c_opening;
-    rustsecp256k1zkp_v0_10_0_ecdsa_signature sig;
+    rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening s2c_opening;
+    rustsecp256k1zkp_v0_10_1_ecdsa_signature sig;
     const unsigned char msg[32] = "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm";
     const unsigned char sec[32] = "ssssssssssssssssssssssssssssssss";
     const unsigned char s2c_data[32] = "dddddddddddddddddddddddddddddddd";
     const unsigned char hostrand[32] = "hrhrhrhrhrhrhrhrhrhrhrhrhrhrhrhr";
     unsigned char hostrand_commitment[32];
-    rustsecp256k1zkp_v0_10_0_pubkey pk;
+    rustsecp256k1zkp_v0_10_1_pubkey pk;
 
-    CHECK(rustsecp256k1zkp_v0_10_0_ec_pubkey_create(CTX, &pk, sec));
+    CHECK(rustsecp256k1zkp_v0_10_1_ec_pubkey_create(CTX, &pk, sec));
 
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, NULL, &s2c_opening, msg, sec, s2c_data));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, NULL, &s2c_opening, msg, sec, s2c_data));
     /* NULL opening is not an API error */
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &sig, NULL, msg, sec, s2c_data) == 1);
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &sig, &s2c_opening, NULL, sec, s2c_data));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &sig, &s2c_opening, msg, NULL, s2c_data));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &sig, &s2c_opening, msg, sec, NULL));
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &sig, &s2c_opening, msg, sec, s2c_data) == 1);
-    CHECK_ILLEGAL(STATIC_CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(STATIC_CTX, &sig, &s2c_opening, msg, sec, s2c_data));
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &sig, NULL, msg, sec, s2c_data) == 1);
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &sig, &s2c_opening, NULL, sec, s2c_data));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &sig, &s2c_opening, msg, NULL, s2c_data));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &sig, &s2c_opening, msg, sec, NULL));
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &sig, &s2c_opening, msg, sec, s2c_data) == 1);
+    CHECK_ILLEGAL(STATIC_CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(STATIC_CTX, &sig, &s2c_opening, msg, sec, s2c_data));
 
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_verify(CTX, &sig, msg, &pk) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_verify(CTX, &sig, msg, &pk) == 1);
 
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, NULL, s2c_data, &s2c_opening));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, &sig, NULL, &s2c_opening));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, &sig, s2c_data, NULL));
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, &sig, s2c_data, &s2c_opening) == 1);
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, NULL, s2c_data, &s2c_opening));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, &sig, NULL, &s2c_opening));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, &sig, s2c_data, NULL));
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, &sig, s2c_data, &s2c_opening) == 1);
     /* wrong data is not an API error */
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, &sig, sec, &s2c_opening) == 0);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, &sig, sec, &s2c_opening) == 0);
 
     /* Signing with NULL s2c_opening gives the same result */
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &sig, NULL, msg, sec, s2c_data) == 1);
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, &sig, s2c_data, &s2c_opening) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &sig, NULL, msg, sec, s2c_data) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, &sig, s2c_data, &s2c_opening) == 1);
 
     /* anti-exfil */
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_host_commit(CTX, NULL, hostrand));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_host_commit(CTX, hostrand_commitment, NULL));
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_host_commit(CTX, hostrand_commitment, hostrand) == 1);
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_host_commit(CTX, NULL, hostrand));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_host_commit(CTX, hostrand_commitment, NULL));
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_host_commit(CTX, hostrand_commitment, hostrand) == 1);
 
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_signer_commit(CTX, NULL, msg, sec, hostrand_commitment));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, NULL, sec, hostrand_commitment));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, msg, NULL, hostrand_commitment));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, msg, sec, NULL));
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, msg, sec, hostrand_commitment) == 1);
-    CHECK_ILLEGAL(STATIC_CTX, rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_signer_commit(STATIC_CTX, &s2c_opening, msg, sec, hostrand_commitment));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_signer_commit(CTX, NULL, msg, sec, hostrand_commitment));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, NULL, sec, hostrand_commitment));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, msg, NULL, hostrand_commitment));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, msg, sec, NULL));
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, msg, sec, hostrand_commitment) == 1);
+    CHECK_ILLEGAL(STATIC_CTX, rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_signer_commit(STATIC_CTX, &s2c_opening, msg, sec, hostrand_commitment));
 
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_anti_exfil_sign(CTX, NULL, msg, sec, hostrand));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_anti_exfil_sign(CTX, &sig, NULL, sec, hostrand));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_anti_exfil_sign(CTX, &sig, msg, NULL, hostrand));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_anti_exfil_sign(CTX, &sig, msg, sec, NULL));
-    CHECK(rustsecp256k1zkp_v0_10_0_anti_exfil_sign(CTX, &sig, msg, sec, hostrand) == 1);
-    CHECK_ILLEGAL(STATIC_CTX, rustsecp256k1zkp_v0_10_0_anti_exfil_sign(STATIC_CTX, &sig, msg, sec, hostrand));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_anti_exfil_sign(CTX, NULL, msg, sec, hostrand));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_anti_exfil_sign(CTX, &sig, NULL, sec, hostrand));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_anti_exfil_sign(CTX, &sig, msg, NULL, hostrand));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_anti_exfil_sign(CTX, &sig, msg, sec, NULL));
+    CHECK(rustsecp256k1zkp_v0_10_1_anti_exfil_sign(CTX, &sig, msg, sec, hostrand) == 1);
+    CHECK_ILLEGAL(STATIC_CTX, rustsecp256k1zkp_v0_10_1_anti_exfil_sign(STATIC_CTX, &sig, msg, sec, hostrand));
 
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, NULL, msg, &pk, hostrand, &s2c_opening));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &sig, NULL, &pk, hostrand, &s2c_opening));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &sig, msg, NULL, hostrand, &s2c_opening));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &sig, msg, &pk, NULL, &s2c_opening));
-    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &sig, msg, &pk, hostrand, NULL));
-    CHECK(rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &sig, msg, &pk, hostrand, &s2c_opening) == 1);
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, NULL, msg, &pk, hostrand, &s2c_opening));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &sig, NULL, &pk, hostrand, &s2c_opening));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &sig, msg, NULL, hostrand, &s2c_opening));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &sig, msg, &pk, NULL, &s2c_opening));
+    CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &sig, msg, &pk, hostrand, NULL));
+    CHECK(rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &sig, msg, &pk, hostrand, &s2c_opening) == 1);
 }
 
 /* When using sign-to-contract commitments, the nonce function is fixed, so we can use fixtures to test. */
@@ -171,65 +171,65 @@ static void test_ecdsa_s2c_fixed_vectors(void) {
     size_t i;
 
     for (i = 0; i < sizeof(ecdsa_s2c_tests) / sizeof(ecdsa_s2c_tests[0]); i++) {
-        rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening s2c_opening;
+        rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening s2c_opening;
         unsigned char opening_ser[33];
         const ecdsa_s2c_test *test = &ecdsa_s2c_tests[i];
-        rustsecp256k1zkp_v0_10_0_ecdsa_signature signature;
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &signature, &s2c_opening, message, privkey, test->s2c_data) == 1);
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_serialize(CTX, opening_ser, &s2c_opening) == 1);
-        CHECK(rustsecp256k1zkp_v0_10_0_memcmp_var(test->expected_s2c_opening, opening_ser, sizeof(opening_ser)) == 0);
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, &signature, test->s2c_data, &s2c_opening) == 1);
+        rustsecp256k1zkp_v0_10_1_ecdsa_signature signature;
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &signature, &s2c_opening, message, privkey, test->s2c_data) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_serialize(CTX, opening_ser, &s2c_opening) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_memcmp_var(test->expected_s2c_opening, opening_ser, sizeof(opening_ser)) == 0);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, &signature, test->s2c_data, &s2c_opening) == 1);
     }
 }
 
 static void test_ecdsa_s2c_sign_verify(void) {
     unsigned char privkey[32];
-    rustsecp256k1zkp_v0_10_0_pubkey pubkey;
+    rustsecp256k1zkp_v0_10_1_pubkey pubkey;
     unsigned char message[32];
     unsigned char noncedata[32];
     unsigned char s2c_data[32];
     unsigned char s2c_data2[32];
-    rustsecp256k1zkp_v0_10_0_ecdsa_signature signature;
-    rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening s2c_opening;
+    rustsecp256k1zkp_v0_10_1_ecdsa_signature signature;
+    rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening s2c_opening;
 
     /* Generate a random key, message, noncedata and s2c_data. */
     {
-        rustsecp256k1zkp_v0_10_0_scalar key;
+        rustsecp256k1zkp_v0_10_1_scalar key;
         random_scalar_order_test(&key);
-        rustsecp256k1zkp_v0_10_0_scalar_get_b32(privkey, &key);
-        CHECK(rustsecp256k1zkp_v0_10_0_ec_pubkey_create(CTX, &pubkey, privkey) == 1);
+        rustsecp256k1zkp_v0_10_1_scalar_get_b32(privkey, &key);
+        CHECK(rustsecp256k1zkp_v0_10_1_ec_pubkey_create(CTX, &pubkey, privkey) == 1);
 
-        rustsecp256k1zkp_v0_10_0_testrand256_test(message);
-        rustsecp256k1zkp_v0_10_0_testrand256_test(noncedata);
-        rustsecp256k1zkp_v0_10_0_testrand256_test(s2c_data);
-        rustsecp256k1zkp_v0_10_0_testrand256_test(s2c_data2);
+        rustsecp256k1zkp_v0_10_1_testrand256_test(message);
+        rustsecp256k1zkp_v0_10_1_testrand256_test(noncedata);
+        rustsecp256k1zkp_v0_10_1_testrand256_test(s2c_data);
+        rustsecp256k1zkp_v0_10_1_testrand256_test(s2c_data2);
     }
 
     { /* invalid privkeys */
         unsigned char zero_privkey[32] = {0};
         unsigned char overflow_privkey[32] = "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &signature, NULL, message, zero_privkey, s2c_data) == 0);
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &signature, NULL, message, overflow_privkey, s2c_data) == 0);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &signature, NULL, message, zero_privkey, s2c_data) == 0);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &signature, NULL, message, overflow_privkey, s2c_data) == 0);
     }
     /* Check that the sign-to-contract signature is valid, with s2c_data. Also check the commitment. */
     {
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &signature, &s2c_opening, message, privkey, s2c_data) == 1);
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_verify(CTX, &signature, message, &pubkey) == 1);
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, &signature, s2c_data, &s2c_opening) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &signature, &s2c_opening, message, privkey, s2c_data) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_verify(CTX, &signature, message, &pubkey) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, &signature, s2c_data, &s2c_opening) == 1);
     }
     /* Check that an invalid commitment does not verify */
     {
         unsigned char sigbytes[64];
         size_t i;
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &signature, &s2c_opening, message, privkey, s2c_data) == 1);
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_verify(CTX, &signature, message, &pubkey) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &signature, &s2c_opening, message, privkey, s2c_data) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_verify(CTX, &signature, message, &pubkey) == 1);
 
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_signature_serialize_compact(CTX, sigbytes, &signature) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_signature_serialize_compact(CTX, sigbytes, &signature) == 1);
         for(i = 0; i < 32; i++) {
             /* change one byte */
             sigbytes[i] = (((int)sigbytes[i]) + 1) % 256;
-            CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_signature_parse_compact(CTX, &signature, sigbytes) == 1);
-            CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, &signature, s2c_data, &s2c_opening) == 0);
+            CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_signature_parse_compact(CTX, &signature, sigbytes) == 1);
+            CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, &signature, s2c_data, &s2c_opening) == 0);
             /* revert */
             sigbytes[i] = (((int)sigbytes[i]) + 255) % 256;
         }
@@ -248,12 +248,12 @@ static void test_ecdsa_anti_exfil_signer_commit(void) {
     };
     /* Check that original pubnonce is derived from s2c_data */
     for (i = 0; i < sizeof(ecdsa_s2c_tests) / sizeof(ecdsa_s2c_tests[0]); i++) {
-        rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening s2c_opening;
+        rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening s2c_opening;
         unsigned char buf[33];
         const ecdsa_s2c_test *test = &ecdsa_s2c_tests[i];
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, message, privkey, test->s2c_data) == 1);
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening_serialize(CTX, buf, &s2c_opening) == 1);
-        CHECK(rustsecp256k1zkp_v0_10_0_memcmp_var(test->expected_s2c_exfil_opening, buf, sizeof(buf)) == 0);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, message, privkey, test->s2c_data) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening_serialize(CTX, buf, &s2c_opening) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_memcmp_var(test->expected_s2c_exfil_opening, buf, sizeof(buf)) == 0);
     }
 }
 
@@ -263,63 +263,63 @@ static void test_ecdsa_anti_exfil(void) {
     unsigned char host_msg[32];
     unsigned char host_commitment[32];
     unsigned char host_nonce_contribution[32];
-    rustsecp256k1zkp_v0_10_0_pubkey signer_pubkey;
-    rustsecp256k1zkp_v0_10_0_ecdsa_signature signature;
-    rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening s2c_opening;
+    rustsecp256k1zkp_v0_10_1_pubkey signer_pubkey;
+    rustsecp256k1zkp_v0_10_1_ecdsa_signature signature;
+    rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening s2c_opening;
 
     /* Generate a random key, message. */
     {
-        rustsecp256k1zkp_v0_10_0_scalar key;
+        rustsecp256k1zkp_v0_10_1_scalar key;
         random_scalar_order_test(&key);
-        rustsecp256k1zkp_v0_10_0_scalar_get_b32(signer_privkey, &key);
-        CHECK(rustsecp256k1zkp_v0_10_0_ec_pubkey_create(CTX, &signer_pubkey, signer_privkey) == 1);
-        rustsecp256k1zkp_v0_10_0_testrand256_test(host_msg);
-        rustsecp256k1zkp_v0_10_0_testrand256_test(host_nonce_contribution);
+        rustsecp256k1zkp_v0_10_1_scalar_get_b32(signer_privkey, &key);
+        CHECK(rustsecp256k1zkp_v0_10_1_ec_pubkey_create(CTX, &signer_pubkey, signer_privkey) == 1);
+        rustsecp256k1zkp_v0_10_1_testrand256_test(host_msg);
+        rustsecp256k1zkp_v0_10_1_testrand256_test(host_nonce_contribution);
     }
 
     /* Protocol step 1. */
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_host_commit(CTX, host_commitment, host_nonce_contribution) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_host_commit(CTX, host_commitment, host_nonce_contribution) == 1);
     /* Protocol step 2. */
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, host_msg, signer_privkey, host_commitment) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_anti_exfil_signer_commit(CTX, &s2c_opening, host_msg, signer_privkey, host_commitment) == 1);
     /* Protocol step 3: host_nonce_contribution send to signer to be used in step 4. */
     /* Protocol step 4. */
-    CHECK(rustsecp256k1zkp_v0_10_0_anti_exfil_sign(CTX, &signature, host_msg, signer_privkey, host_nonce_contribution) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_anti_exfil_sign(CTX, &signature, host_msg, signer_privkey, host_nonce_contribution) == 1);
     /* Protocol step 5. */
-    CHECK(rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &signature, host_msg, &signer_pubkey, host_nonce_contribution, &s2c_opening) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &signature, host_msg, &signer_pubkey, host_nonce_contribution, &s2c_opening) == 1);
     /* Protocol step 5 (explicitly) */
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, &signature, host_nonce_contribution, &s2c_opening) == 1);
-    CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_verify(CTX, &signature, host_msg, &signer_pubkey) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, &signature, host_nonce_contribution, &s2c_opening) == 1);
+    CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_verify(CTX, &signature, host_msg, &signer_pubkey) == 1);
 
     { /* host_verify: commitment does not match */
         unsigned char sigbytes[64];
         size_t i;
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_signature_serialize_compact(CTX, sigbytes, &signature) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_signature_serialize_compact(CTX, sigbytes, &signature) == 1);
         for(i = 0; i < 32; i++) {
             /* change one byte */
             sigbytes[i] += 1;
-            CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_signature_parse_compact(CTX, &signature, sigbytes) == 1);
-            CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_verify_commit(CTX, &signature, host_nonce_contribution, &s2c_opening) == 0);
-            CHECK(rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &signature, host_msg, &signer_pubkey, host_nonce_contribution, &s2c_opening) == 0);
+            CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_signature_parse_compact(CTX, &signature, sigbytes) == 1);
+            CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_verify_commit(CTX, &signature, host_nonce_contribution, &s2c_opening) == 0);
+            CHECK(rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &signature, host_msg, &signer_pubkey, host_nonce_contribution, &s2c_opening) == 0);
             /* revert */
             sigbytes[i] -= 1;
         }
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_signature_parse_compact(CTX, &signature, sigbytes) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_signature_parse_compact(CTX, &signature, sigbytes) == 1);
     }
     { /* host_verify: message does not match */
         unsigned char bad_msg[32];
-        rustsecp256k1zkp_v0_10_0_testrand256_test(bad_msg);
-        CHECK(rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &signature, host_msg, &signer_pubkey, host_nonce_contribution, &s2c_opening) == 1);
-        CHECK(rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &signature, bad_msg, &signer_pubkey, host_nonce_contribution, &s2c_opening) == 0);
+        rustsecp256k1zkp_v0_10_1_testrand256_test(bad_msg);
+        CHECK(rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &signature, host_msg, &signer_pubkey, host_nonce_contribution, &s2c_opening) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &signature, bad_msg, &signer_pubkey, host_nonce_contribution, &s2c_opening) == 0);
     }
     { /* s2c_sign: host provided data that didn't match commitment */
-        rustsecp256k1zkp_v0_10_0_ecdsa_s2c_opening orig_opening = s2c_opening;
+        rustsecp256k1zkp_v0_10_1_ecdsa_s2c_opening orig_opening = s2c_opening;
         unsigned char bad_nonce_contribution[32] = { 1, 2, 3, 4 };
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_s2c_sign(CTX, &signature, &s2c_opening, host_msg, signer_privkey, bad_nonce_contribution) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_s2c_sign(CTX, &signature, &s2c_opening, host_msg, signer_privkey, bad_nonce_contribution) == 1);
         /* good signature but the opening (original public nonce does not match the original */
-        CHECK(rustsecp256k1zkp_v0_10_0_ecdsa_verify(CTX, &signature, host_msg, &signer_pubkey) == 1);
-        CHECK(rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &signature, host_msg, &signer_pubkey, host_nonce_contribution, &s2c_opening) == 0);
-        CHECK(rustsecp256k1zkp_v0_10_0_anti_exfil_host_verify(CTX, &signature, host_msg, &signer_pubkey, bad_nonce_contribution, &s2c_opening) == 1);
-        CHECK(rustsecp256k1zkp_v0_10_0_memcmp_var(&s2c_opening, &orig_opening, sizeof(s2c_opening)) != 0);
+        CHECK(rustsecp256k1zkp_v0_10_1_ecdsa_verify(CTX, &signature, host_msg, &signer_pubkey) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &signature, host_msg, &signer_pubkey, host_nonce_contribution, &s2c_opening) == 0);
+        CHECK(rustsecp256k1zkp_v0_10_1_anti_exfil_host_verify(CTX, &signature, host_msg, &signer_pubkey, bad_nonce_contribution, &s2c_opening) == 1);
+        CHECK(rustsecp256k1zkp_v0_10_1_memcmp_var(&s2c_opening, &orig_opening, sizeof(s2c_opening)) != 0);
     }
 }
 

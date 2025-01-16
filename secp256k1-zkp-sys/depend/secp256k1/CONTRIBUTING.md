@@ -44,11 +44,11 @@ The Contributor Workflow & Peer Review in libsecp256k1 are similar to Bitcoin Co
 
 In addition, libsecp256k1 tries to maintain the following coding conventions:
 
-* No runtime heap allocation (e.g., no `malloc`) unless explicitly requested by the caller (via `rustsecp256k1zkp_v0_10_0_context_create` or `rustsecp256k1zkp_v0_10_0_scratch_space_create`, for example). Moreover, it should be possible to use the library without any heap allocations.
+* No runtime heap allocation (e.g., no `malloc`) unless explicitly requested by the caller (via `rustsecp256k1zkp_v0_10_1_context_create` or `rustsecp256k1zkp_v0_10_1_scratch_space_create`, for example). Moreover, it should be possible to use the library without any heap allocations.
 * The tests should cover all lines and branches of the library (see [Test coverage](#coverage)).
 * Operations involving secret data should be tested for being constant time with respect to the secrets (see [src/ctime_tests.c](src/ctime_tests.c)).
 * Local variables containing secret data should be cleared explicitly to try to delete secrets from memory.
-* Use `rustsecp256k1zkp_v0_10_0_memcmp_var` instead of `memcmp` (see [#823](https://github.com/bitcoin-core/secp256k1/issues/823)).
+* Use `rustsecp256k1zkp_v0_10_1_memcmp_var` instead of `memcmp` (see [#823](https://github.com/bitcoin-core/secp256k1/issues/823)).
 
 #### Style conventions
 
@@ -71,7 +71,7 @@ In addition, libsecp256k1 tries to maintain the following coding conventions:
 * Use `void *ptr` instead of `void* ptr`.
 * Arguments of the publicly-facing API must have a specific order defined in [include/secp256k1.h](include/secp256k1.h).
 * User-facing comment lines in headers should be limited to 80 chars if possible.
-* All identifiers in file scope should start with `rustsecp256k1zkp_v0_10_0_`.
+* All identifiers in file scope should start with `rustsecp256k1zkp_v0_10_1_`.
 * Avoid trailing whitespace.
 
 ### Tests
