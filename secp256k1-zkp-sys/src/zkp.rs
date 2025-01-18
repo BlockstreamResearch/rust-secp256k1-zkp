@@ -2,11 +2,12 @@ use core::{
     fmt,
     hash::{self, Hash},
 };
-use {types::*, Context, PublicKey, Signature};
+use {types::*, Context, PublicKey, Signature, Keypair, XOnlyPublicKey};
 
 /// Rangeproof maximum length
 pub const RANGEPROOF_MAX_LENGTH: size_t = 5134;
 pub const ECDSA_ADAPTOR_SIGNATURE_LENGTH: size_t = 162;
+pub const SCHNORR_ADAPTOR_PRESIGNATURE_LENGTH: size_t = 65;
 
 /// The maximum number of whitelist keys.
 pub const WHITELIST_MAX_N_KEYS: size_t = 255;
@@ -391,6 +392,59 @@ extern "C" {
         n_keys: size_t,
         sub_pubkey: *const PublicKey,
     ) -> c_int;
+
+    #[cfg_attr(
+        not(rust_secp_zkp_no_symbol_renaming),
+        link_name = "rustsecp256k1zkp_v0_10_1_nonce_function_schnorr_adaptor"
+    )]
+    pub static secp256k1_nonce_function_schnorr_adaptor: SchnorrAdaptorNonceFn;
+
+    #[cfg_attr(
+        not(rust_secp_zkp_no_symbol_renaming),
+        link_name = "rustsecp256k1zkp_v0_10_1_schnorr_adaptor_presign"
+    )]
+    pub fn secp256k1_schnorr_adaptor_presign(
+        ctx: *const Context,
+        pre_sig65: *mut SchnorrAdaptorPreSignature,
+        msg32: *const c_uchar,
+        keypair: *const Keypair,
+        adaptor: *const PublicKey,
+        aux_rand32: *const c_uchar,
+    ) -> c_int;
+
+    #[cfg_attr(
+        not(rust_secp_zkp_no_symbol_renaming),
+        link_name = "rustsecp256k1zkp_v0_10_1_schnorr_adaptor_extract"
+    )]
+    pub fn secp256k1_schnorr_adaptor_extract(
+        ctx: *const Context,
+        adaptor: *mut PublicKey,
+        pre_sig65: *const SchnorrAdaptorPreSignature,
+        msg32: *const c_uchar,
+        pubkey: *const XOnlyPublicKey,
+    ) -> c_int;
+
+    #[cfg_attr(
+        not(rust_secp_zkp_no_symbol_renaming),
+        link_name = "rustsecp256k1zkp_v0_10_1_schnorr_adaptor_adapt"
+    )]
+    pub fn secp256k1_schnorr_adaptor_adapt(
+        ctx: *const Context,
+        sig64: *mut c_uchar,
+        pre_sig65: *const SchnorrAdaptorPreSignature,
+        sec_adaptor32: *const c_uchar,
+    ) -> c_int;
+
+    #[cfg_attr(
+        not(rust_secp_zkp_no_symbol_renaming),
+        link_name = "rustsecp256k1zkp_v0_10_1_schnorr_adaptor_extract_sec"
+    )]
+    pub fn secp256k1_schnorr_adaptor_extract_sec(
+        ctx: *const Context,
+        sec_adaptor32: *mut c_uchar,
+        pre_sig65: *const SchnorrAdaptorPreSignature,
+        sig64: *const c_uchar,
+    ) -> c_int;
 }
 
 #[repr(C)]
@@ -649,3 +703,58 @@ impl PartialEq for EcdsaAdaptorSignature {
 }
 
 impl Eq for EcdsaAdaptorSignature {}
+
+/// Same as secp256k1_nonce_function_hardened, but introduces
+/// an extra argument for a compressed 33-byte adaptor point.
+pub type SchnorrAdaptorNonceFn = Option<
+    unsafe extern "C" fn(
+        nonce32: *mut c_uchar,
+        msg32: *const c_uchar,
+        key32: *const c_uchar,
+        adaptor33: *const c_uchar,
+        xonly_pk32: *const c_uchar,
+        algo: *const c_uchar,
+        algo_len: size_t,
+        data: *mut c_void,
+    ) -> c_int,
+>;
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct SchnorrAdaptorPreSignature([u8; SCHNORR_ADAPTOR_PRESIGNATURE_LENGTH]);
+impl_array_newtype!(SchnorrAdaptorPreSignature, u8, SCHNORR_ADAPTOR_PRESIGNATURE_LENGTH);
+impl_raw_debug!(SchnorrAdaptorPreSignature);
+
+impl Default for SchnorrAdaptorPreSignature {
+    fn default() -> SchnorrAdaptorPreSignature {
+        SchnorrAdaptorPreSignature::new()
+    }
+}
+
+impl SchnorrAdaptorPreSignature {
+    /// Create a new (zeroed) Schnorr adaptor signature usable for the FFI interface
+    pub fn new() -> Self {
+        SchnorrAdaptorPreSignature([0u8; SCHNORR_ADAPTOR_PRESIGNATURE_LENGTH])
+    }
+
+    /// Create a new Schnorr adaptor signature usable for the FFI interface from raw bytes
+    ///
+    /// # Safety
+    ///
+    /// Does not check the validity of the underlying representation. If it is
+    /// invalid the result may be assertation failures (and process aborts) from
+    /// the underlying library. You should not use this method except with data
+    /// that you obtained from the FFI interface of the same version of this
+    /// library.
+    pub unsafe fn from_array_unchecked(data: [c_uchar; SCHNORR_ADAPTOR_PRESIGNATURE_LENGTH]) -> Self {
+        Self(data)
+    }
+}
+
+impl PartialEq for SchnorrAdaptorPreSignature {
+    fn eq(&self, other: &Self) -> bool {
+        self.0[..] == other.0[..]
+    }
+}
+
+impl Eq for SchnorrAdaptorPreSignature {}
