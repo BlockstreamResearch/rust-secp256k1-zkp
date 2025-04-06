@@ -74,7 +74,7 @@ pub use crate::zkp::*;
 
 pub use secp256k1::Error as UpstreamError;
 
-/// An ECDSA error
+/// The main error type for this library.
 #[derive(Copy, PartialEq, Eq, Clone, Debug)]
 pub enum Error {
     /// Calling through to `secp256k1` resulted in an error.
@@ -111,6 +111,14 @@ pub enum Error {
     CannotCreateWhitelistSignature,
     /// The given whitelist signature doesn't correctly prove inclusion in the whitelist.
     InvalidWhitelistProof,
+    /// Given bytes don't represent a valid Schnorr adaptor pre-signature
+    InvalidSchnorrAdaptorPreSignature,
+    /// Failed to extract the adaptor point from pre-signature due to an error within `libsecp256k1-zkp`
+    CannotExtractAdaptorPoint,
+    /// Failed to adapt the schnorr adaptor pre-signature due to an error within `libsecp256k1-zkp`
+    CannotAdaptPreSignature,
+    /// Failed to extract the secret from pre-signature due to an error within `libsecp256k1-zkp`
+    CannotExtractSecretAdaptor,
 }
 
 // Passthrough Debug to Display, since errors should be user-visible
@@ -134,10 +142,14 @@ impl fmt::Display for Error {
             Error::InvalidPakList => "invalid PAK list",
             Error::CannotCreateWhitelistSignature => {
                 "cannot create whitelist signature with the given data"
-            }
+            },
             Error::InvalidWhitelistProof => {
                 "given whitelist signature doesn't correctly prove inclusion in the whitelist"
-            }
+            },
+            Error::InvalidSchnorrAdaptorPreSignature => "malformed Schnorr adaptor pre-signature",
+            Error::CannotExtractAdaptorPoint => "failed to extract adaptor point from the pre-signature",
+            Error::CannotAdaptPreSignature => "failed to adapt the pre-signature into a BIP340 signature",
+            Error::CannotExtractSecretAdaptor => "failed to extract secret adaptor from the pre-signature",
         };
 
         f.write_str(str)

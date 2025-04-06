@@ -40,11 +40,11 @@ extern "C" {
  *                n_new: Number of signatures that should now be added
  *                       to the aggregate signature.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_10_1_schnorrsig_inc_aggregate(
+    const rustsecp256k1zkp_v0_10_1_context *ctx,
     unsigned char *aggsig,
     size_t *aggsig_len,
-    const rustsecp256k1zkp_v0_10_0_xonly_pubkey* all_pubkeys,
+    const rustsecp256k1zkp_v0_10_1_xonly_pubkey* all_pubkeys,
     const unsigned char *all_msgs32,
     const unsigned char *new_sigs64,
     size_t n_before,
@@ -67,11 +67,11 @@ SECP256K1_API int rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(
  *                       Can only be NULL if n is 0.
  *                    n: number of signatures to be aggregated.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_10_1_schnorrsig_aggregate(
+    const rustsecp256k1zkp_v0_10_1_context *ctx,
     unsigned char *aggsig,
     size_t *aggsig_len,
-    const rustsecp256k1zkp_v0_10_0_xonly_pubkey *pubkeys,
+    const rustsecp256k1zkp_v0_10_1_xonly_pubkey *pubkeys,
     const unsigned char *msgs32,
     const unsigned char *sigs64,
     size_t n
@@ -91,9 +91,9 @@ SECP256K1_API int rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(
  *           aggsig_len: Size of the aggregate signature in bytes.
  *                       Should be aggsig_len = 32*(n+1)
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    const rustsecp256k1zkp_v0_10_0_xonly_pubkey *pubkeys,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_1_schnorrsig_aggverify(
+    const rustsecp256k1zkp_v0_10_1_context *ctx,
+    const rustsecp256k1zkp_v0_10_1_xonly_pubkey *pubkeys,
     const unsigned char *msgs32,
     size_t n,
     const unsigned char *aggsig,

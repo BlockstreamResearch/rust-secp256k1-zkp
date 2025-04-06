@@ -61,35 +61,35 @@
 typedef struct {
     void (*fn)(const char *text, void* data);
     const void* data;
-} rustsecp256k1zkp_v0_10_0_callback;
+} rustsecp256k1zkp_v0_10_1_callback;
 
-static SECP256K1_INLINE void rustsecp256k1zkp_v0_10_0_callback_call(const rustsecp256k1zkp_v0_10_0_callback * const cb, const char * const text) {
+static SECP256K1_INLINE void rustsecp256k1zkp_v0_10_1_callback_call(const rustsecp256k1zkp_v0_10_1_callback * const cb, const char * const text) {
     cb->fn(text, (void*)cb->data);
 }
 
 #ifndef USE_EXTERNAL_DEFAULT_CALLBACKS
-static void rustsecp256k1zkp_v0_10_0_default_illegal_callback_fn(const char* str, void* data) {
+static void rustsecp256k1zkp_v0_10_1_default_illegal_callback_fn(const char* str, void* data) {
     (void)data;
     fprintf(stderr, "[libsecp256k1] illegal argument: %s\n", str);
     abort();
 }
-static void rustsecp256k1zkp_v0_10_0_default_error_callback_fn(const char* str, void* data) {
+static void rustsecp256k1zkp_v0_10_1_default_error_callback_fn(const char* str, void* data) {
     (void)data;
     fprintf(stderr, "[libsecp256k1] internal consistency check failed: %s\n", str);
     abort();
 }
 #else
-void rustsecp256k1zkp_v0_10_0_default_illegal_callback_fn(const char* str, void* data);
-void rustsecp256k1zkp_v0_10_0_default_error_callback_fn(const char* str, void* data);
+void rustsecp256k1zkp_v0_10_1_default_illegal_callback_fn(const char* str, void* data);
+void rustsecp256k1zkp_v0_10_1_default_error_callback_fn(const char* str, void* data);
 #endif
 
-static const rustsecp256k1zkp_v0_10_0_callback default_illegal_callback = {
-    rustsecp256k1zkp_v0_10_0_default_illegal_callback_fn,
+static const rustsecp256k1zkp_v0_10_1_callback default_illegal_callback = {
+    rustsecp256k1zkp_v0_10_1_default_illegal_callback_fn,
     NULL
 };
 
-static const rustsecp256k1zkp_v0_10_0_callback default_error_callback = {
-    rustsecp256k1zkp_v0_10_0_default_error_callback_fn,
+static const rustsecp256k1zkp_v0_10_1_callback default_error_callback = {
+    rustsecp256k1zkp_v0_10_1_default_error_callback_fn,
     NULL
 };
 
@@ -145,7 +145,7 @@ static const rustsecp256k1zkp_v0_10_0_callback default_error_callback = {
 #define ROUND_TO_ALIGN(size) ((((size) + ALIGNMENT - 1) / ALIGNMENT) * ALIGNMENT)
 
 /* Extract the sign of an int64, take the abs and return a uint64, constant time. */
-SECP256K1_INLINE static int rustsecp256k1zkp_v0_10_0_sign_and_abs64(uint64_t *out, int64_t in) {
+SECP256K1_INLINE static int rustsecp256k1zkp_v0_10_1_sign_and_abs64(uint64_t *out, int64_t in) {
     uint64_t mask0, mask1;
     int ret;
     ret = in < 0;
@@ -156,7 +156,7 @@ SECP256K1_INLINE static int rustsecp256k1zkp_v0_10_0_sign_and_abs64(uint64_t *ou
     return ret;
 }
 
-SECP256K1_INLINE static int rustsecp256k1zkp_v0_10_0_clz64_var(uint64_t x) {
+SECP256K1_INLINE static int rustsecp256k1zkp_v0_10_1_clz64_var(uint64_t x) {
     int ret;
     if (!x) {
         return 64;
@@ -202,7 +202,7 @@ SECP256K1_INLINE static int rustsecp256k1zkp_v0_10_0_clz64_var(uint64_t x) {
 #endif
 
 /* Zero memory if flag == 1. Flag must be 0 or 1. Constant time. */
-static SECP256K1_INLINE void rustsecp256k1zkp_v0_10_0_memczero(void *s, size_t len, int flag) {
+static SECP256K1_INLINE void rustsecp256k1zkp_v0_10_1_memczero(void *s, size_t len, int flag) {
     unsigned char *p = (unsigned char *)s;
     /* Access flag with a volatile-qualified lvalue.
        This prevents clang from figuring out (after inlining) that flag can
@@ -221,7 +221,7 @@ static SECP256K1_INLINE void rustsecp256k1zkp_v0_10_0_memczero(void *s, size_t l
  * We use this to avoid possible compiler bugs with memcmp, e.g.
  * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95189
  */
-static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_0_memcmp_var(const void *s1, const void *s2, size_t n) {
+static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_1_memcmp_var(const void *s1, const void *s2, size_t n) {
     const unsigned char *p1 = s1, *p2 = s2;
     size_t i;
 
@@ -235,7 +235,7 @@ static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_0_memcmp_var(const void *s1, 
 }
 
 /** If flag is true, set *r equal to *a; otherwise leave it. Constant-time.  Both *r and *a must be initialized and non-negative.*/
-static SECP256K1_INLINE void rustsecp256k1zkp_v0_10_0_int_cmov(int *r, const int *a, int flag) {
+static SECP256K1_INLINE void rustsecp256k1zkp_v0_10_1_int_cmov(int *r, const int *a, int flag) {
     unsigned int mask0, mask1, r_masked, a_masked;
     /* Access flag with a volatile-qualified lvalue.
        This prevents clang from figuring out (after inlining) that flag can
@@ -290,8 +290,8 @@ static SECP256K1_INLINE void rustsecp256k1zkp_v0_10_0_int_cmov(int *r, const int
 
 /* Determine the number of trailing zero bits in a (non-zero) 32-bit x.
  * This function is only intended to be used as fallback for
- * rustsecp256k1zkp_v0_10_0_ctz32_var, but permits it to be tested separately. */
-static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_0_ctz32_var_debruijn(uint32_t x) {
+ * rustsecp256k1zkp_v0_10_1_ctz32_var, but permits it to be tested separately. */
+static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_1_ctz32_var_debruijn(uint32_t x) {
     static const uint8_t debruijn[32] = {
         0x00, 0x01, 0x02, 0x18, 0x03, 0x13, 0x06, 0x19, 0x16, 0x04, 0x14, 0x0A,
         0x10, 0x07, 0x0C, 0x1A, 0x1F, 0x17, 0x12, 0x05, 0x15, 0x09, 0x0F, 0x0B,
@@ -302,8 +302,8 @@ static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_0_ctz32_var_debruijn(uint32_t
 
 /* Determine the number of trailing zero bits in a (non-zero) 64-bit x.
  * This function is only intended to be used as fallback for
- * rustsecp256k1zkp_v0_10_0_ctz64_var, but permits it to be tested separately. */
-static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_0_ctz64_var_debruijn(uint64_t x) {
+ * rustsecp256k1zkp_v0_10_1_ctz64_var, but permits it to be tested separately. */
+static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_1_ctz64_var_debruijn(uint64_t x) {
     static const uint8_t debruijn[64] = {
         0, 1, 2, 53, 3, 7, 54, 27, 4, 38, 41, 8, 34, 55, 48, 28,
         62, 5, 39, 46, 44, 42, 22, 9, 24, 35, 59, 56, 49, 18, 29, 11,
@@ -314,7 +314,7 @@ static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_0_ctz64_var_debruijn(uint64_t
 }
 
 /* Determine the number of trailing zero bits in a (non-zero) 32-bit x. */
-static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_0_ctz32_var(uint32_t x) {
+static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_1_ctz32_var(uint32_t x) {
     VERIFY_CHECK(x != 0);
 #if (__has_builtin(__builtin_ctz) || SECP256K1_GNUC_PREREQ(3,4))
     /* If the unsigned type is sufficient to represent the largest uint32_t, consider __builtin_ctz. */
@@ -327,12 +327,12 @@ static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_0_ctz32_var(uint32_t x) {
     return __builtin_ctzl(x);
 #else
     /* If no suitable CTZ builtin is available, use a (variable time) software emulation. */
-    return rustsecp256k1zkp_v0_10_0_ctz32_var_debruijn(x);
+    return rustsecp256k1zkp_v0_10_1_ctz32_var_debruijn(x);
 #endif
 }
 
 /* Determine the number of trailing zero bits in a (non-zero) 64-bit x. */
-static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_0_ctz64_var(uint64_t x) {
+static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_1_ctz64_var(uint64_t x) {
     VERIFY_CHECK(x != 0);
 #if (__has_builtin(__builtin_ctzl) || SECP256K1_GNUC_PREREQ(3,4))
     /* If the unsigned long type is sufficient to represent the largest uint64_t, consider __builtin_ctzl. */
@@ -345,12 +345,12 @@ static SECP256K1_INLINE int rustsecp256k1zkp_v0_10_0_ctz64_var(uint64_t x) {
     return __builtin_ctzll(x);
 #else
     /* If no suitable CTZ builtin is available, use a (variable time) software emulation. */
-    return rustsecp256k1zkp_v0_10_0_ctz64_var_debruijn(x);
+    return rustsecp256k1zkp_v0_10_1_ctz64_var_debruijn(x);
 #endif
 }
 
 /* Read a uint32_t in big endian */
-SECP256K1_INLINE static uint32_t rustsecp256k1zkp_v0_10_0_read_be32(const unsigned char* p) {
+SECP256K1_INLINE static uint32_t rustsecp256k1zkp_v0_10_1_read_be32(const unsigned char* p) {
     return (uint32_t)p[0] << 24 |
            (uint32_t)p[1] << 16 |
            (uint32_t)p[2] << 8  |
@@ -358,7 +358,7 @@ SECP256K1_INLINE static uint32_t rustsecp256k1zkp_v0_10_0_read_be32(const unsign
 }
 
 /* Write a uint32_t in big endian */
-SECP256K1_INLINE static void rustsecp256k1zkp_v0_10_0_write_be32(unsigned char* p, uint32_t x) {
+SECP256K1_INLINE static void rustsecp256k1zkp_v0_10_1_write_be32(unsigned char* p, uint32_t x) {
     p[3] = x;
     p[2] = x >>  8;
     p[1] = x >> 16;
@@ -366,7 +366,7 @@ SECP256K1_INLINE static void rustsecp256k1zkp_v0_10_0_write_be32(unsigned char* 
 }
 
 /* Read a uint64_t in big endian */
-SECP256K1_INLINE static uint64_t rustsecp256k1zkp_v0_10_0_read_be64(const unsigned char* p) {
+SECP256K1_INLINE static uint64_t rustsecp256k1zkp_v0_10_1_read_be64(const unsigned char* p) {
     return (uint64_t)p[0] << 56 |
            (uint64_t)p[1] << 48 |
            (uint64_t)p[2] << 40 |
@@ -378,7 +378,7 @@ SECP256K1_INLINE static uint64_t rustsecp256k1zkp_v0_10_0_read_be64(const unsign
 }
 
 /* Write a uint64_t in big endian */
-SECP256K1_INLINE static void rustsecp256k1zkp_v0_10_0_write_be64(unsigned char* p, uint64_t x) {
+SECP256K1_INLINE static void rustsecp256k1zkp_v0_10_1_write_be64(unsigned char* p, uint64_t x) {
     p[7] = x;
     p[6] = x >>  8;
     p[5] = x >> 16;

@@ -11,7 +11,7 @@
 #include "bench.h"
 
 typedef struct {
-    rustsecp256k1zkp_v0_10_0_context* ctx;
+    rustsecp256k1zkp_v0_10_1_context* ctx;
 } bench_bppp_data;
 
 static void bench_bppp_setup(void* arg) {
@@ -29,10 +29,10 @@ int main(void) {
     bench_bppp_data data;
     int iters = get_iters(32);
 
-    data.ctx = rustsecp256k1zkp_v0_10_0_context_create(SECP256K1_CONTEXT_NONE);
+    data.ctx = rustsecp256k1zkp_v0_10_1_context_create(SECP256K1_CONTEXT_NONE);
 
     run_benchmark("bppp_verify_bit", bench_bppp, bench_bppp_setup, NULL, &data, 10, iters);
 
-    rustsecp256k1zkp_v0_10_0_context_destroy(data.ctx);
+    rustsecp256k1zkp_v0_10_1_context_destroy(data.ctx);
     return 0;
 }

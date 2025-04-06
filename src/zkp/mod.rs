@@ -8,6 +8,7 @@ mod rangeproof;
 mod surjection_proof;
 mod tag;
 mod whitelist;
+mod schnorr_adaptor;
 
 pub use self::ecdsa_adaptor::*;
 pub use self::generator::*;
@@ -19,3 +20,4 @@ pub use self::rangeproof::*;
 pub use self::surjection_proof::*;
 pub use self::tag::*;
 pub use self::whitelist::*;
+pub use self::schnorr_adaptor::*;
