@@ -1,6 +1,6 @@
 #!/bin/sh -ex
 
-FEATURES="hashes global-context lowmemory rand rand-std recovery serde"
+FEATURES="hashes global-context lowmemory rand-std recovery serde"
 
 cargo --version
 rustc --version
@@ -35,8 +35,8 @@ if [ "$DO_FEATURE_MATRIX" = true ]; then
     # Other combos
     RUSTFLAGS='--cfg=rust_secp_fuzz' cargo test --all
     RUSTFLAGS='--cfg=rust_secp_fuzz' cargo test --all --features="$FEATURES"
-    cargo test --all --features="rand rand-std"
-    cargo test --all --features="rand serde"
+    cargo test --all --features="rand-std"
+    cargo test --all --features="serde"
 
     cargo test --all --all-features
     RUSTFLAGS='--cfg=rust_secp_fuzz' RUSTDOCFLAGS='--cfg=rust_secp_fuzz' cargo test --all --all-features
