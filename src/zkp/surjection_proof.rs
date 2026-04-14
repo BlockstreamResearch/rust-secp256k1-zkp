@@ -11,7 +11,7 @@ pub struct SurjectionProof {
     inner: ffi::SurjectionProof,
 }
 
-#[cfg(feature = "actual-rand")]
+#[cfg(test)]
 mod with_rand {
     use super::*;
     use crate::{Signing, Tag, Tweak};
