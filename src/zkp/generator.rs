@@ -1,8 +1,6 @@
 use crate::ffi::{self, CPtr};
 use crate::{constants, from_hex, Error, Secp256k1, Signing, Tag};
 use core::{fmt, str};
-#[cfg(feature = "actual-rand")]
-use rand::Rng;
 
 /// Represents a blinding factor/Tweak on secp256k1 curve
 ///
@@ -54,14 +52,6 @@ impl str::FromStr for Tweak {
 }
 
 impl Tweak {
-    /// Generate a new random Tweak
-    #[cfg(feature = "actual-rand")]
-    pub fn new<R: Rng + ?Sized>(rng: &mut R) -> Tweak {
-        let mut ret = [0u8; constants::SECRET_KEY_SIZE];
-        rng.fill_bytes(&mut ret);
-        Tweak(ret)
-    }
-
     /// Converts a byte slice to a Tweak
     /// Fails if tweak is not 32 bytes or if tweak is outside secp curve order
     #[inline]

@@ -10,8 +10,6 @@
 use crate::ffi::{self, CPtr, ECDSA_ADAPTOR_SIGNATURE_LENGTH};
 #[cfg(feature = "rand-std")]
 use crate::rand::thread_rng;
-#[cfg(feature = "actual-rand")]
-use crate::rand::{CryptoRng, Rng};
 use crate::{constants, PublicKey, Secp256k1, SecretKey};
 use crate::{ecdsa::Signature, Verification};
 use crate::{from_hex, Error};
@@ -140,24 +138,6 @@ impl EcdsaAdaptorSignature {
     ) -> EcdsaAdaptorSignature {
         let mut rng = thread_rng();
         EcdsaAdaptorSignature::encrypt_with_rng(secp, msg, sk, enckey, &mut rng)
-    }
-
-    /// Creates an adaptor signature along with a proof to verify the adaptor signature,
-    /// This function derives a nonce using a similar process as described in BIP-340.
-    /// The nonce derivation process is strengthened against side channel
-    /// attacks by providing auxiliary randomness using the provided random number generator.
-    /// Requires compilation with "rand" feature.
-    #[cfg(feature = "actual-rand")]
-    pub fn encrypt_with_rng<C: Signing, R: Rng + CryptoRng>(
-        secp: &Secp256k1<C>,
-        msg: &Message,
-        sk: &SecretKey,
-        enckey: &PublicKey,
-        rng: &mut R,
-    ) -> EcdsaAdaptorSignature {
-        let mut aux = [0u8; 32];
-        rng.fill_bytes(&mut aux);
-        EcdsaAdaptorSignature::encrypt_with_aux_rand(secp, msg, sk, enckey, &aux)
     }
 
     /// Creates an adaptor signature along with a proof to verify the adaptor signature,
