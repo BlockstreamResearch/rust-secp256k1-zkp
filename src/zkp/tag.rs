@@ -11,11 +11,6 @@ impl Tag {
     pub(crate) fn into_inner(self) -> ffi::Tag {
         self.0
     }
-
-    #[cfg(all(feature = "actual-rand", feature = "std"))]
-    pub(crate) fn as_inner(&self) -> &ffi::Tag {
-        &self.0
-    }
 }
 
 impl AsRef<[u8]> for Tag {
