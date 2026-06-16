@@ -22,14 +22,12 @@ features = [ "recovery", "lowmemory" ]
 [build-dependencies]
 cc = "1.0.28"
 
-[dependencies]
-secp256k1-sys = "0.11.0"
-
 [features]
 default = ["std"]
-recovery = ["secp256k1-sys/recovery"]
-lowmemory = ["secp256k1-sys/lowmemory"]
-std = []
+recovery = []
+lowmemory = []
+std = ["alloc"]
+alloc = []
 
 [lints.rust]
-unexpected_cfgs = { level = "deny", check-cfg = [ "cfg(rust_secp_zkp_no_symbol_renaming)" ] }
+unexpected_cfgs = { level = "deny", check-cfg = [ "cfg(rust_secp_zkp_no_symbol_renaming)", "cfg(secp256k1_fuzz)" ] }

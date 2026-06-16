@@ -20,11 +20,13 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["std"]
-std = ["secp256k1-zkp-sys/std", "secp256k1/std"]
+std = ["alloc", "secp256k1-zkp-sys/std", "secp256k1/std"]
+alloc = ["secp256k1-zkp-sys/alloc", "secp256k1/alloc"]
 rand-std = ["actual-rand/std", "secp256k1/rand"]
 recovery = ["secp256k1-zkp-sys/recovery", "secp256k1/recovery"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory", "secp256k1/lowmemory"]
 global-context = ["std", "rand-std", "secp256k1/global-context"]
+global-context-less-secure = ["global-context", "secp256k1/global-context-less-secure"]
 hashes = ["secp256k1/hashes"]
 serde = ["actual-serde", "secp256k1/serde"]
 rand = ["actual-rand", "secp256k1/rand"]
@@ -38,6 +40,7 @@ internals = { package = "bitcoin-private", version = "0.1.0" }
 
 [dev-dependencies]
 serde_test = "1.0"
+hex_lit = "0.1.1"
 
 [target.wasm32-unknown-unknown.dev-dependencies]
 wasm-bindgen-test = "0.3"
@@ -47,4 +50,4 @@ getrandom = { version = "0.2", features = ["js"] }
 crate-type = ["cdylib", "rlib"]
 
 [lints.rust]
-unexpected_cfgs = { level = "deny", check-cfg = [ "cfg(rust_secp_fuzz)" ] }
+unexpected_cfgs = { level = "deny", check-cfg = [ "cfg(rust_secp_fuzz)", "cfg(bench)", "cfg(secp256k1_fuzz)" ] }

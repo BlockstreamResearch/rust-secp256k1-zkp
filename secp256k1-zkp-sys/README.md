@@ -29,7 +29,7 @@ revision the default branch is pointing to.
 
 If you want to compile this library without using the bundled symbols (which may
 be required for integration into other build systems), you can do so by adding
-`--cfg=rust_secp_no_symbol_renaming'` to your `RUSTFLAGS` variable.
+`--cfg=rust_secp_zkp_no_symbol_renaming'` to your `RUSTFLAGS` variable.
 
 ## Minimum Supported Rust Version
 
