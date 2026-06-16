@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <stddef.h>
+#include <stdint.h>
 
 /** Unless explicitly stated all pointer arguments must not be NULL.
  *
@@ -29,38 +30,25 @@ extern "C" {
  *  The primary purpose of context objects is to store randomization data for
  *  enhanced protection against side-channel leakage. This protection is only
  *  effective if the context is randomized after its creation. See
- *  rustsecp256k1zkp_v0_10_0_context_create for creation of contexts and
- *  rustsecp256k1zkp_v0_10_0_context_randomize for randomization.
+ *  rustsecp256k1zkp_v0_11_0_context_create for creation of contexts and
+ *  rustsecp256k1zkp_v0_11_0_context_randomize for randomization.
  *
  *  A secondary purpose of context objects is to store pointers to callback
  *  functions that the library will call when certain error states arise. See
- *  rustsecp256k1zkp_v0_10_0_context_set_error_callback as well as
- *  rustsecp256k1zkp_v0_10_0_context_set_illegal_callback for details. Future library versions
+ *  rustsecp256k1zkp_v0_11_0_context_set_error_callback as well as
+ *  rustsecp256k1zkp_v0_11_0_context_set_illegal_callback for details. Future library versions
  *  may use context objects for additional purposes.
  *
  *  A constructed context can safely be used from multiple threads
  *  simultaneously, but API calls that take a non-const pointer to a context
  *  need exclusive access to it. In particular this is the case for
- *  rustsecp256k1zkp_v0_10_0_context_destroy, rustsecp256k1zkp_v0_10_0_context_preallocated_destroy,
- *  and rustsecp256k1zkp_v0_10_0_context_randomize.
+ *  rustsecp256k1zkp_v0_11_0_context_destroy, rustsecp256k1zkp_v0_11_0_context_preallocated_destroy,
+ *  and rustsecp256k1zkp_v0_11_0_context_randomize.
  *
  *  Regarding randomization, either do it once at creation time (in which case
  *  you do not need any locking for the other calls), or use a read-write lock.
  */
-typedef struct rustsecp256k1zkp_v0_10_0_context_struct rustsecp256k1zkp_v0_10_0_context;
-
-/** Opaque data structure that holds rewritable "scratch space"
- *
- *  The purpose of this structure is to replace dynamic memory allocations,
- *  because we target architectures where this may not be available. It is
- *  essentially a resizable (within specified parameters) block of bytes,
- *  which is initially created either by memory allocation or TODO as a pointer
- *  into some fixed rewritable space.
- *
- *  Unlike the context object, this cannot safely be shared between threads
- *  without additional synchronization logic.
- */
-typedef struct rustsecp256k1zkp_v0_10_0_scratch_space_struct rustsecp256k1zkp_v0_10_0_scratch_space;
+typedef struct rustsecp256k1zkp_v0_11_0_context_struct rustsecp256k1zkp_v0_11_0_context;
 
 /** Opaque data structure that holds a parsed and valid public key.
  *
@@ -68,25 +56,25 @@ typedef struct rustsecp256k1zkp_v0_10_0_scratch_space_struct rustsecp256k1zkp_v0
  *  guaranteed to be portable between different platforms or versions. It is
  *  however guaranteed to be 64 bytes in size, and can be safely copied/moved.
  *  If you need to convert to a format suitable for storage or transmission,
- *  use rustsecp256k1zkp_v0_10_0_ec_pubkey_serialize and rustsecp256k1zkp_v0_10_0_ec_pubkey_parse. To
- *  compare keys, use rustsecp256k1zkp_v0_10_0_ec_pubkey_cmp.
+ *  use rustsecp256k1zkp_v0_11_0_ec_pubkey_serialize and rustsecp256k1zkp_v0_11_0_ec_pubkey_parse. To
+ *  compare keys, use rustsecp256k1zkp_v0_11_0_ec_pubkey_cmp.
  */
-typedef struct {
+typedef struct rustsecp256k1zkp_v0_11_0_pubkey {
     unsigned char data[64];
-} rustsecp256k1zkp_v0_10_0_pubkey;
+} rustsecp256k1zkp_v0_11_0_pubkey;
 
-/** Opaque data structured that holds a parsed ECDSA signature.
+/** Opaque data structure that holds a parsed ECDSA signature.
  *
  *  The exact representation of data inside is implementation defined and not
  *  guaranteed to be portable between different platforms or versions. It is
  *  however guaranteed to be 64 bytes in size, and can be safely copied/moved.
  *  If you need to convert to a format suitable for storage, transmission, or
- *  comparison, use the rustsecp256k1zkp_v0_10_0_ecdsa_signature_serialize_* and
- *  rustsecp256k1zkp_v0_10_0_ecdsa_signature_parse_* functions.
+ *  comparison, use the rustsecp256k1zkp_v0_11_0_ecdsa_signature_serialize_* and
+ *  rustsecp256k1zkp_v0_11_0_ecdsa_signature_parse_* functions.
  */
-typedef struct {
+typedef struct rustsecp256k1zkp_v0_11_0_ecdsa_signature {
     unsigned char data[64];
-} rustsecp256k1zkp_v0_10_0_ecdsa_signature;
+} rustsecp256k1zkp_v0_11_0_ecdsa_signature;
 
 /** A pointer to a function to deterministically generate a nonce.
  *
@@ -104,7 +92,7 @@ typedef struct {
  * Except for test cases, this function should compute some cryptographic hash of
  * the message, the algorithm, the key and the attempt.
  */
-typedef int (*rustsecp256k1zkp_v0_10_0_nonce_function)(
+typedef int (*rustsecp256k1zkp_v0_11_0_nonce_function)(
     unsigned char *nonce32,
     const unsigned char *msg32,
     const unsigned char *key32,
@@ -134,35 +122,57 @@ typedef int (*rustsecp256k1zkp_v0_10_0_nonce_function)(
 #endif
 
 /* Symbol visibility. */
-#if defined(_WIN32)
-  /* GCC for Windows (e.g., MinGW) accepts the __declspec syntax
-   * for MSVC compatibility. A __declspec declaration implies (but is not
-   * exactly equivalent to) __attribute__ ((visibility("default"))), and so we
-   * actually want __declspec even on GCC, see "Microsoft Windows Function
-   * Attributes" in the GCC manual and the recommendations in
-   * https://gcc.gnu.org/wiki/Visibility. */
-# if defined(SECP256K1_BUILD)
-#  if defined(DLL_EXPORT) || defined(SECP256K1_DLL_EXPORT)
-    /* Building libsecp256k1 as a DLL.
-     * 1. If using Libtool, it defines DLL_EXPORT automatically.
-     * 2. In other cases, SECP256K1_DLL_EXPORT must be defined. */
-#   define SECP256K1_API extern __declspec (dllexport)
-#  endif
-  /* The user must define SECP256K1_STATIC when consuming libsecp256k1 as a static
-   * library on Windows. */
-# elif !defined(SECP256K1_STATIC)
-   /* Consuming libsecp256k1 as a DLL. */
-#  define SECP256K1_API extern __declspec (dllimport)
-# endif
+#if !defined(SECP256K1_API) && defined(SECP256K1_NO_API_VISIBILITY_ATTRIBUTES)
+     /* The user has requested that we don't specify visibility attributes in
+      * the public API.
+      *
+      * Since all our non-API declarations use the static qualifier, this means
+      * that the user can use -fvisibility=<value> to set the visibility of the
+      * API symbols. For instance, -fvisibility=hidden can be useful *even for
+      * the API symbols*, e.g., when building a static library which is linked
+      * into a shared library, and the latter should not re-export the
+      * libsecp256k1 API.
+      *
+      * While visibility is a concept that applies only to shared libraries,
+      * setting visibility will still make a difference when building a static
+      * library: the visibility settings will be stored in the static library,
+      * solely for the potential case that the static library will be linked into
+      * a shared library. In that case, the stored visibility settings will
+      * resurface and be honored for the shared library. */
+#    define SECP256K1_API extern
 #endif
-#ifndef SECP256K1_API
-# if defined(__GNUC__) && (__GNUC__ >= 4) && defined(SECP256K1_BUILD)
-   /* Building libsecp256k1 on non-Windows using GCC or compatible. */
-#  define SECP256K1_API extern __attribute__ ((visibility ("default")))
-# else
-   /* All cases not captured above. */
-#  define SECP256K1_API extern
-# endif
+#if !defined(SECP256K1_API)
+#    if defined(SECP256K1_BUILD)
+         /* On Windows, assume a shared library only if explicitly requested.
+          *   1. If using Libtool, it defines DLL_EXPORT automatically.
+          *   2. In other cases, SECP256K1_DLL_EXPORT must be defined. */
+#        if defined(_WIN32) && (defined(SECP256K1_DLL_EXPORT) || defined(DLL_EXPORT))
+             /* GCC for Windows (e.g., MinGW) accepts the __declspec syntax for
+              * MSVC compatibility. A __declspec declaration implies (but is not
+              * exactly equivalent to) __attribute__ ((visibility("default"))),
+              * and so we actually want __declspec even on GCC, see "Microsoft
+              * Windows Function Attributes" in the GCC manual and the
+              * recommendations in https://gcc.gnu.org/wiki/Visibility . */
+#            define SECP256K1_API extern __declspec(dllexport)
+         /* Avoid __attribute__ ((visibility("default"))) on Windows to get rid
+          * of warnings when compiling with -flto due to a bug in GCC, see
+          * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=116478 . */
+#        elif !defined(_WIN32) && defined (__GNUC__) && (__GNUC__ >= 4)
+#            define SECP256K1_API extern __attribute__ ((visibility("default")))
+#        else
+#            define SECP256K1_API extern
+#        endif
+#    else
+         /* On Windows, SECP256K1_STATIC must be defined when consuming
+          * libsecp256k1 as a static library. Note that SECP256K1_STATIC is a
+          * "consumer-only" macro, and it has no meaning when building
+          * libsecp256k1. */
+#        if defined(_WIN32) && !defined(SECP256K1_STATIC)
+#            define SECP256K1_API extern __declspec(dllimport)
+#        else
+#            define SECP256K1_API extern
+#        endif
+#    endif
 #endif
 
 /* Warning attributes
@@ -200,8 +210,8 @@ typedef int (*rustsecp256k1zkp_v0_10_0_nonce_function)(
 #define SECP256K1_FLAGS_BIT_CONTEXT_DECLASSIFY (1 << 10)
 #define SECP256K1_FLAGS_BIT_COMPRESSION (1 << 8)
 
-/** Context flags to pass to rustsecp256k1zkp_v0_10_0_context_create, rustsecp256k1zkp_v0_10_0_context_preallocated_size, and
- *  rustsecp256k1zkp_v0_10_0_context_preallocated_create. */
+/** Context flags to pass to rustsecp256k1zkp_v0_11_0_context_create, rustsecp256k1zkp_v0_11_0_context_preallocated_size, and
+ *  rustsecp256k1zkp_v0_11_0_context_preallocated_create. */
 #define SECP256K1_CONTEXT_NONE (SECP256K1_FLAGS_TYPE_CONTEXT)
 
 /** Deprecated context flags. These flags are treated equivalent to SECP256K1_CONTEXT_NONE. */
@@ -211,7 +221,7 @@ typedef int (*rustsecp256k1zkp_v0_10_0_nonce_function)(
 /* Testing flag. Do not use. */
 #define SECP256K1_CONTEXT_DECLASSIFY (SECP256K1_FLAGS_TYPE_CONTEXT | SECP256K1_FLAGS_BIT_CONTEXT_DECLASSIFY)
 
-/** Flag to pass to rustsecp256k1zkp_v0_10_0_ec_pubkey_serialize. */
+/** Flag to pass to rustsecp256k1zkp_v0_11_0_ec_pubkey_serialize. */
 #define SECP256K1_EC_COMPRESSED (SECP256K1_FLAGS_TYPE_COMPRESSION | SECP256K1_FLAGS_BIT_COMPRESSION)
 #define SECP256K1_EC_UNCOMPRESSED (SECP256K1_FLAGS_TYPE_COMPRESSION)
 
@@ -223,23 +233,23 @@ typedef int (*rustsecp256k1zkp_v0_10_0_nonce_function)(
 #define SECP256K1_TAG_PUBKEY_HYBRID_ODD 0x07
 
 /** A built-in constant secp256k1 context object with static storage duration, to be
- *  used in conjunction with rustsecp256k1zkp_v0_10_0_selftest.
+ *  used in conjunction with rustsecp256k1zkp_v0_11_0_selftest.
  *
  *  This context object offers *only limited functionality* , i.e., it cannot be used
  *  for API functions that perform computations involving secret keys, e.g., signing
  *  and public key generation. If this restriction applies to a specific API function,
- *  it is mentioned in its documentation. See rustsecp256k1zkp_v0_10_0_context_create if you need a
+ *  it is mentioned in its documentation. See rustsecp256k1zkp_v0_11_0_context_create if you need a
  *  full context object that supports all functionality offered by the library.
  *
- *  It is highly recommended to call rustsecp256k1zkp_v0_10_0_selftest before using this context.
+ *  It is highly recommended to call rustsecp256k1zkp_v0_11_0_selftest before using this context.
  */
-SECP256K1_API const rustsecp256k1zkp_v0_10_0_context *rustsecp256k1zkp_v0_10_0_context_static;
+SECP256K1_API const rustsecp256k1zkp_v0_11_0_context * const rustsecp256k1zkp_v0_11_0_context_static;
 
-/** Deprecated alias for rustsecp256k1zkp_v0_10_0_context_static. */
-SECP256K1_API const rustsecp256k1zkp_v0_10_0_context *rustsecp256k1zkp_v0_10_0_context_no_precomp
-SECP256K1_DEPRECATED("Use rustsecp256k1zkp_v0_10_0_context_static instead");
+/** Deprecated alias for rustsecp256k1zkp_v0_11_0_context_static. */
+SECP256K1_API const rustsecp256k1zkp_v0_11_0_context * const rustsecp256k1zkp_v0_11_0_context_no_precomp
+SECP256K1_DEPRECATED("Use rustsecp256k1zkp_v0_11_0_context_static instead");
 
-/** Perform basic self tests (to be used in conjunction with rustsecp256k1zkp_v0_10_0_context_static)
+/** Perform basic self tests (to be used in conjunction with rustsecp256k1zkp_v0_11_0_context_static)
  *
  *  This function performs self tests that detect some serious usage errors and
  *  similar conditions, e.g., when the library is compiled for the wrong endianness.
@@ -247,55 +257,57 @@ SECP256K1_DEPRECATED("Use rustsecp256k1zkp_v0_10_0_context_static instead");
  *  very rudimentary and are not intended as a replacement for running the test
  *  binaries.
  *
- *  It is highly recommended to call this before using rustsecp256k1zkp_v0_10_0_context_static.
+ *  It is highly recommended to call this before using rustsecp256k1zkp_v0_11_0_context_static.
  *  It is not necessary to call this function before using a context created with
- *  rustsecp256k1zkp_v0_10_0_context_create (or rustsecp256k1zkp_v0_10_0_context_preallocated_create), which will
+ *  rustsecp256k1zkp_v0_11_0_context_create (or rustsecp256k1zkp_v0_11_0_context_preallocated_create), which will
  *  take care of performing the self tests.
  *
- *  If the tests fail, this function will call the default error handler to abort the
- *  program (see rustsecp256k1zkp_v0_10_0_context_set_error_callback).
+ *  If the tests fail, this function will call the default error callback to abort the
+ *  program (see rustsecp256k1zkp_v0_11_0_context_set_error_callback).
  */
-SECP256K1_API void rustsecp256k1zkp_v0_10_0_selftest(void);
+SECP256K1_API void rustsecp256k1zkp_v0_11_0_selftest(void);
 
 /** Set a callback function to be called when an illegal argument is passed to
  *  an API call. It will only trigger for violations that are mentioned
  *  explicitly in the header.
  *
- *  The philosophy is that these shouldn't be dealt with through a
- *  specific return value, as calling code should not have branches to deal with
- *  the case that this code itself is broken.
+ *  The philosophy is that these shouldn't be dealt with through a specific
+ *  return value, as calling code should not have branches to deal with the case
+ *  that this code itself is broken.
  *
  *  On the other hand, during debug stage, one would want to be informed about
- *  such mistakes, and the default (crashing) may be inadvisable.
- *  When this callback is triggered, the API function called is guaranteed not
- *  to cause a crash, though its return value and output arguments are
- *  undefined.
+ *  such mistakes, and the default (crashing) may be inadvisable. Should this
+ *  callback return instead of crashing, the return value and output arguments
+ *  of the API function call are undefined. Moreover, the same API call may
+ *  trigger the callback again in this case.
  *
- *  When this function has not been called (or called with fn==NULL), then the
- *  default handler will be used. The library provides a default handler which
- *  writes the message to stderr and calls abort. This default handler can be
+ *  When this function has not been called (or called with fun==NULL), then the
+ *  default callback will be used. The library provides a default callback which
+ *  writes the message to stderr and calls abort. This default callback can be
  *  replaced at link time if the preprocessor macro
  *  USE_EXTERNAL_DEFAULT_CALLBACKS is defined, which is the case if the build
- *  has been configured with --enable-external-default-callbacks. Then the
+ *  has been configured with --enable-external-default-callbacks (GNU Autotools) or
+ *  -DSECP256K1_USE_EXTERNAL_DEFAULT_CALLBACKS=ON (CMake). Then the
  *  following two symbols must be provided to link against:
- *   - void rustsecp256k1zkp_v0_10_0_default_illegal_callback_fn(const char *message, void *data);
- *   - void rustsecp256k1zkp_v0_10_0_default_error_callback_fn(const char *message, void *data);
- *  The library can call these default handlers even before a proper callback data
- *  pointer could have been set using rustsecp256k1zkp_v0_10_0_context_set_illegal_callback or
- *  rustsecp256k1zkp_v0_10_0_context_set_error_callback, e.g., when the creation of a context
- *  fails. In this case, the corresponding default handler will be called with
+ *   - void rustsecp256k1zkp_v0_11_0_default_illegal_callback_fn(const char *message, void *data);
+ *   - void rustsecp256k1zkp_v0_11_0_default_error_callback_fn(const char *message, void *data);
+ *  The library may call a default callback even before a proper callback data
+ *  pointer could have been set using rustsecp256k1zkp_v0_11_0_context_set_illegal_callback or
+ *  rustsecp256k1zkp_v0_11_0_context_set_error_callback, e.g., when the creation of a context
+ *  fails. In this case, the corresponding default callback will be called with
  *  the data pointer argument set to NULL.
  *
  *  Args: ctx:  pointer to a context object.
  *  In:   fun:  pointer to a function to call when an illegal argument is
  *              passed to the API, taking a message and an opaque pointer.
- *              (NULL restores the default handler.)
- *        data: the opaque pointer to pass to fun above, must be NULL for the default handler.
+ *              (NULL restores the default callback.)
+ *        data: the opaque pointer to pass to fun above, must be NULL for the
+ *              default callback.
  *
- *  See also rustsecp256k1zkp_v0_10_0_context_set_error_callback.
+ *  See also rustsecp256k1zkp_v0_11_0_context_set_error_callback.
  */
-SECP256K1_API void rustsecp256k1zkp_v0_10_0_context_set_illegal_callback(
-    rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API void rustsecp256k1zkp_v0_11_0_context_set_illegal_callback(
+    rustsecp256k1zkp_v0_11_0_context *ctx,
     void (*fun)(const char *message, void *data),
     const void *data
 ) SECP256K1_ARG_NONNULL(1);
@@ -307,25 +319,66 @@ SECP256K1_API void rustsecp256k1zkp_v0_10_0_context_set_illegal_callback(
  *  to abort the program.
  *
  *  This can only trigger in case of a hardware failure, miscompilation,
- *  memory corruption, serious bug in the library, or other error would can
- *  otherwise result in undefined behaviour. It will not trigger due to mere
- *  incorrect usage of the API (see rustsecp256k1zkp_v0_10_0_context_set_illegal_callback
+ *  memory corruption, serious bug in the library, or other error that would
+ *  result in undefined behaviour. It will not trigger due to mere
+ *  incorrect usage of the API (see rustsecp256k1zkp_v0_11_0_context_set_illegal_callback
  *  for that). After this callback returns, anything may happen, including
  *  crashing.
  *
  *  Args: ctx:  pointer to a context object.
  *  In:   fun:  pointer to a function to call when an internal error occurs,
  *              taking a message and an opaque pointer (NULL restores the
- *              default handler, see rustsecp256k1zkp_v0_10_0_context_set_illegal_callback
+ *              default callback, see rustsecp256k1zkp_v0_11_0_context_set_illegal_callback
  *              for details).
- *        data: the opaque pointer to pass to fun above, must be NULL for the default handler.
+ *        data: the opaque pointer to pass to fun above, must be NULL for the
+ *              default callback.
  *
- *  See also rustsecp256k1zkp_v0_10_0_context_set_illegal_callback.
+ *  See also rustsecp256k1zkp_v0_11_0_context_set_illegal_callback.
  */
-SECP256K1_API void rustsecp256k1zkp_v0_10_0_context_set_error_callback(
-    rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API void rustsecp256k1zkp_v0_11_0_context_set_error_callback(
+    rustsecp256k1zkp_v0_11_0_context *ctx,
     void (*fun)(const char *message, void *data),
     const void *data
+) SECP256K1_ARG_NONNULL(1);
+
+/** A pointer to a function implementing SHA256's internal compression function.
+ *
+ * This function processes one or more contiguous 64-byte message blocks and
+ * updates the internal SHA256 state accordingly. The function is not responsible
+ * for counting consumed blocks or bytes, nor for performing padding.
+ *
+ * In/Out:  state:     pointer to eight 32-bit words representing the current internal state;
+ *                     the state is updated in place.
+ * In:      blocks64:  pointer to concatenation of n_blocks blocks, of 64 bytes each.
+ *                     no alignment guarantees are made for this pointer.
+ *          n_blocks:  number of contiguous 64-byte blocks to process.
+ */
+typedef void (*rustsecp256k1zkp_v0_11_0_sha256_compression_function)(
+    uint32_t *state,
+    const unsigned char *blocks64,
+    size_t n_blocks
+);
+
+/**
+ * Set a callback function to override the internal SHA256 compression function.
+ *
+ * This installs a function to replace the built-in block-compression
+ * step used by the library's internal SHA256 implementation.
+ * The provided callback must exactly implement the effect of n_blocks
+ * repeated applications of the SHA256 compression function.
+ *
+ * This API exists to support environments that wish to route the
+ * SHA256 compression step through a hardware-accelerated or otherwise
+ * specialized implementation. It is NOT meant for replacing SHA256
+ * with a different hash function.
+ *
+ * Args:    ctx:             pointer to a context object.
+ * In:      fn_compression:  pointer to a function implementing the compression function;
+ *                           passing NULL restores the default implementation.
+ */
+SECP256K1_API void rustsecp256k1zkp_v0_11_0_context_set_sha256_compression(
+        rustsecp256k1zkp_v0_11_0_context *ctx,
+        rustsecp256k1zkp_v0_11_0_sha256_compression_function fn_compression
 ) SECP256K1_ARG_NONNULL(1);
 
 /** Parse a variable-length public key into the pubkey object.
@@ -342,9 +395,9 @@ SECP256K1_API void rustsecp256k1zkp_v0_10_0_context_set_error_callback(
  *  0x03), uncompressed (65 bytes, header byte 0x04), or hybrid (65 bytes, header
  *  byte 0x06 or 0x07) format public keys.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubkey_parse(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    rustsecp256k1zkp_v0_10_0_pubkey *pubkey,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ec_pubkey_parse(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    rustsecp256k1zkp_v0_11_0_pubkey *pubkey,
     const unsigned char *input,
     size_t inputlen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
@@ -359,16 +412,16 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubke
  *  In/Out: outputlen:  pointer to an integer which is initially set to the
  *                      size of output, and is overwritten with the written
  *                      size.
- *  In:     pubkey:     pointer to a rustsecp256k1zkp_v0_10_0_pubkey containing an
+ *  In:     pubkey:     pointer to a rustsecp256k1zkp_v0_11_0_pubkey containing an
  *                      initialized public key.
  *          flags:      SECP256K1_EC_COMPRESSED if serialization should be in
  *                      compressed format, otherwise SECP256K1_EC_UNCOMPRESSED.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_10_0_ec_pubkey_serialize(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_11_0_ec_pubkey_serialize(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
     unsigned char *output,
     size_t *outputlen,
-    const rustsecp256k1zkp_v0_10_0_pubkey *pubkey,
+    const rustsecp256k1zkp_v0_11_0_pubkey *pubkey,
     unsigned int flags
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
 
@@ -381,11 +434,25 @@ SECP256K1_API int rustsecp256k1zkp_v0_10_0_ec_pubkey_serialize(
  *  In:   pubkey1:  first public key to compare
  *        pubkey2:  second public key to compare
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubkey_cmp(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    const rustsecp256k1zkp_v0_10_0_pubkey *pubkey1,
-    const rustsecp256k1zkp_v0_10_0_pubkey *pubkey2
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ec_pubkey_cmp(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    const rustsecp256k1zkp_v0_11_0_pubkey *pubkey1,
+    const rustsecp256k1zkp_v0_11_0_pubkey *pubkey2
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
+
+/** Sort public keys using lexicographic (of compressed serialization) order
+ *
+ *  Returns: 0 if the arguments are invalid. 1 otherwise.
+ *
+ *  Args:     ctx: pointer to a context object
+ *  In:   pubkeys: array of pointers to pubkeys to sort
+ *      n_pubkeys: number of elements in the pubkeys array
+ */
+SECP256K1_API int rustsecp256k1zkp_v0_11_0_ec_pubkey_sort(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    const rustsecp256k1zkp_v0_11_0_pubkey **pubkeys,
+    size_t n_pubkeys
+) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2);
 
 /** Parse an ECDSA signature in compact (64 bytes) format.
  *
@@ -402,9 +469,9 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubke
  *  S are zero, the resulting sig value is guaranteed to fail verification for
  *  any message and public key.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_signature_parse_compact(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    rustsecp256k1zkp_v0_10_0_ecdsa_signature *sig,
+SECP256K1_API int rustsecp256k1zkp_v0_11_0_ecdsa_signature_parse_compact(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    rustsecp256k1zkp_v0_11_0_ecdsa_signature *sig,
     const unsigned char *input64
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -423,9 +490,9 @@ SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_signature_parse_compact(
  *  encoded numbers are out of range, signature verification with it is
  *  guaranteed to fail for every message and public key.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_signature_parse_der(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    rustsecp256k1zkp_v0_10_0_ecdsa_signature *sig,
+SECP256K1_API int rustsecp256k1zkp_v0_11_0_ecdsa_signature_parse_der(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    rustsecp256k1zkp_v0_11_0_ecdsa_signature *sig,
     const unsigned char *input,
     size_t inputlen
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
@@ -441,11 +508,11 @@ SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_signature_parse_der(
  *                     if 0 was returned).
  *  In:     sig:       pointer to an initialized signature object
  */
-SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_signature_serialize_der(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_11_0_ecdsa_signature_serialize_der(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
     unsigned char *output,
     size_t *outputlen,
-    const rustsecp256k1zkp_v0_10_0_ecdsa_signature *sig
+    const rustsecp256k1zkp_v0_11_0_ecdsa_signature *sig
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
 
 /** Serialize an ECDSA signature in compact (64 byte) format.
@@ -455,12 +522,12 @@ SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_signature_serialize_der(
  *  Out:    output64:  pointer to a 64-byte array to store the compact serialization
  *  In:     sig:       pointer to an initialized signature object
  *
- *  See rustsecp256k1zkp_v0_10_0_ecdsa_signature_parse_compact for details about the encoding.
+ *  See rustsecp256k1zkp_v0_11_0_ecdsa_signature_parse_compact for details about the encoding.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_signature_serialize_compact(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_11_0_ecdsa_signature_serialize_compact(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
     unsigned char *output64,
-    const rustsecp256k1zkp_v0_10_0_ecdsa_signature *sig
+    const rustsecp256k1zkp_v0_11_0_ecdsa_signature *sig
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Verify an ECDSA signature.
@@ -483,16 +550,16 @@ SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_signature_serialize_compact(
  * form are accepted.
  *
  * If you need to accept ECDSA signatures from sources that do not obey this
- * rule, apply rustsecp256k1zkp_v0_10_0_ecdsa_signature_normalize to the signature prior to
+ * rule, apply rustsecp256k1zkp_v0_11_0_ecdsa_signature_normalize to the signature prior to
  * verification, but be aware that doing so results in malleable signatures.
  *
  * For details, see the comments for that function.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ecdsa_verify(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    const rustsecp256k1zkp_v0_10_0_ecdsa_signature *sig,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ecdsa_verify(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    const rustsecp256k1zkp_v0_11_0_ecdsa_signature *sig,
     const unsigned char *msghash32,
-    const rustsecp256k1zkp_v0_10_0_pubkey *pubkey
+    const rustsecp256k1zkp_v0_11_0_pubkey *pubkey
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
 
 /** Convert a signature to a normalized lower-S form.
@@ -531,67 +598,69 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ecdsa_ve
  *  accept various non-unique encodings, so care should be taken when this
  *  property is required for an application.
  *
- *  The rustsecp256k1zkp_v0_10_0_ecdsa_sign function will by default create signatures in the
- *  lower-S form, and rustsecp256k1zkp_v0_10_0_ecdsa_verify will not accept others. In case
+ *  The rustsecp256k1zkp_v0_11_0_ecdsa_sign function will by default create signatures in the
+ *  lower-S form, and rustsecp256k1zkp_v0_11_0_ecdsa_verify will not accept others. In case
  *  signatures come from a system that cannot enforce this property,
- *  rustsecp256k1zkp_v0_10_0_ecdsa_signature_normalize must be called before verification.
+ *  rustsecp256k1zkp_v0_11_0_ecdsa_signature_normalize must be called before verification.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_signature_normalize(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    rustsecp256k1zkp_v0_10_0_ecdsa_signature *sigout,
-    const rustsecp256k1zkp_v0_10_0_ecdsa_signature *sigin
+SECP256K1_API int rustsecp256k1zkp_v0_11_0_ecdsa_signature_normalize(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    rustsecp256k1zkp_v0_11_0_ecdsa_signature *sigout,
+    const rustsecp256k1zkp_v0_11_0_ecdsa_signature *sigin
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(3);
 
 /** An implementation of RFC6979 (using HMAC-SHA256) as nonce generation function.
  * If a data pointer is passed, it is assumed to be a pointer to 32 bytes of
  * extra entropy.
  */
-SECP256K1_API const rustsecp256k1zkp_v0_10_0_nonce_function rustsecp256k1zkp_v0_10_0_nonce_function_rfc6979;
+SECP256K1_API const rustsecp256k1zkp_v0_11_0_nonce_function rustsecp256k1zkp_v0_11_0_nonce_function_rfc6979;
 
-/** A default safe nonce generation function (currently equal to rustsecp256k1zkp_v0_10_0_nonce_function_rfc6979). */
-SECP256K1_API const rustsecp256k1zkp_v0_10_0_nonce_function rustsecp256k1zkp_v0_10_0_nonce_function_default;
+/** A default safe nonce generation function (currently equal to rustsecp256k1zkp_v0_11_0_nonce_function_rfc6979). */
+SECP256K1_API const rustsecp256k1zkp_v0_11_0_nonce_function rustsecp256k1zkp_v0_11_0_nonce_function_default;
 
 /** Create an ECDSA signature.
  *
  *  Returns: 1: signature created
  *           0: the nonce generation function failed, or the secret key was invalid.
- *  Args:    ctx:       pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static).
+ *  Args:    ctx:       pointer to a context object (not rustsecp256k1zkp_v0_11_0_context_static).
  *  Out:     sig:       pointer to an array where the signature will be placed.
  *  In:      msghash32: the 32-byte message hash being signed.
  *           seckey:    pointer to a 32-byte secret key.
  *           noncefp:   pointer to a nonce generation function. If NULL,
- *                      rustsecp256k1zkp_v0_10_0_nonce_function_default is used.
+ *                      rustsecp256k1zkp_v0_11_0_nonce_function_default is used.
  *           ndata:     pointer to arbitrary data used by the nonce generation function
  *                      (can be NULL). If it is non-NULL and
- *                      rustsecp256k1zkp_v0_10_0_nonce_function_default is used, then ndata must be a
+ *                      rustsecp256k1zkp_v0_11_0_nonce_function_default is used, then ndata must be a
  *                      pointer to 32-bytes of additional data.
  *
  * The created signature is always in lower-S form. See
- * rustsecp256k1zkp_v0_10_0_ecdsa_signature_normalize for more details.
+ * rustsecp256k1zkp_v0_11_0_ecdsa_signature_normalize for more details.
  */
-SECP256K1_API int rustsecp256k1zkp_v0_10_0_ecdsa_sign(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    rustsecp256k1zkp_v0_10_0_ecdsa_signature *sig,
+SECP256K1_API int rustsecp256k1zkp_v0_11_0_ecdsa_sign(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    rustsecp256k1zkp_v0_11_0_ecdsa_signature *sig,
     const unsigned char *msghash32,
     const unsigned char *seckey,
-    rustsecp256k1zkp_v0_10_0_nonce_function noncefp,
+    rustsecp256k1zkp_v0_11_0_nonce_function noncefp,
     const void *ndata
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4);
 
-/** Verify an ECDSA secret key.
+/** Verify an elliptic curve secret key.
  *
  *  A secret key is valid if it is not 0 and less than the secp256k1 curve order
  *  when interpreted as an integer (most significant byte first). The
  *  probability of choosing a 32-byte string uniformly at random which is an
- *  invalid secret key is negligible.
+ *  invalid secret key is negligible. However, if it does happen it should
+ *  be assumed that the randomness source is severely broken and there should
+ *  be no retry.
  *
  *  Returns: 1: secret key is valid
  *           0: secret key is invalid
  *  Args:    ctx: pointer to a context object.
  *  In:      seckey: pointer to a 32-byte secret key.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_seckey_verify(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ec_seckey_verify(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
     const unsigned char *seckey
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2);
 
@@ -599,38 +668,30 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_secke
  *
  *  Returns: 1: secret was valid, public key stores.
  *           0: secret was invalid, try again.
- *  Args:    ctx:    pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static).
+ *  Args:    ctx:    pointer to a context object (not rustsecp256k1zkp_v0_11_0_context_static).
  *  Out:     pubkey: pointer to the created public key.
  *  In:      seckey: pointer to a 32-byte secret key.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubkey_create(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    rustsecp256k1zkp_v0_10_0_pubkey *pubkey,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ec_pubkey_create(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    rustsecp256k1zkp_v0_11_0_pubkey *pubkey,
     const unsigned char *seckey
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
 /** Negates a secret key in place.
  *
  *  Returns: 0 if the given secret key is invalid according to
- *           rustsecp256k1zkp_v0_10_0_ec_seckey_verify. 1 otherwise
+ *           rustsecp256k1zkp_v0_11_0_ec_seckey_verify. 1 otherwise
  *  Args:   ctx:    pointer to a context object
  *  In/Out: seckey: pointer to the 32-byte secret key to be negated. If the
  *                  secret key is invalid according to
- *                  rustsecp256k1zkp_v0_10_0_ec_seckey_verify, this function returns 0 and
+ *                  rustsecp256k1zkp_v0_11_0_ec_seckey_verify, this function returns 0 and
  *                  seckey will be set to some unspecified value.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_seckey_negate(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ec_seckey_negate(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
     unsigned char *seckey
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2);
-
-/** Same as rustsecp256k1zkp_v0_10_0_ec_seckey_negate, but DEPRECATED. Will be removed in
- *  future versions. */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_privkey_negate(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    unsigned char *seckey
-) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2)
-  SECP256K1_DEPRECATED("Use rustsecp256k1zkp_v0_10_0_ec_seckey_negate instead");
 
 /** Negates a public key in place.
  *
@@ -638,9 +699,9 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_privk
  *  Args:   ctx:        pointer to a context object
  *  In/Out: pubkey:     pointer to the public key to be negated.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubkey_negate(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    rustsecp256k1zkp_v0_10_0_pubkey *pubkey
+SECP256K1_API int rustsecp256k1zkp_v0_11_0_ec_pubkey_negate(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    rustsecp256k1zkp_v0_11_0_pubkey *pubkey
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2);
 
 /** Tweak a secret key by adding tweak to it.
@@ -650,28 +711,19 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubke
  *           otherwise.
  *  Args:    ctx:   pointer to a context object.
  *  In/Out: seckey: pointer to a 32-byte secret key. If the secret key is
- *                  invalid according to rustsecp256k1zkp_v0_10_0_ec_seckey_verify, this
+ *                  invalid according to rustsecp256k1zkp_v0_11_0_ec_seckey_verify, this
  *                  function returns 0. seckey will be set to some unspecified
  *                  value if this function returns 0.
  *  In:    tweak32: pointer to a 32-byte tweak, which must be valid according to
- *                  rustsecp256k1zkp_v0_10_0_ec_seckey_verify or 32 zero bytes. For uniformly
+ *                  rustsecp256k1zkp_v0_11_0_ec_seckey_verify or 32 zero bytes. For uniformly
  *                  random 32-byte tweaks, the chance of being invalid is
  *                  negligible (around 1 in 2^128).
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_seckey_tweak_add(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ec_seckey_tweak_add(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
     unsigned char *seckey,
     const unsigned char *tweak32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
-
-/** Same as rustsecp256k1zkp_v0_10_0_ec_seckey_tweak_add, but DEPRECATED. Will be removed in
- *  future versions. */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_privkey_tweak_add(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    unsigned char *seckey,
-    const unsigned char *tweak32
-) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3)
-  SECP256K1_DEPRECATED("Use rustsecp256k1zkp_v0_10_0_ec_seckey_tweak_add instead");
 
 /** Tweak a public key by adding tweak times the generator to it.
  *
@@ -682,13 +734,13 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_privk
  *  In/Out: pubkey: pointer to a public key object. pubkey will be set to an
  *                  invalid value if this function returns 0.
  *  In:    tweak32: pointer to a 32-byte tweak, which must be valid according to
- *                  rustsecp256k1zkp_v0_10_0_ec_seckey_verify or 32 zero bytes. For uniformly
+ *                  rustsecp256k1zkp_v0_11_0_ec_seckey_verify or 32 zero bytes. For uniformly
  *                  random 32-byte tweaks, the chance of being invalid is
  *                  negligible (around 1 in 2^128).
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubkey_tweak_add(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    rustsecp256k1zkp_v0_10_0_pubkey *pubkey,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ec_pubkey_tweak_add(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    rustsecp256k1zkp_v0_11_0_pubkey *pubkey,
     const unsigned char *tweak32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -697,28 +749,19 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubke
  *  Returns: 0 if the arguments are invalid. 1 otherwise.
  *  Args:   ctx:    pointer to a context object.
  *  In/Out: seckey: pointer to a 32-byte secret key. If the secret key is
- *                  invalid according to rustsecp256k1zkp_v0_10_0_ec_seckey_verify, this
+ *                  invalid according to rustsecp256k1zkp_v0_11_0_ec_seckey_verify, this
  *                  function returns 0. seckey will be set to some unspecified
  *                  value if this function returns 0.
  *  In:    tweak32: pointer to a 32-byte tweak. If the tweak is invalid according to
- *                  rustsecp256k1zkp_v0_10_0_ec_seckey_verify, this function returns 0. For
+ *                  rustsecp256k1zkp_v0_11_0_ec_seckey_verify, this function returns 0. For
  *                  uniformly random 32-byte arrays the chance of being invalid
  *                  is negligible (around 1 in 2^128).
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_seckey_tweak_mul(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ec_seckey_tweak_mul(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
     unsigned char *seckey,
     const unsigned char *tweak32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
-
-/** Same as rustsecp256k1zkp_v0_10_0_ec_seckey_tweak_mul, but DEPRECATED. Will be removed in
- *  future versions. */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_privkey_tweak_mul(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    unsigned char *seckey,
-    const unsigned char *tweak32
-) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3)
-  SECP256K1_DEPRECATED("Use rustsecp256k1zkp_v0_10_0_ec_seckey_tweak_mul instead");
 
 /** Tweak a public key by multiplying it by a tweak value.
  *
@@ -727,13 +770,13 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_privk
  *  In/Out: pubkey: pointer to a public key object. pubkey will be set to an
  *                  invalid value if this function returns 0.
  *  In:    tweak32: pointer to a 32-byte tweak. If the tweak is invalid according to
- *                  rustsecp256k1zkp_v0_10_0_ec_seckey_verify, this function returns 0. For
+ *                  rustsecp256k1zkp_v0_11_0_ec_seckey_verify, this function returns 0. For
  *                  uniformly random 32-byte arrays the chance of being invalid
  *                  is negligible (around 1 in 2^128).
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubkey_tweak_mul(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    rustsecp256k1zkp_v0_10_0_pubkey *pubkey,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ec_pubkey_tweak_mul(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    rustsecp256k1zkp_v0_11_0_pubkey *pubkey,
     const unsigned char *tweak32
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -741,7 +784,7 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubke
  *
  *  Returns: 1: randomization successful
  *           0: error
- *  Args:    ctx:       pointer to a context object (not rustsecp256k1zkp_v0_10_0_context_static).
+ *  Args:    ctx:       pointer to a context object (not rustsecp256k1zkp_v0_11_0_context_static).
  *  In:      seed32:    pointer to a 32-byte random seed (NULL resets to initial state).
  *
  * While secp256k1 code is written and tested to be constant-time no matter what
@@ -752,25 +795,25 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubke
  * certain computations which involve secret keys.
  *
  * It is highly recommended to call this function on contexts returned from
- * rustsecp256k1zkp_v0_10_0_context_create or rustsecp256k1zkp_v0_10_0_context_clone (or from the corresponding
- * functions in rustsecp256k1zkp_v0_10_0_preallocated.h) before using these contexts to call API
+ * rustsecp256k1zkp_v0_11_0_context_create or rustsecp256k1zkp_v0_11_0_context_clone (or from the corresponding
+ * functions in rustsecp256k1zkp_v0_11_0_preallocated.h) before using these contexts to call API
  * functions that perform computations involving secret keys, e.g., signing and
  * public key generation. It is possible to call this function more than once on
  * the same context, and doing so before every few computations involving secret
  * keys is recommended as a defense-in-depth measure. Randomization of the static
- * context rustsecp256k1zkp_v0_10_0_context_static is not supported.
+ * context rustsecp256k1zkp_v0_11_0_context_static is not supported.
  *
  * Currently, the random seed is mainly used for blinding multiplications of a
  * secret scalar with the elliptic curve base point. Multiplications of this
  * kind are performed by exactly those API functions which are documented to
- * require a context that is not rustsecp256k1zkp_v0_10_0_context_static. As a rule of thumb,
+ * require a context that is not rustsecp256k1zkp_v0_11_0_context_static. As a rule of thumb,
  * these are all functions which take a secret key (or a keypair) as an input.
  * A notable exception to that rule is the ECDH module, which relies on a different
  * kind of elliptic curve point multiplication and thus does not benefit from
  * enhanced protection against side-channel leakage currently.
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_context_randomize(
-    rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_context_randomize(
+    rustsecp256k1zkp_v0_11_0_context *ctx,
     const unsigned char *seed32
 ) SECP256K1_ARG_NONNULL(1);
 
@@ -783,10 +826,10 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_context_
  *  In:     ins:        pointer to array of pointers to public keys.
  *          n:          the number of public keys to add together (must be at least 1).
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubkey_combine(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
-    rustsecp256k1zkp_v0_10_0_pubkey *out,
-    const rustsecp256k1zkp_v0_10_0_pubkey * const *ins,
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_11_0_ec_pubkey_combine(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
+    rustsecp256k1zkp_v0_11_0_pubkey *out,
+    const rustsecp256k1zkp_v0_11_0_pubkey * const *ins,
     size_t n
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3);
 
@@ -806,8 +849,8 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_ec_pubke
  *           msg: pointer to an array containing the message
  *        msglen: length of the message array
  */
-SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int rustsecp256k1zkp_v0_10_0_tagged_sha256(
-    const rustsecp256k1zkp_v0_10_0_context *ctx,
+SECP256K1_API int rustsecp256k1zkp_v0_11_0_tagged_sha256(
+    const rustsecp256k1zkp_v0_11_0_context *ctx,
     unsigned char *hash32,
     const unsigned char *tag,
     size_t taglen,

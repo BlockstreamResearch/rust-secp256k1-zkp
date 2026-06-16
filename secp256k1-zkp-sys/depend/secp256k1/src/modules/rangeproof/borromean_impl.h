@@ -20,19 +20,20 @@
 #include <limits.h>
 #include <string.h>
 
-SECP256K1_INLINE static void rustsecp256k1zkp_v0_10_0_borromean_hash(unsigned char *hash, const unsigned char *m, size_t mlen, const unsigned char *e, size_t elen,
+SECP256K1_INLINE static void rustsecp256k1zkp_v0_11_0_borromean_hash(const rustsecp256k1zkp_v0_11_0_hash_ctx *hash_ctx, unsigned char *hash, const unsigned char *m, size_t mlen, const unsigned char *e, size_t elen,
  size_t ridx, size_t eidx) {
     unsigned char ring[4];
     unsigned char epos[4];
-    rustsecp256k1zkp_v0_10_0_sha256 sha256_en;
-    rustsecp256k1zkp_v0_10_0_sha256_initialize(&sha256_en);
-    rustsecp256k1zkp_v0_10_0_write_be32(ring, (uint32_t)ridx);
-    rustsecp256k1zkp_v0_10_0_write_be32(epos, (uint32_t)eidx);
-    rustsecp256k1zkp_v0_10_0_sha256_write(&sha256_en, e, elen);
-    rustsecp256k1zkp_v0_10_0_sha256_write(&sha256_en, m, mlen);
-    rustsecp256k1zkp_v0_10_0_sha256_write(&sha256_en, ring, 4);
-    rustsecp256k1zkp_v0_10_0_sha256_write(&sha256_en, epos, 4);
-    rustsecp256k1zkp_v0_10_0_sha256_finalize(&sha256_en, hash);
+    rustsecp256k1zkp_v0_11_0_sha256 sha256_en;
+    rustsecp256k1zkp_v0_11_0_sha256_initialize(&sha256_en);
+    rustsecp256k1zkp_v0_11_0_write_be32(ring, (uint32_t)ridx);
+    rustsecp256k1zkp_v0_11_0_write_be32(epos, (uint32_t)eidx);
+    rustsecp256k1zkp_v0_11_0_sha256_write(hash_ctx, &sha256_en, e, elen);
+    rustsecp256k1zkp_v0_11_0_sha256_write(hash_ctx, &sha256_en, m, mlen);
+    rustsecp256k1zkp_v0_11_0_sha256_write(hash_ctx, &sha256_en, ring, 4);
+    rustsecp256k1zkp_v0_11_0_sha256_write(hash_ctx, &sha256_en, epos, 4);
+    rustsecp256k1zkp_v0_11_0_sha256_finalize(hash_ctx, &sha256_en, hash);
+    rustsecp256k1zkp_v0_11_0_sha256_clear(&sha256_en);
 }
 
 /**  "Borromean" ring signature.
@@ -49,17 +50,16 @@ SECP256K1_INLINE static void rustsecp256k1zkp_v0_10_0_borromean_hash(unsigned ch
  *   | | r_i = r
  *   | return e_0 ==== H(r_{0..i}||m)
  */
-int rustsecp256k1zkp_v0_10_0_borromean_verify(rustsecp256k1zkp_v0_10_0_scalar *evalues, const unsigned char *e0,
- const rustsecp256k1zkp_v0_10_0_scalar *s, const rustsecp256k1zkp_v0_10_0_gej *pubs, const size_t *rsizes, size_t nrings, const unsigned char *m, size_t mlen) {
-    rustsecp256k1zkp_v0_10_0_gej rgej;
-    rustsecp256k1zkp_v0_10_0_ge rge;
-    rustsecp256k1zkp_v0_10_0_scalar ens;
-    rustsecp256k1zkp_v0_10_0_sha256 sha256_e0;
+int rustsecp256k1zkp_v0_11_0_borromean_verify(const rustsecp256k1zkp_v0_11_0_hash_ctx *hash_ctx, rustsecp256k1zkp_v0_11_0_scalar *evalues, const unsigned char *e0,
+ const rustsecp256k1zkp_v0_11_0_scalar *s, const rustsecp256k1zkp_v0_11_0_gej *pubs, const size_t *rsizes, size_t nrings, const unsigned char *m, size_t mlen) {
+    rustsecp256k1zkp_v0_11_0_gej rgej;
+    rustsecp256k1zkp_v0_11_0_ge rge;
+    rustsecp256k1zkp_v0_11_0_scalar ens;
+    rustsecp256k1zkp_v0_11_0_sha256 sha256_e0;
     unsigned char tmp[33];
     size_t i;
     size_t j;
     size_t count;
-    size_t size;
     int overflow;
     VERIFY_CHECK(e0 != NULL);
     VERIFY_CHECK(s != NULL);
@@ -68,52 +68,52 @@ int rustsecp256k1zkp_v0_10_0_borromean_verify(rustsecp256k1zkp_v0_10_0_scalar *e
     VERIFY_CHECK(nrings > 0);
     VERIFY_CHECK(m != NULL);
     count = 0;
-    rustsecp256k1zkp_v0_10_0_sha256_initialize(&sha256_e0);
+    rustsecp256k1zkp_v0_11_0_sha256_initialize(&sha256_e0);
     for (i = 0; i < nrings; i++) {
         VERIFY_CHECK(INT_MAX - count > rsizes[i]);
-        rustsecp256k1zkp_v0_10_0_borromean_hash(tmp, m, mlen, e0, 32, i, 0);
-        rustsecp256k1zkp_v0_10_0_scalar_set_b32(&ens, tmp, &overflow);
+        rustsecp256k1zkp_v0_11_0_borromean_hash(hash_ctx, tmp, m, mlen, e0, 32, i, 0);
+        rustsecp256k1zkp_v0_11_0_scalar_set_b32(&ens, tmp, &overflow);
         for (j = 0; j < rsizes[i]; j++) {
-            if (overflow || rustsecp256k1zkp_v0_10_0_scalar_is_zero(&s[count]) || rustsecp256k1zkp_v0_10_0_scalar_is_zero(&ens) || rustsecp256k1zkp_v0_10_0_gej_is_infinity(&pubs[count])) {
+            if (overflow || rustsecp256k1zkp_v0_11_0_scalar_is_zero(&s[count]) || rustsecp256k1zkp_v0_11_0_scalar_is_zero(&ens) || rustsecp256k1zkp_v0_11_0_gej_is_infinity(&pubs[count])) {
                 return 0;
             }
             if (evalues) {
                 /*If requested, save the challenges for proof rewind.*/
                 evalues[count] = ens;
             }
-            rustsecp256k1zkp_v0_10_0_ecmult(&rgej, &pubs[count], &ens, &s[count]);
-            if (rustsecp256k1zkp_v0_10_0_gej_is_infinity(&rgej)) {
+            rustsecp256k1zkp_v0_11_0_ecmult(&rgej, &pubs[count], &ens, &s[count]);
+            if (rustsecp256k1zkp_v0_11_0_gej_is_infinity(&rgej)) {
                 return 0;
             }
             /* OPT: loop can be hoisted and split to use batch inversion across all the rings; this would make it much faster. */
-            rustsecp256k1zkp_v0_10_0_ge_set_gej_var(&rge, &rgej);
-            rustsecp256k1zkp_v0_10_0_eckey_pubkey_serialize(&rge, tmp, &size, 1);
+            rustsecp256k1zkp_v0_11_0_ge_set_gej_var(&rge, &rgej);
+            rustsecp256k1zkp_v0_11_0_eckey_pubkey_serialize33(&rge, tmp);
             if (j != rsizes[i] - 1) {
-                rustsecp256k1zkp_v0_10_0_borromean_hash(tmp, m, mlen, tmp, 33, i, j + 1);
-                rustsecp256k1zkp_v0_10_0_scalar_set_b32(&ens, tmp, &overflow);
+                rustsecp256k1zkp_v0_11_0_borromean_hash(hash_ctx, tmp, m, mlen, tmp, 33, i, j + 1);
+                rustsecp256k1zkp_v0_11_0_scalar_set_b32(&ens, tmp, &overflow);
             } else {
-                rustsecp256k1zkp_v0_10_0_sha256_write(&sha256_e0, tmp, size);
+                rustsecp256k1zkp_v0_11_0_sha256_write(hash_ctx, &sha256_e0, tmp, 33);
             }
             count++;
         }
     }
-    rustsecp256k1zkp_v0_10_0_sha256_write(&sha256_e0, m, mlen);
-    rustsecp256k1zkp_v0_10_0_sha256_finalize(&sha256_e0, tmp);
-    return rustsecp256k1zkp_v0_10_0_memcmp_var(e0, tmp, 32) == 0;
+    rustsecp256k1zkp_v0_11_0_sha256_write(hash_ctx, &sha256_e0, m, mlen);
+    rustsecp256k1zkp_v0_11_0_sha256_finalize(hash_ctx, &sha256_e0, tmp);
+    rustsecp256k1zkp_v0_11_0_sha256_clear(&sha256_e0);
+    return rustsecp256k1zkp_v0_11_0_memcmp_var(e0, tmp, 32) == 0;
 }
 
-int rustsecp256k1zkp_v0_10_0_borromean_sign(const rustsecp256k1zkp_v0_10_0_ecmult_gen_context *ecmult_gen_ctx,
- unsigned char *e0, rustsecp256k1zkp_v0_10_0_scalar *s, const rustsecp256k1zkp_v0_10_0_gej *pubs, const rustsecp256k1zkp_v0_10_0_scalar *k, const rustsecp256k1zkp_v0_10_0_scalar *sec,
+int rustsecp256k1zkp_v0_11_0_borromean_sign(const rustsecp256k1zkp_v0_11_0_hash_ctx *hash_ctx, const rustsecp256k1zkp_v0_11_0_ecmult_gen_context *ecmult_gen_ctx,
+ unsigned char *e0, rustsecp256k1zkp_v0_11_0_scalar *s, const rustsecp256k1zkp_v0_11_0_gej *pubs, const rustsecp256k1zkp_v0_11_0_scalar *k, const rustsecp256k1zkp_v0_11_0_scalar *sec,
  const size_t *rsizes, const size_t *secidx, size_t nrings, const unsigned char *m, size_t mlen) {
-    rustsecp256k1zkp_v0_10_0_gej rgej;
-    rustsecp256k1zkp_v0_10_0_ge rge;
-    rustsecp256k1zkp_v0_10_0_scalar ens;
-    rustsecp256k1zkp_v0_10_0_sha256 sha256_e0;
+    rustsecp256k1zkp_v0_11_0_gej rgej;
+    rustsecp256k1zkp_v0_11_0_ge rge;
+    rustsecp256k1zkp_v0_11_0_scalar ens;
+    rustsecp256k1zkp_v0_11_0_sha256 sha256_e0;
     unsigned char tmp[33];
     size_t i;
     size_t j;
     size_t count;
-    size_t size;
     int overflow;
     VERIFY_CHECK(ecmult_gen_ctx != NULL);
     VERIFY_CHECK(e0 != NULL);
@@ -125,71 +125,72 @@ int rustsecp256k1zkp_v0_10_0_borromean_sign(const rustsecp256k1zkp_v0_10_0_ecmul
     VERIFY_CHECK(secidx != NULL);
     VERIFY_CHECK(nrings > 0);
     VERIFY_CHECK(m != NULL);
-    rustsecp256k1zkp_v0_10_0_sha256_initialize(&sha256_e0);
+    rustsecp256k1zkp_v0_11_0_sha256_initialize(&sha256_e0);
     count = 0;
     for (i = 0; i < nrings; i++) {
         VERIFY_CHECK(INT_MAX - count > rsizes[i]);
-        rustsecp256k1zkp_v0_10_0_ecmult_gen(ecmult_gen_ctx, &rgej, &k[i]);
-        rustsecp256k1zkp_v0_10_0_ge_set_gej(&rge, &rgej);
-        if (rustsecp256k1zkp_v0_10_0_gej_is_infinity(&rgej)) {
+        rustsecp256k1zkp_v0_11_0_ecmult_gen(ecmult_gen_ctx, &rgej, &k[i]);
+        rustsecp256k1zkp_v0_11_0_ge_set_gej(&rge, &rgej);
+        if (rustsecp256k1zkp_v0_11_0_gej_is_infinity(&rgej)) {
             return 0;
         }
-        rustsecp256k1zkp_v0_10_0_eckey_pubkey_serialize(&rge, tmp, &size, 1);
+        rustsecp256k1zkp_v0_11_0_eckey_pubkey_serialize33(&rge, tmp);
         for (j = secidx[i] + 1; j < rsizes[i]; j++) {
-            rustsecp256k1zkp_v0_10_0_borromean_hash(tmp, m, mlen, tmp, 33, i, j);
-            rustsecp256k1zkp_v0_10_0_scalar_set_b32(&ens, tmp, &overflow);
-            if (overflow || rustsecp256k1zkp_v0_10_0_scalar_is_zero(&ens)) {
+            rustsecp256k1zkp_v0_11_0_borromean_hash(hash_ctx, tmp, m, mlen, tmp, 33, i, j);
+            rustsecp256k1zkp_v0_11_0_scalar_set_b32(&ens, tmp, &overflow);
+            if (overflow || rustsecp256k1zkp_v0_11_0_scalar_is_zero(&ens)) {
                 return 0;
             }
             /** The signing algorithm as a whole is not memory uniform so there is likely a cache sidechannel that
              *  leaks which members are non-forgeries. That the forgeries themselves are variable time may leave
              *  an additional privacy impacting timing side-channel, but not a key loss one.
              */
-            rustsecp256k1zkp_v0_10_0_ecmult(&rgej, &pubs[count + j], &ens, &s[count + j]);
-            if (rustsecp256k1zkp_v0_10_0_gej_is_infinity(&rgej)) {
+            rustsecp256k1zkp_v0_11_0_ecmult(&rgej, &pubs[count + j], &ens, &s[count + j]);
+            if (rustsecp256k1zkp_v0_11_0_gej_is_infinity(&rgej)) {
                 return 0;
             }
-            rustsecp256k1zkp_v0_10_0_ge_set_gej_var(&rge, &rgej);
-            rustsecp256k1zkp_v0_10_0_eckey_pubkey_serialize(&rge, tmp, &size, 1);
+            rustsecp256k1zkp_v0_11_0_ge_set_gej_var(&rge, &rgej);
+            rustsecp256k1zkp_v0_11_0_eckey_pubkey_serialize33(&rge, tmp);
         }
-        rustsecp256k1zkp_v0_10_0_sha256_write(&sha256_e0, tmp, size);
+        rustsecp256k1zkp_v0_11_0_sha256_write(hash_ctx, &sha256_e0, tmp, 33);
         count += rsizes[i];
     }
-    rustsecp256k1zkp_v0_10_0_sha256_write(&sha256_e0, m, mlen);
-    rustsecp256k1zkp_v0_10_0_sha256_finalize(&sha256_e0, e0);
+    rustsecp256k1zkp_v0_11_0_sha256_write(hash_ctx, &sha256_e0, m, mlen);
+    rustsecp256k1zkp_v0_11_0_sha256_finalize(hash_ctx, &sha256_e0, e0);
+    rustsecp256k1zkp_v0_11_0_sha256_clear(&sha256_e0);
     count = 0;
     for (i = 0; i < nrings; i++) {
         VERIFY_CHECK(INT_MAX - count > rsizes[i]);
-        rustsecp256k1zkp_v0_10_0_borromean_hash(tmp, m, mlen, e0, 32, i, 0);
-        rustsecp256k1zkp_v0_10_0_scalar_set_b32(&ens, tmp, &overflow);
-        if (overflow || rustsecp256k1zkp_v0_10_0_scalar_is_zero(&ens)) {
+        rustsecp256k1zkp_v0_11_0_borromean_hash(hash_ctx, tmp, m, mlen, e0, 32, i, 0);
+        rustsecp256k1zkp_v0_11_0_scalar_set_b32(&ens, tmp, &overflow);
+        if (overflow || rustsecp256k1zkp_v0_11_0_scalar_is_zero(&ens)) {
             return 0;
         }
         for (j = 0; j < secidx[i]; j++) {
-            rustsecp256k1zkp_v0_10_0_ecmult(&rgej, &pubs[count + j], &ens, &s[count + j]);
-            if (rustsecp256k1zkp_v0_10_0_gej_is_infinity(&rgej)) {
+            rustsecp256k1zkp_v0_11_0_ecmult(&rgej, &pubs[count + j], &ens, &s[count + j]);
+            if (rustsecp256k1zkp_v0_11_0_gej_is_infinity(&rgej)) {
                 return 0;
             }
-            rustsecp256k1zkp_v0_10_0_ge_set_gej_var(&rge, &rgej);
-            rustsecp256k1zkp_v0_10_0_eckey_pubkey_serialize(&rge, tmp, &size, 1);
-            rustsecp256k1zkp_v0_10_0_borromean_hash(tmp, m, mlen, tmp, 33, i, j + 1);
-            rustsecp256k1zkp_v0_10_0_scalar_set_b32(&ens, tmp, &overflow);
-            if (overflow || rustsecp256k1zkp_v0_10_0_scalar_is_zero(&ens)) {
+            rustsecp256k1zkp_v0_11_0_ge_set_gej_var(&rge, &rgej);
+            rustsecp256k1zkp_v0_11_0_eckey_pubkey_serialize33(&rge, tmp);
+            rustsecp256k1zkp_v0_11_0_borromean_hash(hash_ctx, tmp, m, mlen, tmp, 33, i, j + 1);
+            rustsecp256k1zkp_v0_11_0_scalar_set_b32(&ens, tmp, &overflow);
+            if (overflow || rustsecp256k1zkp_v0_11_0_scalar_is_zero(&ens)) {
                 return 0;
             }
         }
-        rustsecp256k1zkp_v0_10_0_scalar_mul(&s[count + j], &ens, &sec[i]);
-        rustsecp256k1zkp_v0_10_0_scalar_negate(&s[count + j], &s[count + j]);
-        rustsecp256k1zkp_v0_10_0_scalar_add(&s[count + j], &s[count + j], &k[i]);
-        if (rustsecp256k1zkp_v0_10_0_scalar_is_zero(&s[count + j])) {
+        rustsecp256k1zkp_v0_11_0_scalar_mul(&s[count + j], &ens, &sec[i]);
+        rustsecp256k1zkp_v0_11_0_scalar_negate(&s[count + j], &s[count + j]);
+        rustsecp256k1zkp_v0_11_0_scalar_add(&s[count + j], &s[count + j], &k[i]);
+        if (rustsecp256k1zkp_v0_11_0_scalar_is_zero(&s[count + j])) {
             return 0;
         }
         count += rsizes[i];
     }
-    rustsecp256k1zkp_v0_10_0_scalar_clear(&ens);
-    rustsecp256k1zkp_v0_10_0_ge_clear(&rge);
-    rustsecp256k1zkp_v0_10_0_gej_clear(&rgej);
-    memset(tmp, 0, 33);
+    rustsecp256k1zkp_v0_11_0_scalar_clear(&ens);
+    rustsecp256k1zkp_v0_11_0_ge_clear(&rge);
+    rustsecp256k1zkp_v0_11_0_gej_clear(&rgej);
+    rustsecp256k1zkp_v0_11_0_memclear_explicit(tmp, 33);
     return 1;
 }
 

@@ -1,6 +1,6 @@
 [package]
 name = "secp256k1-zkp"
-version = "0.11.0"
+version = "0.12.0"
 authors = [ "Dawid Ciężarkiewicz <dpc@ucore.info>",
             "Andrew Poelstra <apoelstra@wpsoftware.net>",
             "Lucas Soriano <lucas@comit.network>",
@@ -11,8 +11,7 @@ repository = "https://github.com/ElementsProject/rust-secp256k1-zkp/"
 description = "Rust bindings for the `libsecp256k1-zkp` library."
 keywords = [ "crypto", "ECDSA", "secp256k1-zkp", "libsecp256k1-zkp", "elements" ]
 readme = "README.md"
-autoexamples = false # Remove when edition 2018 https://github.com/rust-lang/cargo/issues/5330
-edition = "2018"
+edition = "2021"
 
 # Should make docs.rs show all functions, even those behind non-default features
 [package.metadata.docs.rs]
@@ -22,7 +21,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 [features]
 default = ["std"]
 std = ["secp256k1-zkp-sys/std", "secp256k1/std"]
-rand-std = ["actual-rand/std", "secp256k1/rand-std"]
+rand-std = ["actual-rand/std", "secp256k1/rand"]
 recovery = ["secp256k1-zkp-sys/recovery", "secp256k1/recovery"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory", "secp256k1/lowmemory"]
 global-context = ["std", "rand-std", "secp256k1/global-context"]
@@ -33,8 +32,8 @@ rand = ["actual-rand", "secp256k1/rand"]
 [dependencies]
 actual-serde = { package = "serde", version = "1.0", default-features = false, optional = true }
 actual-rand = { package = "rand", version = "0.8", default-features = false, optional = true }
-secp256k1 = "0.29.0"
-secp256k1-zkp-sys = { version = "0.10.0", default-features = false, path = "./secp256k1-zkp-sys" }
+secp256k1 = "0.31.1"
+secp256k1-zkp-sys = { version = "0.11.0", default-features = false, path = "./secp256k1-zkp-sys" }
 internals = { package = "bitcoin-private", version = "0.1.0" }
 
 [dev-dependencies]
