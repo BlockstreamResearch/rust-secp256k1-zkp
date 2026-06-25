@@ -58,7 +58,9 @@ impl fmt::LowerHex for Signature {
 }
 
 impl fmt::Display for Signature {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { fmt::LowerHex::fmt(self, f) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::LowerHex::fmt(self, f)
+    }
 }
 
 impl str::FromStr for Signature {
@@ -75,7 +77,9 @@ impl str::FromStr for Signature {
 impl Signature {
     /// Construct a `Signature` from a 64 bytes array.
     #[inline]
-    pub fn from_byte_array(sig: [u8; constants::SCHNORR_SIGNATURE_SIZE]) -> Self { Self(sig) }
+    pub fn from_byte_array(sig: [u8; constants::SCHNORR_SIGNATURE_SIZE]) -> Self {
+        Self(sig)
+    }
 
     /// Creates a `Signature` directly from a slice.
     #[deprecated(since = "0.30.0", note = "Use `from_byte_array` instead.")]
@@ -93,15 +97,21 @@ impl Signature {
 
     /// Returns a signature as a byte array.
     #[deprecated(since = "0.30.0", note = "Use `to_byte_array` instead.")]
-    pub fn serialize(&self) -> [u8; constants::SCHNORR_SIGNATURE_SIZE] { self.0 }
+    pub fn serialize(&self) -> [u8; constants::SCHNORR_SIGNATURE_SIZE] {
+        self.0
+    }
 
     /// Returns a signature as a byte array.
     #[inline]
-    pub fn to_byte_array(self) -> [u8; constants::SCHNORR_SIGNATURE_SIZE] { self.0 }
+    pub fn to_byte_array(self) -> [u8; constants::SCHNORR_SIGNATURE_SIZE] {
+        self.0
+    }
 
     /// Returns a signature as a byte array.
     #[inline]
-    pub fn as_byte_array(&self) -> &[u8; constants::SCHNORR_SIGNATURE_SIZE] { &self.0 }
+    pub fn as_byte_array(&self) -> &[u8; constants::SCHNORR_SIGNATURE_SIZE] {
+        &self.0
+    }
 
     /// Verifies a schnorr signature for `msg` using `pk` and the global [`SECP256K1`] context.
     #[inline]
@@ -156,7 +166,11 @@ impl<C: Signing> Secp256k1<C> {
         keypair: &Keypair,
         aux_rand: &[u8; 32],
     ) -> Signature {
-        self.sign_schnorr_helper(msg, keypair, aux_rand.as_c_ptr() as *const ffi::types::c_uchar)
+        self.sign_schnorr_helper(
+            msg,
+            keypair,
+            aux_rand.as_c_ptr() as *const ffi::types::c_uchar,
+        )
     }
 
     /// Creates a schnorr signature using the given random number generator to
@@ -241,7 +255,9 @@ mod tests {
 
     #[test]
     #[cfg(all(feature = "rand", feature = "std"))]
-    fn schnorr_sign_verify() { sign_helper(|secp, msg, seckey, _| secp.sign_schnorr(msg, seckey)) }
+    fn schnorr_sign_verify() {
+        sign_helper(|secp, msg, seckey, _| secp.sign_schnorr(msg, seckey))
+    }
 
     #[test]
     #[cfg(all(feature = "rand", feature = "std"))]
@@ -332,7 +348,10 @@ mod tests {
     fn test_pubkey_from_bad_slice() {
         // Bad sizes
         assert_eq!(XOnlyPublicKey::from_slice(&[]), Err(InvalidPublicKey));
-        assert_eq!(XOnlyPublicKey::from_slice(&[1, 2, 3]), Err(InvalidPublicKey));
+        assert_eq!(
+            XOnlyPublicKey::from_slice(&[1, 2, 3]),
+            Err(InvalidPublicKey)
+        );
         assert_eq!(
             XOnlyPublicKey::from_slice(&[0; constants::SCHNORR_PUBLIC_KEY_SIZE - 1]),
             Err(InvalidPublicKey)

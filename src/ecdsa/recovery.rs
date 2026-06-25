@@ -98,8 +98,13 @@ impl RecoverableSignature {
 
     /// Obtains a raw pointer suitable for use with FFI functions.
     #[inline]
-    #[deprecated(since = "0.25.0", note = "Use Self::as_c_ptr if you need to access the FFI layer")]
-    pub fn as_ptr(&self) -> *const ffi::RecoverableSignature { self.as_c_ptr() }
+    #[deprecated(
+        since = "0.25.0",
+        note = "Use Self::as_c_ptr if you need to access the FFI layer"
+    )]
+    pub fn as_ptr(&self) -> *const ffi::RecoverableSignature {
+        self.as_c_ptr()
+    }
 
     /// Obtains a raw mutable pointer suitable for use with FFI functions.
     #[inline]
@@ -107,7 +112,9 @@ impl RecoverableSignature {
         since = "0.25.0",
         note = "Use Self::as_mut_c_ptr if you need to access the FFI layer"
     )]
-    pub fn as_mut_ptr(&mut self) -> *mut ffi::RecoverableSignature { self.as_mut_c_ptr() }
+    pub fn as_mut_ptr(&mut self) -> *mut ffi::RecoverableSignature {
+        self.as_mut_c_ptr()
+    }
 
     #[inline]
     /// Serializes the recoverable signature in compact format.
@@ -123,7 +130,10 @@ impl RecoverableSignature {
             );
             assert!(err == 1);
         }
-        (recid.try_into().expect("ffi returned invalid RecoveryId!"), ret)
+        (
+            recid.try_into().expect("ffi returned invalid RecoveryId!"),
+            ret,
+        )
     }
 
     /// Converts a recoverable signature to a non-recoverable one (this is needed
@@ -153,15 +163,21 @@ impl RecoverableSignature {
 
 impl CPtr for RecoverableSignature {
     type Target = ffi::RecoverableSignature;
-    fn as_c_ptr(&self) -> *const Self::Target { &self.0 }
+    fn as_c_ptr(&self) -> *const Self::Target {
+        &self.0
+    }
 
-    fn as_mut_c_ptr(&mut self) -> *mut Self::Target { &mut self.0 }
+    fn as_mut_c_ptr(&mut self) -> *mut Self::Target {
+        &mut self.0
+    }
 }
 
 /// Creates a new recoverable signature from a FFI one.
 impl From<ffi::RecoverableSignature> for RecoverableSignature {
     #[inline]
-    fn from(sig: ffi::RecoverableSignature) -> RecoverableSignature { RecoverableSignature(sig) }
+    fn from(sig: ffi::RecoverableSignature) -> RecoverableSignature {
+        RecoverableSignature(sig)
+    }
 }
 
 impl<C: Signing> Secp256k1<C> {
@@ -267,14 +283,20 @@ mod tests {
         let (sk, pk) = full.generate_keypair(&mut rand::rng());
 
         // Try signing
-        assert_eq!(sign.sign_ecdsa_recoverable(msg, &sk), full.sign_ecdsa_recoverable(msg, &sk));
+        assert_eq!(
+            sign.sign_ecdsa_recoverable(msg, &sk),
+            full.sign_ecdsa_recoverable(msg, &sk)
+        );
         let sigr = full.sign_ecdsa_recoverable(msg, &sk);
 
         // Try pk recovery
         assert!(vrfy.recover_ecdsa(msg, &sigr).is_ok());
         assert!(full.recover_ecdsa(msg, &sigr).is_ok());
 
-        assert_eq!(vrfy.recover_ecdsa(msg, &sigr), full.recover_ecdsa(msg, &sigr));
+        assert_eq!(
+            vrfy.recover_ecdsa(msg, &sigr),
+            full.recover_ecdsa(msg, &sigr)
+        );
         assert_eq!(full.recover_ecdsa(msg, &sigr), Ok(pk));
     }
 
@@ -351,7 +373,10 @@ mod tests {
 
         let msg = crate::random_32_bytes(&mut rand::rng());
         let msg = Message::from_digest(msg);
-        assert_eq!(s.verify_ecdsa(msg, &sig, &pk), Err(Error::IncorrectSignature));
+        assert_eq!(
+            s.verify_ecdsa(msg, &sig, &pk),
+            Err(Error::IncorrectSignature)
+        );
 
         let recovered_key = s.recover_ecdsa(msg, &sigr).unwrap();
         assert!(recovered_key != pk);

@@ -101,7 +101,9 @@ impl ElligatorSwift {
     }
 
     /// Returns the 64-byte array representation of this `ElligatorSwift` object.
-    pub fn to_array(&self) -> [u8; 64] { self.0.to_array() }
+    pub fn to_array(&self) -> [u8; 64] {
+        self.0.to_array()
+    }
 
     /// Creates the Elligator Swift encoding from a secret key, using some aux_rand if defined.
     /// This method is preferred instead of just decoding, because the private key offers extra
@@ -146,7 +148,9 @@ impl ElligatorSwift {
     /// # }
     ///
     /// ```
-    pub fn from_pubkey(pk: PublicKey) -> ElligatorSwift { Self::encode(pk) }
+    pub fn from_pubkey(pk: PublicKey) -> ElligatorSwift {
+        Self::encode(pk)
+    }
 
     /// Computes a shared secret only known by Alice and Bob. This is obtained by computing
     /// the x-only Elliptic Curve Diffie-Hellman (ECDH) shared secret between Alice and Bob.
@@ -274,13 +278,19 @@ impl ElligatorSwiftSharedSecret {
     ///
     /// This is generally not needed except for unusual cases like restoring the secret from a
     /// database.
-    pub const fn from_secret_bytes(bytes: [u8; 32]) -> Self { Self(bytes) }
+    pub const fn from_secret_bytes(bytes: [u8; 32]) -> Self {
+        Self(bytes)
+    }
 
     /// Returns the secret bytes as an array.
-    pub const fn to_secret_bytes(self) -> [u8; 32] { self.0 }
+    pub const fn to_secret_bytes(self) -> [u8; 32] {
+        self.0
+    }
 
     /// Returns the secret bytes as a reference to an array.
-    pub const fn as_secret_bytes(&self) -> &[u8; 32] { &self.0 }
+    pub const fn as_secret_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
 }
 
 /// Represents which party we are in the ECDH.
@@ -352,13 +362,19 @@ impl fmt::LowerHex for ElligatorSwift {
 }
 
 impl Display for ElligatorSwift {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result { core::fmt::LowerHex::fmt(&self, f) }
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        core::fmt::LowerHex::fmt(&self, f)
+    }
 }
 
 impl ffi::CPtr for ElligatorSwift {
     type Target = u8;
-    fn as_mut_c_ptr(&mut self) -> *mut Self::Target { self.0.as_mut_c_ptr() }
-    fn as_c_ptr(&self) -> *const Self::Target { self.0.as_c_ptr() }
+    fn as_mut_c_ptr(&mut self) -> *mut Self::Target {
+        self.0.as_mut_c_ptr()
+    }
+    fn as_c_ptr(&self) -> *const Self::Target {
+        self.0.as_c_ptr()
+    }
 }
 
 #[cfg(test)]
@@ -629,7 +645,11 @@ mod tests {
                 )
             };
             let sec_key = SecretKey::from_byte_array(my_secret).unwrap();
-            let initiator = if initiator == 0 { Party::Responder } else { Party::Initiator };
+            let initiator = if initiator == 0 {
+                Party::Responder
+            } else {
+                Party::Initiator
+            };
 
             let shared = ElligatorSwift::shared_secret(el_a, el_b, sec_key, initiator, None);
 
@@ -648,7 +668,11 @@ mod tests {
             let mut enc = [0u8; 64];
             from_hex(ell, &mut enc).unwrap();
             let xo = XOnlyPublicKey::from_str(x).unwrap();
-            let parity = if parity == 0 { crate::Parity::Even } else { crate::Parity::Odd };
+            let parity = if parity == 0 {
+                crate::Parity::Even
+            } else {
+                crate::Parity::Odd
+            };
             let pk = PublicKey::from_x_only_public_key(xo, parity);
             EllswiftDecodeTest { enc, key: pk }
         }

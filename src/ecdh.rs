@@ -57,11 +57,15 @@ impl SharedSecret {
 
     /// Returns the shared secret as a byte value.
     #[inline]
-    pub fn secret_bytes(&self) -> [u8; SHARED_SECRET_SIZE] { self.0 }
+    pub fn secret_bytes(&self) -> [u8; SHARED_SECRET_SIZE] {
+        self.0
+    }
 
     /// Creates a shared secret from `bytes` array.
     #[inline]
-    pub fn from_bytes(bytes: [u8; SHARED_SECRET_SIZE]) -> SharedSecret { SharedSecret(bytes) }
+    pub fn from_bytes(bytes: [u8; SHARED_SECRET_SIZE]) -> SharedSecret {
+        SharedSecret(bytes)
+    }
 
     /// Creates a shared secret from `bytes` slice.
     #[deprecated(since = "0.30.0", note = "Use `from_bytes` instead.")]
@@ -90,11 +94,15 @@ impl str::FromStr for SharedSecret {
 }
 
 impl Borrow<[u8]> for SharedSecret {
-    fn borrow(&self) -> &[u8] { &self.0 }
+    fn borrow(&self) -> &[u8] {
+        &self.0
+    }
 }
 
 impl AsRef<[u8]> for SharedSecret {
-    fn as_ref(&self) -> &[u8] { &self.0 }
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
 }
 
 /// Creates a shared point from public key and secret key.
@@ -213,7 +221,12 @@ mod tests {
         let y = [7u8; 32];
         let mut output = [0u8; 64];
         let res = unsafe {
-            super::c_callback(output.as_mut_ptr(), x.as_ptr(), y.as_ptr(), core::ptr::null_mut())
+            super::c_callback(
+                output.as_mut_ptr(),
+                x.as_ptr(),
+                y.as_ptr(),
+                core::ptr::null_mut(),
+            )
         };
         assert_eq!(res, 1);
         let mut new_x = [0u8; 32];

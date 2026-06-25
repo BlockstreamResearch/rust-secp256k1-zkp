@@ -139,7 +139,11 @@
 
 // Coding conventions
 #![deny(non_upper_case_globals, non_camel_case_types, non_snake_case)]
-#![warn(missing_docs, missing_copy_implementations, missing_debug_implementations)]
+#![warn(
+    missing_docs,
+    missing_copy_implementations,
+    missing_debug_implementations
+)]
 // Experimental features we need.
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![cfg_attr(bench, feature(test))]
@@ -239,7 +243,9 @@ impl Message {
     ///
     /// [secure signature]: https://twitter.com/pwuille/status/1063582706288586752
     #[inline]
-    pub fn from_digest(digest: [u8; 32]) -> Message { Message(digest) }
+    pub fn from_digest(digest: [u8; 32]) -> Message {
+        Message(digest)
+    }
 
     /// Creates a [`Message`] from a 32 byte slice `digest`.
     ///
@@ -259,14 +265,18 @@ impl Message {
     #[inline]
     #[deprecated(since = "0.30.0", note = "use from_digest instead")]
     pub fn from_digest_slice(digest: &[u8]) -> Result<Message, Error> {
-        Ok(Message::from_digest(digest.try_into().map_err(|_| Error::InvalidMessage)?))
+        Ok(Message::from_digest(
+            digest.try_into().map_err(|_| Error::InvalidMessage)?,
+        ))
     }
 }
 
 #[allow(deprecated)]
 impl<T: ThirtyTwoByteHash> From<T> for Message {
     /// Converts a 32-byte hash directly to a message without error paths.
-    fn from(t: T) -> Message { Message(t.into_32()) }
+    fn from(t: T) -> Message {
+        Message(t.into_32())
+    }
 }
 
 impl fmt::LowerHex for Message {
@@ -279,7 +289,9 @@ impl fmt::LowerHex for Message {
 }
 
 impl fmt::Display for Message {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { fmt::LowerHex::fmt(self, f) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::LowerHex::fmt(self, f)
+    }
 }
 
 /// The main error type for this library.
@@ -434,7 +446,9 @@ unsafe impl<C: Context> Send for Secp256k1<C> {}
 unsafe impl<C: Context> Sync for Secp256k1<C> {}
 
 impl<C: Context> PartialEq for Secp256k1<C> {
-    fn eq(&self, _other: &Secp256k1<C>) -> bool { true }
+    fn eq(&self, _other: &Secp256k1<C>) -> bool {
+        true
+    }
 }
 
 impl<C: Context> Eq for Secp256k1<C> {}
@@ -461,7 +475,9 @@ impl<C: Context> Secp256k1<C> {
     /// shouldn't be needed with normal usage of the library. It enables
     /// extending the Secp256k1 with more cryptographic algorithms outside of
     /// this crate.
-    pub fn ctx(&self) -> NonNull<ffi::Context> { self.ctx }
+    pub fn ctx(&self) -> NonNull<ffi::Context> {
+        self.ctx
+    }
 
     /// Returns the required memory for a preallocated context buffer in a generic manner(sign/verify/all).
     pub fn preallocate_size_gen() -> usize {
@@ -862,7 +878,12 @@ mod tests {
         wild_keys[1][0] -= 1;
         wild_msgs[1][0] -= 1;
 
-        for key in wild_keys.iter().copied().map(SecretKey::from_byte_array).map(Result::unwrap) {
+        for key in wild_keys
+            .iter()
+            .copied()
+            .map(SecretKey::from_byte_array)
+            .map(Result::unwrap)
+        {
             for msg in wild_msgs.into_iter().map(Message::from_digest) {
                 let sig = s.sign_ecdsa(msg, &key);
                 let low_r_sig = s.sign_ecdsa_low_r(msg, &key);
@@ -890,7 +911,10 @@ mod tests {
 
         let msg = crate::random_32_bytes(&mut rand::rng());
         let msg = Message::from_digest(msg);
-        assert_eq!(s.verify_ecdsa(msg, &sig, &pk), Err(Error::IncorrectSignature));
+        assert_eq!(
+            s.verify_ecdsa(msg, &sig, &pk),
+            Err(Error::IncorrectSignature)
+        );
     }
 
     #[test]
@@ -983,7 +1007,10 @@ mod tests {
         let msg = Message::from_digest(msg);
 
         // without normalization we expect this will fail
-        assert_eq!(secp.verify_ecdsa(msg, &sig, &pk), Err(Error::IncorrectSignature));
+        assert_eq!(
+            secp.verify_ecdsa(msg, &sig, &pk),
+            Err(Error::IncorrectSignature)
+        );
         // after normalization it should pass
         sig.normalize_s();
         assert_eq!(secp.verify_ecdsa(msg, &sig, &pk), Ok(()));

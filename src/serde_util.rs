@@ -14,7 +14,10 @@ pub struct FromStrVisitor<T> {
 
 impl<T> FromStrVisitor<T> {
     pub fn new(expectation: &'static str) -> Self {
-        FromStrVisitor { expectation, _pd: PhantomData }
+        FromStrVisitor {
+            expectation,
+            _pd: PhantomData,
+        }
     }
 }
 
@@ -45,7 +48,10 @@ where
     Err: fmt::Display,
 {
     pub fn new(expectation: &'static str, parse_fn: F) -> Self {
-        BytesVisitor { expectation, parse_fn }
+        BytesVisitor {
+            expectation,
+            parse_fn,
+        }
     }
 }
 
@@ -78,7 +84,10 @@ macro_rules! impl_tuple_visitor {
             E: fmt::Display,
         {
             pub fn new(expectation: &'static str, parse_fn: F) -> Self {
-                $thing { expectation, parse_fn }
+                $thing {
+                    expectation,
+                    parse_fn,
+                }
             }
         }
 

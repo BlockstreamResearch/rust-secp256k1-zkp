@@ -25,7 +25,9 @@ macro_rules! impl_display_secret {
                 engine.input(&self.secret_bytes());
                 let hash = sha256::Hash::from_engine(engine);
 
-                f.debug_tuple(stringify!($thing)).field(&format_args!("#{:.16}", hash)).finish()
+                f.debug_tuple(stringify!($thing))
+                    .field(&format_args!("#{:.16}", hash))
+                    .finish()
             }
         }
 
@@ -106,7 +108,11 @@ impl SecretKey {
     /// # }
     /// ```
     #[inline]
-    pub fn display_secret(&self) -> DisplaySecret { DisplaySecret { secret: self.secret_bytes() } }
+    pub fn display_secret(&self) -> DisplaySecret {
+        DisplaySecret {
+            secret: self.secret_bytes(),
+        }
+    }
 }
 
 impl Keypair {
@@ -139,7 +145,11 @@ impl Keypair {
     /// # }
     /// ```
     #[inline]
-    pub fn display_secret(&self) -> DisplaySecret { DisplaySecret { secret: self.secret_bytes() } }
+    pub fn display_secret(&self) -> DisplaySecret {
+        DisplaySecret {
+            secret: self.secret_bytes(),
+        }
+    }
 }
 
 impl SharedSecret {
@@ -175,5 +185,9 @@ impl SharedSecret {
     /// # }
     /// ```
     #[inline]
-    pub fn display_secret(&self) -> DisplaySecret { DisplaySecret { secret: self.secret_bytes() } }
+    pub fn display_secret(&self) -> DisplaySecret {
+        DisplaySecret {
+            secret: self.secret_bytes(),
+        }
+    }
 }
