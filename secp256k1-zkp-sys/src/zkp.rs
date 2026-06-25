@@ -1,3 +1,4 @@
+use crate::{impl_array_newtype, impl_raw_debug};
 use core::{
     fmt,
     hash::{self, Hash},

@@ -971,6 +971,7 @@ impl Keypair {
     ///
     /// ```
     /// # #[cfg(all(feature = "rand", feature = "std"))] {
+    /// # use secp256k1_zkp::rand;
     /// use secp256k1_zkp::{Secp256k1, Keypair, Scalar};
     ///
     /// let secp = Secp256k1::new();
@@ -1305,6 +1306,7 @@ impl XOnlyPublicKey {
     ///
     /// ```
     /// # #[cfg(all(feature = "rand", feature = "std"))] {
+    /// # use secp256k1_zkp::rand;
     /// use secp256k1_zkp::{Secp256k1, Keypair, Scalar, XOnlyPublicKey};
     ///
     /// let secp = Secp256k1::new();
@@ -1365,6 +1367,7 @@ impl XOnlyPublicKey {
     ///
     /// ```
     /// # #[cfg(all(feature = "rand", feature = "std"))] {
+    /// # use secp256k1_zkp::rand;
     /// use secp256k1_zkp::{Secp256k1, Keypair, Scalar};
     ///
     /// let secp = Secp256k1::new();

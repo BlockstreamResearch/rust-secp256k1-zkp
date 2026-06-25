@@ -140,7 +140,6 @@
 // Coding conventions
 #![deny(non_upper_case_globals, non_camel_case_types, non_snake_case)]
 #![warn(missing_docs, missing_copy_implementations, missing_debug_implementations)]
-#![cfg_attr(all(not(test), not(feature = "std")), no_std)]
 // Experimental features we need.
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![cfg_attr(bench, feature(test))]
@@ -153,7 +152,7 @@ extern crate core;
 extern crate test;
 
 #[cfg(feature = "hashes")]
-pub extern crate hashes;
+pub extern crate actual_hashes as hashes;
 
 #[macro_use]
 mod macros;
@@ -168,6 +167,8 @@ pub mod ecdsa;
 pub mod ellswift;
 pub mod scalar;
 pub mod schnorr;
+mod zkp;
+pub use crate::zkp::*;
 #[cfg(feature = "serde")]
 mod serde_util;
 
@@ -178,11 +179,11 @@ use core::{fmt, mem, str};
 #[cfg(all(feature = "global-context", feature = "std"))]
 pub use context::global::{self, SECP256K1};
 #[cfg(feature = "rand")]
-pub use rand;
+pub extern crate actual_rand as rand;
 pub extern crate secp256k1_zkp_sys;
 pub use secp256k1_zkp_sys as ffi;
 #[cfg(feature = "serde")]
-pub use serde;
+pub extern crate actual_serde as serde;
 
 #[cfg(feature = "alloc")]
 pub use crate::context::{All, SignOnly, VerifyOnly};
@@ -308,6 +309,38 @@ pub enum Error {
     InvalidParityValue(key::InvalidParityValue),
     /// Bad EllSwift value
     InvalidEllSwift,
+    /// Failed to produce a surjection proof because of an internal error within `libsecp256k1-zkp`
+    CannotProveSurjection,
+    /// Given bytes don't represent a valid surjection proof
+    InvalidSurjectionProof,
+    /// Given bytes don't represent a valid pedersen commitment
+    InvalidPedersenCommitment,
+    /// Failed to produce a range proof because of an internal error within `libsecp256k1-zkp`
+    CannotMakeRangeProof,
+    /// Given range proof does not prove that the commitment is within a range
+    InvalidRangeProof,
+    /// Bad generator
+    InvalidGenerator,
+    /// Tweak must of len 32
+    InvalidTweakLength,
+    /// Tweak must be less than secp curve order
+    TweakOutOfBounds,
+    /// Given bytes don't represent a valid adaptor signature
+    InvalidEcdsaAdaptorSignature,
+    /// Failed to decrypt an adaptor signature because of an internal error within `libsecp256k1-zkp`
+    CannotDecryptAdaptorSignature,
+    /// Failed to recover an adaptor secret from an adaptor signature because of an internal error within `libsecp256k1-zkp`
+    CannotRecoverAdaptorSecret,
+    /// Given adaptor signature is not valid for the provided combination of public key, encryption key and message
+    CannotVerifyAdaptorSignature,
+    /// Given bytes don't represent a valid whitelist signature
+    InvalidWhitelistSignature,
+    /// Invalid PAK list
+    InvalidPakList,
+    /// Couldn't create whitelist signature with the given data.
+    CannotCreateWhitelistSignature,
+    /// The given whitelist signature doesn't correctly prove inclusion in the whitelist.
+    InvalidWhitelistProof,
 }
 
 impl fmt::Display for Error {
@@ -329,6 +362,26 @@ impl fmt::Display for Error {
             ),
             InvalidParityValue(e) => write_err!(f, "couldn't create parity"; e),
             InvalidEllSwift => f.write_str("malformed EllSwift value"),
+            CannotProveSurjection => f.write_str("failed to prove surjection"),
+            InvalidSurjectionProof => f.write_str("malformed surjection proof"),
+            InvalidPedersenCommitment => f.write_str("malformed pedersen commitment"),
+            CannotMakeRangeProof => f.write_str("failed to generate range proof"),
+            InvalidRangeProof => f.write_str("failed to verify range proof"),
+            InvalidGenerator => f.write_str("malformed generator"),
+            InvalidEcdsaAdaptorSignature => f.write_str("malformed ecdsa adaptor signature"),
+            CannotDecryptAdaptorSignature => f.write_str("failed to decrypt adaptor signature"),
+            CannotRecoverAdaptorSecret => f.write_str("failed to recover adaptor secret"),
+            CannotVerifyAdaptorSignature => f.write_str("failed to verify adaptor signature"),
+            InvalidTweakLength => f.write_str("Tweak must of size 32"),
+            TweakOutOfBounds => f.write_str("Tweak must be less than secp curve order"),
+            InvalidWhitelistSignature => f.write_str("malformed whitelist signature"),
+            InvalidPakList => f.write_str("invalid PAK list"),
+            CannotCreateWhitelistSignature => {
+                f.write_str("cannot create whitelist signature with the given data")
+            }
+            InvalidWhitelistProof => f.write_str(
+                "given whitelist signature doesn't correctly prove inclusion in the whitelist",
+            ),
         }
     }
 }
@@ -349,6 +402,22 @@ impl std::error::Error for Error {
             Error::InvalidPublicKeySum => None,
             Error::InvalidParityValue(error) => Some(error),
             Error::InvalidEllSwift => None,
+            Error::CannotProveSurjection => None,
+            Error::InvalidSurjectionProof => None,
+            Error::InvalidPedersenCommitment => None,
+            Error::CannotMakeRangeProof => None,
+            Error::InvalidRangeProof => None,
+            Error::InvalidGenerator => None,
+            Error::InvalidTweakLength => None,
+            Error::TweakOutOfBounds => None,
+            Error::InvalidEcdsaAdaptorSignature => None,
+            Error::CannotDecryptAdaptorSignature => None,
+            Error::CannotRecoverAdaptorSecret => None,
+            Error::CannotVerifyAdaptorSignature => None,
+            Error::InvalidWhitelistSignature => None,
+            Error::InvalidPakList => None,
+            Error::CannotCreateWhitelistSignature => None,
+            Error::InvalidWhitelistProof => None,
         }
     }
 }

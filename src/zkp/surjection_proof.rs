@@ -14,9 +14,9 @@ pub struct SurjectionProof {
 #[cfg(feature = "actual-rand")]
 mod with_rand {
     use super::*;
+    use crate::rand::Rng;
     use crate::{Signing, Tag, Tweak};
     use ffi::CPtr;
-    use rand::Rng;
 
     impl SurjectionProof {
         /// Prove that a given tag - when blinded - is contained within another set of blinded tags.
@@ -240,8 +240,8 @@ impl<'de> ::serde::Deserialize<'de> for SurjectionProof {
 #[cfg(all(test, feature = "global-context"))] // use global context for convenience
 mod tests {
     use super::*;
+    use crate::rand::rng;
     use crate::{Tag, Tweak, SECP256K1};
-    use rand::thread_rng;
 
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::wasm_bindgen_test as test;
@@ -259,7 +259,7 @@ mod tests {
 
         let proof = SurjectionProof::new(
             SECP256K1,
-            &mut thread_rng(),
+            &mut rng(),
             codomain_tag_1,
             codomain_bf_1,
             &[
@@ -289,7 +289,7 @@ mod tests {
 
         let proof = SurjectionProof::new(
             SECP256K1,
-            &mut thread_rng(),
+            &mut rng(),
             codomain_tag_1,
             codomain_bf_1,
             &[(domain_blinded_tag_1, domain_tag_1, domain_bf_1)],
@@ -318,7 +318,7 @@ mod tests {
     }
 
     fn blind_tag(tag: Tag) -> (Generator, Tweak) {
-        let bf = Tweak::new(&mut thread_rng());
+        let bf = Tweak::new(&mut rng());
         let blinded_tag = Generator::new_blinded(SECP256K1, tag, bf);
 
         (blinded_tag, bf)

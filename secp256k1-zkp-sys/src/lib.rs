@@ -25,6 +25,9 @@ pub mod types;
 #[cfg(feature = "recovery")]
 pub mod recovery;
 
+pub mod zkp;
+pub use zkp::*;
+
 use core::{slice, ptr};
 use core::ptr::NonNull;
 use types::*;

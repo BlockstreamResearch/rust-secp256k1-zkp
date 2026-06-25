@@ -22,18 +22,19 @@ rustdoc-args = ["--cfg", "docsrs"]
 default = ["std"]
 std = ["alloc", "secp256k1-zkp-sys/std", "secp256k1/std"]
 alloc = ["secp256k1-zkp-sys/alloc", "secp256k1/alloc"]
-rand-std = ["actual-rand/std", "secp256k1/rand"]
+rand-std = ["rand", "actual-rand/std", "secp256k1/rand"]
 recovery = ["secp256k1-zkp-sys/recovery", "secp256k1/recovery"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory", "secp256k1/lowmemory"]
 global-context = ["std", "rand-std", "secp256k1/global-context"]
 global-context-less-secure = ["global-context", "secp256k1/global-context-less-secure"]
-hashes = ["secp256k1/hashes"]
+hashes = ["actual-hashes", "secp256k1/hashes"]
 serde = ["actual-serde", "secp256k1/serde"]
 rand = ["actual-rand", "secp256k1/rand"]
 
 [dependencies]
 actual-serde = { package = "serde", version = "1.0", default-features = false, optional = true }
-actual-rand = { package = "rand", version = "0.8", default-features = false, optional = true }
+actual-rand = { package = "rand", version = "0.9", default-features = false, optional = true }
+actual-hashes = { package = "bitcoin_hashes", version = "0.14", optional = true }
 secp256k1 = "0.31.1"
 secp256k1-zkp-sys = { version = "0.11.0", default-features = false, path = "./secp256k1-zkp-sys" }
 internals = { package = "bitcoin-private", version = "0.1.0" }

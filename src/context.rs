@@ -32,6 +32,7 @@ pub mod global {
     ///
     /// ```
     /// # #[cfg(all(feature = "global-context", feature = "rand", feature = "std"))] {
+    /// # use secp256k1_zkp::rand;
     /// use secp256k1_zkp::{PublicKey, SECP256K1};
     /// let _ = SECP256K1.generate_keypair(&mut rand::rng());
     /// # }
