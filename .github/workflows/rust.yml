@@ -32,13 +32,10 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.65.0
+          - 1.74.0
           - beta
           - stable
         os: [ ubuntu-latest, macos-latest ]
-        exclude:
-          - rust: 1.65.0
-            os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Crate
@@ -64,13 +61,10 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.65.0
+          - 1.74.0
           - beta
           - stable
         os: [ ubuntu-latest, macos-latest ]
-        exclude:
-          - rust: 1.65.0
-            os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Crate

@@ -33,4 +33,4 @@ be required for integration into other build systems), you can do so by adding
 
 ## Minimum Supported Rust Version
 
-This library should always compile with any combination of features on **Rust 1.56.1**.
+This library should always compile with any combination of features on **Rust 1.74.0**.
