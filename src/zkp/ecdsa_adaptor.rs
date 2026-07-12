@@ -8,9 +8,10 @@
 //!
 
 use crate::ffi::{self, CPtr, ECDSA_ADAPTOR_SIGNATURE_LENGTH};
-#[cfg(feature = "rand-std")]
+#[cfg(feature = "std")]
+#[cfg(feature = "rand")]
 use crate::rand::rng;
-#[cfg(feature = "actual-rand")]
+#[cfg(feature = "rand")]
 use crate::rand::{CryptoRng, Rng};
 use crate::{constants, PublicKey, Secp256k1, SecretKey};
 use crate::{ecdsa::Signature, Verification};
@@ -130,8 +131,8 @@ impl EcdsaAdaptorSignature {
     /// This function derives a nonce using a similar process as described in BIP-340.
     /// The nonce derivation process is strengthened against side channel
     /// attacks by providing auxiliary randomness using the ThreadRng random number generator.
-    /// Requires compilation with "rand-std" feature.
-    #[cfg(feature = "rand-std")]
+    #[cfg(feature = "std")]
+    #[cfg(feature = "rand")]
     pub fn encrypt<C: Signing>(
         secp: &Secp256k1<C>,
         msg: &Message,
@@ -146,7 +147,7 @@ impl EcdsaAdaptorSignature {
     /// The nonce derivation process is strengthened against side channel
     /// attacks by providing auxiliary randomness using the provided random number generator.
     /// Requires compilation with "rand" feature.
-    #[cfg(feature = "actual-rand")]
+    #[cfg(feature = "rand")]
     pub fn encrypt_with_rng<C: Signing, R: Rng + CryptoRng>(
         secp: &Secp256k1<C>,
         msg: &Message,

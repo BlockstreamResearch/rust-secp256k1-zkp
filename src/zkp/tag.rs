@@ -12,7 +12,8 @@ impl Tag {
         self.0
     }
 
-    #[cfg(all(feature = "actual-rand", feature = "std"))]
+    #[cfg(feature = "std")]
+    #[cfg(feature = "rand")]
     pub(crate) fn as_inner(&self) -> &ffi::Tag {
         &self.0
     }
@@ -39,7 +40,9 @@ impl fmt::LowerHex for Tag {
     }
 }
 
-#[cfg(all(test, feature = "rand-std"))]
+#[cfg(test)]
+#[cfg(feature = "std")]
+#[cfg(feature = "rand")]
 impl Tag {
     pub fn random() -> Self {
         use crate::rand::RngCore;

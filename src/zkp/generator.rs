@@ -1,5 +1,5 @@
 use crate::ffi::{self, CPtr};
-#[cfg(feature = "actual-rand")]
+#[cfg(feature = "rand")]
 use crate::rand::Rng;
 use crate::{constants, from_hex, Error, Secp256k1, Signing, Tag};
 use core::{fmt, str};
@@ -55,7 +55,7 @@ impl str::FromStr for Tweak {
 
 impl Tweak {
     /// Generate a new random Tweak
-    #[cfg(feature = "actual-rand")]
+    #[cfg(feature = "rand")]
     pub fn new<R: Rng + ?Sized>(rng: &mut R) -> Tweak {
         let mut ret = [0u8; constants::SECRET_KEY_SIZE];
         rng.fill_bytes(&mut ret);

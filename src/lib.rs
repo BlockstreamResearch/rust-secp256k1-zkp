@@ -145,18 +145,18 @@
     missing_debug_implementations
 )]
 // Experimental features we need.
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![cfg_attr(bench, feature(test))]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #[cfg(any(test, feature = "std"))]
 extern crate core;
 #[cfg(bench)]
 extern crate test;
 
 #[cfg(feature = "hashes")]
-pub extern crate actual_hashes as hashes;
+pub extern crate hashes;
 
 #[macro_use]
 mod macros;
@@ -183,11 +183,11 @@ use core::{fmt, mem, str};
 #[cfg(all(feature = "global-context", feature = "std"))]
 pub use context::global::{self, SECP256K1};
 #[cfg(feature = "rand")]
-pub extern crate actual_rand as rand;
+pub extern crate rand;
 pub extern crate secp256k1_zkp_sys;
 pub use secp256k1_zkp_sys as ffi;
 #[cfg(feature = "serde")]
-pub extern crate actual_serde as serde;
+pub extern crate serde;
 
 #[cfg(feature = "alloc")]
 pub use crate::context::{All, SignOnly, VerifyOnly};
