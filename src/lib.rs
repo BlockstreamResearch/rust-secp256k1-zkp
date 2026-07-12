@@ -149,7 +149,6 @@
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #[cfg(any(test, feature = "std"))]
 extern crate core;
 #[cfg(bench)]
