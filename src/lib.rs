@@ -166,7 +166,7 @@ mod ffi_convert;
 mod key;
 
 pub mod constants;
-pub mod ecdh;
+pub use secp256k1::ecdh;
 pub mod ecdsa;
 pub mod ellswift;
 pub mod scalar;
