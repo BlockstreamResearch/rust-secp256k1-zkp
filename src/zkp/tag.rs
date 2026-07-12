@@ -44,6 +44,7 @@ impl fmt::LowerHex for Tag {
 #[cfg(feature = "std")]
 #[cfg(feature = "rand")]
 impl Tag {
+    /// Generates a uniformly random tag.
     pub fn random() -> Self {
         use crate::rand::RngCore;
 

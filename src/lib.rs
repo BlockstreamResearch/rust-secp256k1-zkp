@@ -483,7 +483,7 @@ impl<C: Context> Secp256k1<C> {
         let word_size = mem::size_of::<AlignedType>();
         let bytes = unsafe { ffi::secp256k1_context_preallocated_size(C::FLAGS) };
 
-        (bytes + word_size - 1) / word_size
+        bytes.div_ceil(word_size)
     }
 
     /// (Re)randomizes the Secp256k1 context for extra sidechannel resistance.

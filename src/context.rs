@@ -15,7 +15,7 @@ use crate::{Error, Secp256k1};
 pub mod global {
 
     use std::ops::Deref;
-    use std::sync::Once;
+    use std::sync::OnceLock;
 
     use crate::{All, Secp256k1};
 
@@ -44,12 +44,8 @@ pub mod global {
 
         #[allow(unused_mut)] // Unused when `rand` + `std` is not enabled.
         fn deref(&self) -> &Self::Target {
-            static ONCE: Once = Once::new();
-            static mut CONTEXT: Option<Secp256k1<All>> = None;
-            ONCE.call_once(|| unsafe {
-                CONTEXT = Some(Secp256k1::new());
-            });
-            unsafe { CONTEXT.as_ref().unwrap() }
+            static CONTEXT: OnceLock<Secp256k1<All>> = OnceLock::new();
+            CONTEXT.get_or_init(Secp256k1::new)
         }
     }
 }
