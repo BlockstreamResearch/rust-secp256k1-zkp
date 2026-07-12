@@ -8,7 +8,10 @@ use std::{fmt, str};
 use crate::ffi::CPtr;
 #[cfg(feature = "std")]
 use crate::from_hex;
-use crate::{ffi, Error, PublicKey, Secp256k1, SecretKey, Signing, Verification};
+use crate::ConvertFromUpstream as _;
+use crate::{ffi, Error, Secp256k1, Signing, Verification};
+
+use secp256k1::{PublicKey, SecretKey};
 
 /// A whitelist ring signature.
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -84,13 +87,12 @@ impl WhitelistSignature {
             ffi::secp256k1_whitelist_sign(
                 secp.ctx().as_ptr(),
                 &mut sig,
-                // These two casts are legit because PublicKey has repr(transparent).
-                online_keys.as_c_ptr().cast::<ffi::PublicKey>(),
-                offline_keys.as_c_ptr().cast::<ffi::PublicKey>(),
+                online_keys.to_zkp_ffi(),
+                offline_keys.to_zkp_ffi(),
                 n_keys,
-                whitelist_key.as_c_ptr(),
-                online_secret_key.as_c_ptr(),
-                summed_secret_key.as_c_ptr(),
+                whitelist_key.to_zkp_ffi(),
+                online_secret_key.as_ref().as_ptr(),
+                summed_secret_key.as_ref().as_ptr(),
                 key_index,
             )
         };
@@ -118,11 +120,10 @@ impl WhitelistSignature {
             ffi::secp256k1_whitelist_verify(
                 secp.ctx().as_ptr(),
                 &self.0,
-                // These two casts are legit because PublicKey has repr(transparent).
-                online_keys.as_c_ptr().cast::<ffi::PublicKey>(),
-                offline_keys.as_c_ptr().cast::<ffi::PublicKey>(),
+                online_keys.to_zkp_ffi(),
+                offline_keys.to_zkp_ffi(),
                 n_keys,
-                whitelist_key.as_c_ptr(),
+                whitelist_key.to_zkp_ffi(),
             )
         };
         if ret != 1 {
@@ -226,13 +227,13 @@ mod tests {
     fn test_whitelist_proof_roundtrip(n_keys: usize) {
         let mut rng = rng();
         let (keys_online, pak_online) = (0..n_keys)
-            .map(|_| SECP256K1.generate_keypair(&mut rng))
+            .map(|_| secp256k1::generate_keypair(&mut rng))
             .unzip::<_, _, Vec<_>, Vec<_>>();
         let (keys_offline, pak_offline) = (0..n_keys)
-            .map(|_| SECP256K1.generate_keypair(&mut rng))
+            .map(|_| secp256k1::generate_keypair(&mut rng))
             .unzip::<_, _, Vec<_>, Vec<_>>();
 
-        let (whitelist_sk, whitelist_pk) = SECP256K1.generate_keypair(&mut rng);
+        let (whitelist_sk, whitelist_pk) = secp256k1::generate_keypair(&mut rng);
 
         for our_idx in vec![0, n_keys / 2, n_keys - 1].into_iter() {
             // sign
@@ -292,13 +293,13 @@ mod tests {
 
         let mut rng = rng();
         let (keys_online, pak_online) = (0..n_keys)
-            .map(|_| SECP256K1.generate_keypair(&mut rng))
+            .map(|_| secp256k1::generate_keypair(&mut rng))
             .unzip::<_, _, Vec<_>, Vec<_>>();
         let (keys_offline, pak_offline) = (0..n_keys)
-            .map(|_| SECP256K1.generate_keypair(&mut rng))
+            .map(|_| secp256k1::generate_keypair(&mut rng))
             .unzip::<_, _, Vec<_>, Vec<_>>();
 
-        let (whitelist_sk, whitelist_pk) = SECP256K1.generate_keypair(&mut rng);
+        let (whitelist_sk, whitelist_pk) = secp256k1::generate_keypair(&mut rng);
 
         let our_idx = 100;
         let summed_key = keys_offline[our_idx]

@@ -6,7 +6,10 @@ use crate::Error;
 use crate::Generator;
 use crate::PedersenCommitment;
 use crate::Verification;
-use crate::{ffi, Secp256k1, SecretKey, Signing, Tweak};
+use crate::{ffi, Secp256k1, Signing, Tweak};
+
+use secp256k1::SecretKey;
+
 use std::ops::Range;
 use std::str;
 
@@ -90,7 +93,7 @@ impl RangeProof {
                 min_value,
                 commitment.as_inner(),
                 commitment_blinding.as_c_ptr(),
-                sk.as_c_ptr(),
+                sk.as_ref().as_ptr(),
                 exp,
                 i32::from(min_bits),
                 value,
@@ -172,7 +175,7 @@ impl RangeProof {
                 &mut value,
                 message.as_mut_ptr(),
                 &mut message_length,
-                sk.as_c_ptr(),
+                sk.as_ref().as_ptr(),
                 &mut min_value,
                 &mut max_value,
                 commitment.as_inner(),
