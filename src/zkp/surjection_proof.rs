@@ -173,6 +173,9 @@ impl SurjectionProof {
         let domain_blinded_tags = unsafe {
             debug_assert_eq!(size_of::<Generator>(), size_of::<ffi::PublicKey>());
 
+            // First cast can be replaced with core::ptr::as_ref in Rust 1.76. The second
+            // one, from *const [T] to *const [U], seems to have no utility function on
+            // the horizon.
             &*(domain as *const [Generator] as *const [ffi::PublicKey])
         };
 

@@ -191,6 +191,7 @@ impl EcdsaAdaptorSignature {
     /// This function derives a nonce using a similar process as described in BIP-340.
     /// The nonce derivation process is strengthened against side channel attacks by
     /// using the provided auxiliary random data.
+    #[rustfmt::skip] // attempts to create a 158-long line
     pub fn encrypt_with_aux_rand<C: Signing>(
         secp: &Secp256k1<C>,
         msg: &Message,
@@ -200,6 +201,11 @@ impl EcdsaAdaptorSignature {
     ) -> EcdsaAdaptorSignature {
         let mut adaptor_sig = ffi::EcdsaAdaptorSignature::new();
 
+        let aux_rand_ptr = aux_rand
+            .as_ptr()
+            .cast::<ffi::types::c_void>()
+            .cast_mut(); // ok as secp256k1_nonce_function_ecdsa_adaptor will not actually mutate
+
         let res = unsafe {
             ffi::secp256k1_ecdsa_adaptor_encrypt(
                 secp.ctx().as_ptr(),
@@ -208,7 +214,7 @@ impl EcdsaAdaptorSignature {
                 enckey.as_c_ptr(),
                 msg.as_c_ptr(),
                 ffi::secp256k1_nonce_function_ecdsa_adaptor,
-                aux_rand.as_c_ptr() as *mut ffi::types::c_void,
+                aux_rand_ptr,
             )
         };
         debug_assert_eq!(res, 1);
