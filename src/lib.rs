@@ -159,18 +159,15 @@ pub extern crate hashes;
 
 #[macro_use]
 mod macros;
-#[macro_use]
-mod secret;
 mod context;
 mod ffi_convert;
-mod key;
 
-pub mod constants;
+pub use secp256k1::constants;
 pub use secp256k1::ecdh;
-pub mod ecdsa;
-pub mod ellswift;
-pub mod scalar;
-pub mod schnorr;
+pub use secp256k1::ecdsa;
+pub use secp256k1::ellswift;
+pub use secp256k1::scalar;
+pub use secp256k1::schnorr;
 mod zkp;
 pub use crate::zkp::*;
 #[cfg(feature = "serde")]
@@ -197,8 +194,9 @@ pub use crate::context::{
 };
 use crate::ffi::types::AlignedType;
 use crate::ffi::CPtr;
-pub use crate::key::{InvalidParityValue, Keypair, Parity, PublicKey, SecretKey, XOnlyPublicKey};
-pub use crate::scalar::Scalar;
+pub use secp256k1::{
+    InvalidParityValue, Keypair, Parity, PublicKey, Scalar, SecretKey, XOnlyPublicKey,
+};
 
 use ffi_convert::ConvertFromUpstream;
 
@@ -320,7 +318,7 @@ pub enum Error {
     /// Bad set of public keys.
     InvalidPublicKeySum,
     /// The only valid parity values are 0 or 1.
-    InvalidParityValue(key::InvalidParityValue),
+    InvalidParityValue(InvalidParityValue),
     /// Bad `EllSwift` value
     InvalidEllSwift,
     /// Failed to produce a surjection proof because of an internal error within `libsecp256k1-zkp`
@@ -519,28 +517,6 @@ impl<C: Context> Secp256k1<C> {
     }
 }
 
-impl<C: Signing> Secp256k1<C> {
-    /// Generates a random keypair. Convenience function for [`SecretKey::new`] and
-    /// [`PublicKey::from_secret_key`].
-    #[inline]
-    #[cfg(feature = "rand")]
-    pub fn generate_keypair<R: rand::Rng + ?Sized>(
-        &self,
-        rng: &mut R,
-    ) -> (key::SecretKey, key::PublicKey) {
-        let sk = key::SecretKey::new(rng);
-        let pk = key::PublicKey::from_secret_key(self, &sk);
-        (sk, pk)
-    }
-}
-
-/// Generates a random keypair using the global [`SECP256K1`] context.
-#[inline]
-#[cfg(all(feature = "global-context", feature = "rand"))]
-pub fn generate_keypair<R: rand::Rng + ?Sized>(rng: &mut R) -> (key::SecretKey, key::PublicKey) {
-    SECP256K1.generate_keypair(rng)
-}
-
 /// Utility function used to parse hex into a target u8 buffer. Returns
 /// the number of bytes converted or an error if it encounters an invalid
 /// character or unexpected end of string.
@@ -566,35 +542,6 @@ fn from_hex(hex: &str, target: &mut [u8]) -> Result<usize, ()> {
         idx += 1;
     }
     Ok(idx / 2)
-}
-
-/// Utility function used to encode hex into a target u8 buffer. Returns
-/// a reference to the target buffer as an str. Returns an error if the target
-/// buffer isn't big enough.
-#[inline]
-fn to_hex<'a>(src: &[u8], target: &'a mut [u8]) -> Result<&'a str, ()> {
-    let hex_len = src.len() * 2;
-    if target.len() < hex_len {
-        return Err(());
-    }
-    const HEX_TABLE: [u8; 16] = *b"0123456789abcdef";
-
-    let mut i = 0;
-    for &b in src {
-        target[i] = HEX_TABLE[usize::from(b >> 4)];
-        target[i + 1] = HEX_TABLE[usize::from(b & 0b0000_1111)];
-        i += 2;
-    }
-    let result = &target[..hex_len];
-    debug_assert!(str::from_utf8(result).is_ok());
-    unsafe { Ok(str::from_utf8_unchecked(result)) }
-}
-
-#[cfg(feature = "rand")]
-pub(crate) fn random_32_bytes<R: rand::Rng + ?Sized>(rng: &mut R) -> [u8; 32] {
-    let mut ret = [0u8; 32];
-    rng.fill(&mut ret);
-    ret
 }
 
 #[cfg(test)]
