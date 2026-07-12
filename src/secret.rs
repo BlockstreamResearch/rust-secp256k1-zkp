@@ -14,16 +14,15 @@ macro_rules! impl_display_secret {
         #[cfg(feature = "hashes")]
         impl ::core::fmt::Debug for $thing {
             fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-                use hashes::{sha256, Hash, HashEngine};
+                use hashes::{sha256::Midstate, sha256t};
 
-                let tag = "rust-secp256k1DEBUG";
+                #[derive(Copy, Clone, PartialEq, Eq, Default, PartialOrd, Ord, Hash)]
+                pub(crate) struct DebugTag;
+                impl sha256t::Tag for DebugTag {
+                    const MIDSTATE: Midstate = Midstate::hash_tag(b"rust-secp256k1DEBUG");
+                }
 
-                let mut engine = sha256::Hash::engine();
-                let tag_hash = sha256::Hash::hash(tag.as_bytes());
-                engine.input(&tag_hash.as_ref());
-                engine.input(&tag_hash.as_ref());
-                engine.input(&self.secret_bytes());
-                let hash = sha256::Hash::from_engine(engine);
+                let hash = sha256t::hash::<DebugTag>(&self.secret_bytes());
 
                 f.debug_tuple(stringify!($thing))
                     .field(&format_args!("#{:.16}", hash))
