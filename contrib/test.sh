@@ -47,13 +47,6 @@ if [ "$DO_DOCS" = true ]; then
     cargo doc --all --features="$FEATURES"
 fi
 
-# Webassembly stuff
-if [ "$DO_WASM" = true ]; then
-    clang --version
-    wasm-pack build
-    wasm-pack test --node;
-fi
-
 # Address Sanitizer
 if [ "$DO_ASAN" = true ]; then
     clang --version

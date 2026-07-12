@@ -600,8 +600,6 @@ mod tests {
     use std::str::FromStr;
 
     use hex_lit::hex;
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::wasm_bindgen_test as test;
 
     use super::*;
 

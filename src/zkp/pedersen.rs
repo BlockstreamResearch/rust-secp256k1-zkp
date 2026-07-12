@@ -248,9 +248,6 @@ mod tests {
     use crate::rand::rng;
     use crate::{Tag, SECP256K1};
 
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::wasm_bindgen_test as test;
-
     impl CommitmentSecrets {
         pub fn random(value: u64) -> Self {
             Self {
