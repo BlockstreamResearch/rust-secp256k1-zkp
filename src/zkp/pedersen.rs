@@ -249,6 +249,7 @@ mod tests {
     use crate::{Tag, SECP256K1};
 
     impl CommitmentSecrets {
+        #[allow(missing_docs)] // test-only
         pub fn random(value: u64) -> Self {
             Self {
                 value,
@@ -257,6 +258,7 @@ mod tests {
             }
         }
 
+        #[allow(missing_docs)] // test-only
         pub fn commit(&self, tag: Tag) -> PedersenCommitment {
             let generator = Generator::new_blinded(SECP256K1, tag, self.generator_blinding_factor);
 
