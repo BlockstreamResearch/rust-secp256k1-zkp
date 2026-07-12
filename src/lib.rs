@@ -162,6 +162,7 @@ mod macros;
 #[macro_use]
 mod secret;
 mod context;
+mod ffi_convert;
 mod key;
 
 pub mod constants;
@@ -198,6 +199,8 @@ use crate::ffi::types::AlignedType;
 use crate::ffi::CPtr;
 pub use crate::key::{InvalidParityValue, Keypair, Parity, PublicKey, SecretKey, XOnlyPublicKey};
 pub use crate::scalar::Scalar;
+
+use ffi_convert::ConvertFromUpstream;
 
 /// Trait describing something that promises to be a 32-byte uniformly random number.
 ///
