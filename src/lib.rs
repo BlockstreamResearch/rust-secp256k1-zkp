@@ -598,6 +598,42 @@ pub(crate) fn random_32_bytes<R: rand::Rng + ?Sized>(rng: &mut R) -> [u8; 32] {
 }
 
 #[cfg(test)]
+mod test_util {
+    pub struct KeyPairStream {
+        ctx: secp256k1::Secp256k1<secp256k1::All>,
+        sk: secp256k1::SecretKey,
+        pk: secp256k1::PublicKey,
+    }
+
+    impl KeyPairStream {
+        /// Generates a new iterator which produces an indefinite stream of distinct
+        /// keypairs for use with testing.
+        pub fn new() -> Self {
+            let ctx = secp256k1::Secp256k1::new();
+            let sk = secp256k1::SecretKey::from_byte_array([100; 32]).unwrap();
+            let pk = secp256k1::PublicKey::from_secret_key(&ctx, &sk);
+            KeyPairStream { sk, pk, ctx }
+        }
+    }
+
+    impl Iterator for KeyPairStream {
+        type Item = (secp256k1::SecretKey, secp256k1::PublicKey);
+
+        fn next(&mut self) -> Option<Self::Item> {
+            let offs = secp256k1::Scalar::from_be_bytes([50; 32]).unwrap();
+
+            let ret = (self.sk, self.pk);
+            self.sk = self.sk.add_tweak(&offs).expect("will not cancel");
+            self.pk = self
+                .pk
+                .add_exp_tweak(&self.ctx, &offs)
+                .expect("will not cancel");
+            Some(ret)
+        }
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
