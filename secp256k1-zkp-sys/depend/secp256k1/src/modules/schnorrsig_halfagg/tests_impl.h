@@ -2,33 +2,33 @@
 #define SECP256K1_MODULE_SCHNORRSIG_HALFAGG_TESTS_H
 
 #include "../../../include/secp256k1_schnorrsig_halfagg.h"
+#include "../../unit_test.h"
 
 #define N_MAX 50
 
-/* We test that the hash initialized by rustsecp256k1zkp_v0_10_0_schnorrsig_sha256_tagged_aggregate
+/* We test that the hash initialized by rustsecp256k1zkp_v0_11_0_schnorrsig_sha256_tagged_aggregate
  * has the expected state. */
 void test_schnorrsig_sha256_tagged_aggregate(void) {
-    unsigned char tag[18] = "HalfAgg/randomizer";
-    rustsecp256k1zkp_v0_10_0_sha256 sha;
-    rustsecp256k1zkp_v0_10_0_sha256 sha_optimized;
+    static const unsigned char tag[] = {'H', 'a', 'l', 'f', 'A', 'g', 'g', '/', 'r', 'a', 'n', 'd', 'o', 'm', 'i', 'z', 'e', 'r'};
+    rustsecp256k1zkp_v0_11_0_sha256 sha_optimized;
+    const rustsecp256k1zkp_v0_11_0_hash_ctx *hash_ctx = rustsecp256k1zkp_v0_11_0_get_hash_context(CTX);
 
-    rustsecp256k1zkp_v0_10_0_sha256_initialize_tagged(&sha, (unsigned char *) tag, sizeof(tag));
-    rustsecp256k1zkp_v0_10_0_schnorrsig_sha256_tagged_aggregation(&sha_optimized);
-    test_sha256_eq(&sha, &sha_optimized);
+    rustsecp256k1zkp_v0_11_0_schnorrsig_sha256_tagged_aggregation(&sha_optimized);
+    test_sha256_tag_midstate(hash_ctx, &sha_optimized, tag, sizeof(tag));
 }
 
 /* Create n many x-only pubkeys and sigs for random messages */
-void test_schnorrsig_aggregate_input_helper(rustsecp256k1zkp_v0_10_0_xonly_pubkey *pubkeys, unsigned char *msgs32, unsigned char *sigs64, size_t n) {
+void test_schnorrsig_aggregate_input_helper(rustsecp256k1zkp_v0_11_0_xonly_pubkey *pubkeys, unsigned char *msgs32, unsigned char *sigs64, size_t n) {
     size_t i;
     for (i = 0; i < n; ++i) {
         unsigned char sk[32];
-        rustsecp256k1zkp_v0_10_0_keypair keypair;
-        rustsecp256k1zkp_v0_10_0_testrand256(sk);
-        rustsecp256k1zkp_v0_10_0_testrand256(&msgs32[i*32]);
+        rustsecp256k1zkp_v0_11_0_keypair keypair;
+        testrand256(sk);
+        testrand256(&msgs32[i*32]);
 
-        CHECK(rustsecp256k1zkp_v0_10_0_keypair_create(CTX, &keypair, sk));
-        CHECK(rustsecp256k1zkp_v0_10_0_keypair_xonly_pub(CTX, &pubkeys[i], NULL, &keypair));
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_sign(CTX, &sigs64[i*64], &msgs32[i*32], &keypair, NULL));
+        CHECK(rustsecp256k1zkp_v0_11_0_keypair_create(CTX, &keypair, sk));
+        CHECK(rustsecp256k1zkp_v0_11_0_keypair_xonly_pub(CTX, &pubkeys[i], NULL, &keypair));
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_sign(CTX, &sigs64[i*64], &msgs32[i*32], &keypair, NULL));
     }
 }
 
@@ -36,37 +36,37 @@ void test_schnorrsig_aggregate_input_helper(rustsecp256k1zkp_v0_10_0_xonly_pubke
  * aggregate some of them in one shot, and then
  * aggregate the others incrementally to the already aggregated ones.
  * The aggregate signature should verify after both steps. */
-void test_schnorrsig_aggregate(void) {
-    rustsecp256k1zkp_v0_10_0_xonly_pubkey pubkeys[N_MAX];
+void test_schnorrsig_aggregate_internal(void) {
+    rustsecp256k1zkp_v0_11_0_xonly_pubkey pubkeys[N_MAX];
     unsigned char msgs32[N_MAX*32];
     unsigned char sigs64[N_MAX*64];
     unsigned char aggsig[32*(N_MAX + 1) + 17];
     size_t aggsig_len = sizeof(aggsig);
 
-    size_t n = rustsecp256k1zkp_v0_10_0_testrand_int(N_MAX + 1);
-    size_t n_initial = rustsecp256k1zkp_v0_10_0_testrand_int(n + 1);
+    size_t n = testrand_int(N_MAX + 1);
+    size_t n_initial = testrand_int(n + 1);
     size_t n_new = n - n_initial;
     test_schnorrsig_aggregate_input_helper(pubkeys, msgs32, sigs64, n);
 
     /* Aggregate the first n_initial of them */
-    CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, sigs64, n_initial));
+    CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, sigs64, n_initial));
     /* Make sure that the aggregate signature verifies */
     CHECK(aggsig_len == 32*(n_initial + 1));
-    CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n_initial, aggsig, aggsig_len));
+    CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n_initial, aggsig, aggsig_len));
     /* Aggregate the remaining n_new many signatures to the already existing ones */
     aggsig_len = sizeof(aggsig);
-    rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new);
+    rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new);
     /* Make sure that the aggregate signature verifies */
     CHECK(aggsig_len == 32*(n + 1));
-    CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len));
+    CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len));
 
     /* Check that a direct aggregation of the n sigs yields an identical aggsig */
     {
         unsigned char aggsig2[sizeof(aggsig)];
         size_t aggsig_len2 = sizeof(aggsig2);
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, aggsig2, &aggsig_len2, pubkeys, msgs32, sigs64, n));
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, aggsig2, &aggsig_len2, pubkeys, msgs32, sigs64, n));
         CHECK(aggsig_len == aggsig_len2);
-        CHECK(rustsecp256k1zkp_v0_10_0_memcmp_var(aggsig, aggsig2, aggsig_len) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_memcmp_var(aggsig, aggsig2, aggsig_len) == 0);
     }
 }
 
@@ -83,7 +83,7 @@ void test_schnorrsig_aggverify_spec_vectors(void) {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         };
         size_t aggsig_len = sizeof(aggsig);
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, NULL, NULL, n, aggsig, aggsig_len));
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, NULL, NULL, n, aggsig, aggsig_len));
     }
     /* Test vector 1 */
     {
@@ -94,7 +94,7 @@ void test_schnorrsig_aggverify_spec_vectors(void) {
             0xd7, 0x1e, 0x18, 0x34, 0x60, 0x48, 0x19, 0xff,
             0x9c, 0x17, 0xf5, 0xe9, 0xd5, 0xdd, 0x07, 0x8f
         };
-        rustsecp256k1zkp_v0_10_0_xonly_pubkey pubkeys[1];
+        rustsecp256k1zkp_v0_11_0_xonly_pubkey pubkeys[1];
         const unsigned char msgs32[1*32] = {
             0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
             0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
@@ -114,9 +114,9 @@ void test_schnorrsig_aggverify_spec_vectors(void) {
         size_t aggsig_len = sizeof(aggsig);
         size_t i;
         for (i = 0; i < n; ++i) {
-            CHECK(rustsecp256k1zkp_v0_10_0_xonly_pubkey_parse(CTX, &pubkeys[i], &pubkeys_ser[i*32]));
+            CHECK(rustsecp256k1zkp_v0_11_0_xonly_pubkey_parse(CTX, &pubkeys[i], &pubkeys_ser[i*32]));
         }
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len));
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len));
     }
     /* Test vector 2 */
     {
@@ -132,7 +132,7 @@ void test_schnorrsig_aggverify_spec_vectors(void) {
             0x10, 0xe1, 0xc7, 0xa5, 0x93, 0xe4, 0xe0, 0x30,
             0xef, 0xb5, 0xb8, 0x72, 0x1c, 0xe5, 0x5b, 0x0b,
         };
-        rustsecp256k1zkp_v0_10_0_xonly_pubkey pubkeys[2];
+        rustsecp256k1zkp_v0_11_0_xonly_pubkey pubkeys[2];
         const unsigned char msgs32[2*32] = {
             0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
             0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
@@ -161,19 +161,19 @@ void test_schnorrsig_aggverify_spec_vectors(void) {
         size_t aggsig_len = sizeof(aggsig);
         size_t i;
         for (i = 0; i < n; ++i) {
-            CHECK(rustsecp256k1zkp_v0_10_0_xonly_pubkey_parse(CTX, &pubkeys[i], &pubkeys_ser[i*32]));
+            CHECK(rustsecp256k1zkp_v0_11_0_xonly_pubkey_parse(CTX, &pubkeys[i], &pubkeys_ser[i*32]));
         }
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len));
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len));
     }
 }
 
-static void test_schnorrsig_aggregate_api(void) {
-    size_t n = rustsecp256k1zkp_v0_10_0_testrand_int(N_MAX + 1);
-    size_t n_initial = rustsecp256k1zkp_v0_10_0_testrand_int(n + 1);
+static void test_schnorrsig_aggregate_api_internal(void) {
+    size_t n = testrand_int(N_MAX + 1);
+    size_t n_initial = testrand_int(n + 1);
     size_t n_new = n - n_initial;
 
     /* Test preparation. */
-    rustsecp256k1zkp_v0_10_0_xonly_pubkey pubkeys[N_MAX];
+    rustsecp256k1zkp_v0_11_0_xonly_pubkey pubkeys[N_MAX];
     unsigned char msgs32[N_MAX*32];
     unsigned char sigs64[N_MAX*64];
     unsigned char aggsig[32*(N_MAX + 1)];
@@ -183,73 +183,73 @@ static void test_schnorrsig_aggregate_api(void) {
     {
         /* Should not accept NULL for aggsig or aggsig length */
         size_t aggsig_len = sizeof(aggsig);
-        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, NULL, &aggsig_len, pubkeys, msgs32, sigs64, n_initial));
-        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, aggsig, NULL, pubkeys, msgs32, sigs64, n_initial));
+        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, NULL, &aggsig_len, pubkeys, msgs32, sigs64, n_initial));
+        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, aggsig, NULL, pubkeys, msgs32, sigs64, n_initial));
         /* Should not accept NULL for keys, messages, or signatures if n_initial is not 0 */
         if (n_initial != 0) {
-            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, NULL, msgs32, sigs64, n_initial));
-            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, NULL, sigs64, n_initial));
-            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, NULL, n_initial));
+            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, NULL, msgs32, sigs64, n_initial));
+            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, NULL, sigs64, n_initial));
+            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, NULL, n_initial));
         }
     }
 
     /* Test body 2: Check API of function inc_aggregate. */
     {
         size_t aggsig_len = sizeof(aggsig);
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, sigs64, n_initial));
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, sigs64, n_initial));
         aggsig_len = 32*(n+1);
         /* Should not accept NULL for aggsig or aggsig length */
-        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, NULL, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new));
-        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, aggsig, NULL, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new));
+        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, NULL, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new));
+        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, aggsig, NULL, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new));
         /* Should not accept NULL for keys or messages if n is not 0 */
         if (n != 0) {
-            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, NULL, msgs32, &sigs64[n_initial*64], n_initial, n_new));
-            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, NULL, &sigs64[n_initial*64], n_initial, n_new));
+            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, NULL, msgs32, &sigs64[n_initial*64], n_initial, n_new));
+            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, NULL, &sigs64[n_initial*64], n_initial, n_new));
         }
         /* Should not accept NULL for new_sigs64 if n_new is not 0 */
         if (n_new != 0) {
-            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, NULL, n_initial, n_new));
+            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, NULL, n_initial, n_new));
         }
         /* Should not accept overflowing number of sigs. */
-        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], SIZE_MAX, SIZE_MAX));
+        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], SIZE_MAX, SIZE_MAX));
         if (n_initial > 0) {
-            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, SIZE_MAX));
+            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, SIZE_MAX));
         }
         /* Should reject if aggsig_len is too small. */
         aggsig_len = 32*n;
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new) == 0);
         aggsig_len = 32*(n+1) - 1;
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new) == 0);
     }
 
     /* Test body 3: Check API of function aggverify. */
     {
         size_t aggsig_len = sizeof(aggsig);
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new));
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_inc_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, &sigs64[n_initial*64], n_initial, n_new));
         /* Should not accept NULL for keys or messages if n is not 0 */
         if (n != 0) {
-            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, NULL, msgs32, n, aggsig, aggsig_len));
-            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, NULL, n, aggsig, aggsig_len));
+            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, NULL, msgs32, n, aggsig, aggsig_len));
+            CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, NULL, n, aggsig, aggsig_len));
         }
         /* Should never accept NULL the aggsig */
-        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, NULL, aggsig_len));
+        CHECK_ILLEGAL(CTX, rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, NULL, aggsig_len));
         /* Should reject for invalid aggsig_len. */
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len + 1) == 0);
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len - 1) == 0);
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len + 32) == 0);
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len - 32) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len + 1) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len - 1) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len + 32) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len - 32) == 0);
     }
 }
 
 /* In this test, we make sure that trivial attempts to break
  * the security of verification do not work. */
-static void test_schnorrsig_aggregate_unforge(void) {
-    rustsecp256k1zkp_v0_10_0_xonly_pubkey pubkeys[N_MAX];
+static void test_schnorrsig_aggregate_unforge_internal(void) {
+    rustsecp256k1zkp_v0_11_0_xonly_pubkey pubkeys[N_MAX];
     unsigned char msgs32[N_MAX*32];
     unsigned char sigs64[N_MAX*64];
     unsigned char aggsig[32*(N_MAX + 1)];
 
-    size_t n = rustsecp256k1zkp_v0_10_0_testrand_int(N_MAX + 1);
+    size_t n = testrand_int(N_MAX + 1);
 
     /* Test 1: We fix a set of n messages and compute
      * a random aggsig for them. This should not verify. */
@@ -259,10 +259,10 @@ static void test_schnorrsig_aggregate_unforge(void) {
         size_t i;
         /* Sample aggsig randomly */
         for (i = 0; i < n + 1; ++i) {
-            rustsecp256k1zkp_v0_10_0_testrand256(&aggsig[i*32]);
+            testrand256(&aggsig[i*32]);
         }
         /* Make sure that it does not verify */
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len) == 0);
     }
 
     /* Test 2: We fix a set of n messages and compute valid
@@ -272,13 +272,13 @@ static void test_schnorrsig_aggregate_unforge(void) {
     if (n > 0) {
         size_t aggsig_len = sizeof(aggsig);
         /* Replace a randomly chosen real sig with a random one. */
-        size_t k = rustsecp256k1zkp_v0_10_0_testrand_int(n);
-        rustsecp256k1zkp_v0_10_0_testrand256(&sigs64[k*64]);
-        rustsecp256k1zkp_v0_10_0_testrand256(&sigs64[k*64+32]);
+        size_t k = testrand_int(n);
+        testrand256(&sigs64[k*64]);
+        testrand256(&sigs64[k*64+32]);
         /* Aggregate the n signatures */
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, sigs64, n));
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, sigs64, n));
         /* Make sure the result does not verify */
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len) == 0);
     }
 
     /* Test 3: We generate a valid aggregate signature and then
@@ -288,50 +288,51 @@ static void test_schnorrsig_aggregate_unforge(void) {
         size_t aggsig_len = sizeof(aggsig);
         size_t k;
         /* Aggregate the n signatures */
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, sigs64, n));
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, sigs64, n));
         /* Change one of the messages */
-        k = rustsecp256k1zkp_v0_10_0_testrand_int(32*n);
+        k = testrand_int(32*n);
         msgs32[k] = msgs32[k]^0xff;
         /* Make sure the result does not verify */
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len) == 0);
     }
 }
 
 /* In this test, we make sure that the algorithms properly reject
  * for overflowing and non parseable values. */
-static void test_schnorrsig_aggregate_overflow(void) {
-    rustsecp256k1zkp_v0_10_0_xonly_pubkey pubkeys[N_MAX];
+static void test_schnorrsig_aggregate_overflow_internal(void) {
+    rustsecp256k1zkp_v0_11_0_xonly_pubkey pubkeys[N_MAX];
     unsigned char msgs32[N_MAX*32];
     unsigned char sigs64[N_MAX*64];
     unsigned char aggsig[32*(N_MAX + 1)];
-    size_t n = rustsecp256k1zkp_v0_10_0_testrand_int(N_MAX + 1);
+    size_t n = testrand_int(N_MAX + 1);
 
     /* We check that verification returns 0 if the s in aggsig overflows. */
     test_schnorrsig_aggregate_input_helper(pubkeys, msgs32, sigs64, n);
     {
         size_t aggsig_len = sizeof(aggsig);
         /* Aggregate */
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, sigs64, n));
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggregate(CTX, aggsig, &aggsig_len, pubkeys, msgs32, sigs64, n));
         /* Make s in the aggsig overflow */
         memset(&aggsig[n*32], 0xFF, 32);
         /* Should not verify */
-        CHECK(rustsecp256k1zkp_v0_10_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len) == 0);
+        CHECK(rustsecp256k1zkp_v0_11_0_schnorrsig_aggverify(CTX, pubkeys, msgs32, n, aggsig, aggsig_len) == 0);
     }
 }
 
-static void run_schnorrsig_halfagg_tests(void) {
-    int i;
+/* --- Test registry --- */
+REPEAT_TEST(test_schnorrsig_aggregate)
+REPEAT_TEST(test_schnorrsig_aggregate_api)
+REPEAT_TEST(test_schnorrsig_aggregate_unforge)
+REPEAT_TEST(test_schnorrsig_aggregate_overflow)
 
-    test_schnorrsig_sha256_tagged_aggregate();
-    test_schnorrsig_aggverify_spec_vectors();
-
-    for (i = 0; i < COUNT; i++) {
-        test_schnorrsig_aggregate();
-        test_schnorrsig_aggregate_api();
-        test_schnorrsig_aggregate_unforge();
-        test_schnorrsig_aggregate_overflow();
-    }
-}
+static const struct tf_test_entry tests_schnorrsig_halfagg[] = {
+    CASE1(test_schnorrsig_sha256_tagged_aggregate),
+    CASE1(test_schnorrsig_aggverify_spec_vectors),
+    CASE1(test_schnorrsig_aggregate),
+    CASE1(test_schnorrsig_aggregate_api),
+    CASE1(test_schnorrsig_aggregate_unforge),
+    CASE1(test_schnorrsig_aggregate_overflow),
+};
 
 #undef N_MAX
 

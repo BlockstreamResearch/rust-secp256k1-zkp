@@ -42,11 +42,10 @@ impl fmt::LowerHex for Tag {
 #[cfg(all(test, feature = "rand-std"))]
 impl Tag {
     pub fn random() -> Self {
-        use rand::thread_rng;
-        use rand::RngCore;
+        use crate::rand::RngCore;
 
         let mut bytes = [0u8; 32];
-        thread_rng().fill_bytes(&mut bytes);
+        crate::rand::rng().fill_bytes(&mut bytes);
 
         Self::from(bytes)
     }

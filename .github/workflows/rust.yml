@@ -32,12 +32,12 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.56.1
+          - 1.65.0
           - beta
           - stable
         os: [ ubuntu-latest, macos-latest ]
         exclude:
-          - rust: 1.56.1
+          - rust: 1.65.0
             os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
@@ -89,12 +89,12 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.56.1
+          - 1.65.0
           - beta
           - stable
         os: [ ubuntu-latest, macos-latest ]
         exclude:
-          - rust: 1.56.1
+          - rust: 1.65.0
             os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
@@ -107,4 +107,4 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
       - name: Running cargo in release mode
-        run: cargo update -p cc --precise 1.0.94 && cargo test --features="global-context" --release
+        run: cargo test --features="global-context" --release

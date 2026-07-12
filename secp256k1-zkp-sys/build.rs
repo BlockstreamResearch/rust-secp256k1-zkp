@@ -34,6 +34,10 @@ fn main() {
         .include("depend/secp256k1/src")
         .flag_if_supported("-Wno-unused-function") // some ecmult stuff is defined but not used upstream
         .define("SECP256K1_BUILD", Some(""))
+        .define("ENABLE_MODULE_ECDH", Some("1"))
+        .define("ENABLE_MODULE_EXTRAKEYS", Some("1"))
+        .define("ENABLE_MODULE_SCHNORRSIG", Some("1"))
+        .define("ENABLE_MODULE_ELLSWIFT", Some("1"))
         .define("ENABLE_MODULE_SURJECTIONPROOF", Some("1"))
         .define("ENABLE_MODULE_GENERATOR", Some("1"))
         .define("ENABLE_MODULE_RANGEPROOF", Some("1"))
@@ -61,6 +65,10 @@ fn main() {
     // Header files. WASM only.
     if env::var("CARGO_CFG_TARGET_ARCH").unwrap() == "wasm32" {
         base_config.include("wasm-sysroot");
+    }
+
+    if cfg!(feature = "recovery") {
+        base_config.define("ENABLE_MODULE_RECOVERY", Some("1"));
     }
 
     // secp256k1

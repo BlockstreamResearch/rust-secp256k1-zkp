@@ -97,7 +97,7 @@ impl PedersenCommitment {
 /// - `T` being a public key generated from a [`crate::Tag`]
 /// - `r` = `generator_blinding_factor`
 /// - `r'` = `value_blinding_factor`
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct CommitmentSecrets {
     /// The value that is committed to.
     pub value: u64,
@@ -245,8 +245,8 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
+    use crate::rand::rng;
     use crate::{Tag, SECP256K1};
-    use rand::thread_rng;
 
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::wasm_bindgen_test as test;
@@ -255,8 +255,8 @@ mod tests {
         pub fn random(value: u64) -> Self {
             Self {
                 value,
-                value_blinding_factor: Tweak::new(&mut thread_rng()),
-                generator_blinding_factor: Tweak::new(&mut thread_rng()),
+                value_blinding_factor: Tweak::new(&mut rng()),
+                generator_blinding_factor: Tweak::new(&mut rng()),
             }
         }
 
@@ -308,7 +308,7 @@ mod tests {
         let secrets_3 = CommitmentSecrets::random(1000);
         let commitment_3 = secrets_3.commit(tag_1);
 
-        let tbf_4 = Tweak::new(&mut thread_rng());
+        let tbf_4 = Tweak::new(&mut rng());
         let blinded_tag_4 = Generator::new_blinded(SECP256K1, tag_2, tbf_4);
         let vbf_4 = compute_adaptive_blinding_factor(
             SECP256K1,

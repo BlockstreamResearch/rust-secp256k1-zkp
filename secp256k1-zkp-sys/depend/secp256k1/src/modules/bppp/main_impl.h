@@ -15,43 +15,44 @@
 #include "../bppp/main.h"
 #include "../bppp/bppp_norm_product_impl.h"
 
-rustsecp256k1zkp_v0_10_0_bppp_generators *rustsecp256k1zkp_v0_10_0_bppp_generators_create(const rustsecp256k1zkp_v0_10_0_context *ctx, size_t n) {
-    rustsecp256k1zkp_v0_10_0_bppp_generators *ret;
-    rustsecp256k1zkp_v0_10_0_rfc6979_hmac_sha256 rng;
+rustsecp256k1zkp_v0_11_0_bppp_generators *rustsecp256k1zkp_v0_11_0_bppp_generators_create(const rustsecp256k1zkp_v0_11_0_context *ctx, size_t n) {
+    rustsecp256k1zkp_v0_11_0_bppp_generators *ret;
+    rustsecp256k1zkp_v0_11_0_rfc6979_hmac_sha256 rng;
+    const rustsecp256k1zkp_v0_11_0_hash_ctx *hash_ctx = rustsecp256k1zkp_v0_11_0_get_hash_context(ctx);
     unsigned char seed[64];
     size_t i;
 
     VERIFY_CHECK(ctx != NULL);
 
-    ret = (rustsecp256k1zkp_v0_10_0_bppp_generators *)checked_malloc(&ctx->error_callback, sizeof(*ret));
+    ret = checked_malloc(&ctx->error_callback, sizeof(*ret));
     if (ret == NULL) {
         return NULL;
     }
-    ret->gens = (rustsecp256k1zkp_v0_10_0_ge*)checked_malloc(&ctx->error_callback, n * sizeof(*ret->gens));
+    ret->gens = checked_malloc(&ctx->error_callback, n * sizeof(*ret->gens));
     if (ret->gens == NULL) {
         free(ret);
         return NULL;
     }
     ret->n = n;
 
-    rustsecp256k1zkp_v0_10_0_fe_get_b32(&seed[0], &rustsecp256k1zkp_v0_10_0_ge_const_g.x);
-    rustsecp256k1zkp_v0_10_0_fe_get_b32(&seed[32], &rustsecp256k1zkp_v0_10_0_ge_const_g.y);
+    rustsecp256k1zkp_v0_11_0_fe_get_b32(&seed[0], &rustsecp256k1zkp_v0_11_0_ge_const_g.x);
+    rustsecp256k1zkp_v0_11_0_fe_get_b32(&seed[32], &rustsecp256k1zkp_v0_11_0_ge_const_g.y);
 
-    rustsecp256k1zkp_v0_10_0_rfc6979_hmac_sha256_initialize(&rng, seed, 64);
+    rustsecp256k1zkp_v0_11_0_rfc6979_hmac_sha256_initialize(hash_ctx, &rng, seed, 64);
     for (i = 0; i < n; i++) {
-        rustsecp256k1zkp_v0_10_0_generator gen;
+        rustsecp256k1zkp_v0_11_0_generator gen;
         unsigned char tmp[32] = { 0 };
-        rustsecp256k1zkp_v0_10_0_rfc6979_hmac_sha256_generate(&rng, tmp, 32);
-        CHECK(rustsecp256k1zkp_v0_10_0_generator_generate(ctx, &gen, tmp));
-        rustsecp256k1zkp_v0_10_0_generator_load(&ret->gens[i], &gen);
+        rustsecp256k1zkp_v0_11_0_rfc6979_hmac_sha256_generate(hash_ctx, &rng, tmp, 32);
+        CHECK(rustsecp256k1zkp_v0_11_0_generator_generate(ctx, &gen, tmp));
+        rustsecp256k1zkp_v0_11_0_generator_load(&ret->gens[i], &gen);
     }
 
     return ret;
 }
 
-rustsecp256k1zkp_v0_10_0_bppp_generators* rustsecp256k1zkp_v0_10_0_bppp_generators_parse(const rustsecp256k1zkp_v0_10_0_context* ctx, const unsigned char* data, size_t data_len) {
+rustsecp256k1zkp_v0_11_0_bppp_generators* rustsecp256k1zkp_v0_11_0_bppp_generators_parse(const rustsecp256k1zkp_v0_11_0_context* ctx, const unsigned char* data, size_t data_len) {
     size_t n = data_len / 33;
-    rustsecp256k1zkp_v0_10_0_bppp_generators* ret;
+    rustsecp256k1zkp_v0_11_0_bppp_generators* ret;
 
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(data != NULL);
@@ -60,30 +61,30 @@ rustsecp256k1zkp_v0_10_0_bppp_generators* rustsecp256k1zkp_v0_10_0_bppp_generato
         return NULL;
     }
 
-    ret = (rustsecp256k1zkp_v0_10_0_bppp_generators *)checked_malloc(&ctx->error_callback, sizeof(*ret));
+    ret = checked_malloc(&ctx->error_callback, sizeof(*ret));
     if (ret == NULL) {
         return NULL;
     }
     ret->n = n;
-    ret->gens = (rustsecp256k1zkp_v0_10_0_ge*)checked_malloc(&ctx->error_callback, n * sizeof(*ret->gens));
+    ret->gens = checked_malloc(&ctx->error_callback, n * sizeof(*ret->gens));
     if (ret->gens == NULL) {
         free(ret);
         return NULL;
     }
 
     while (n--) {
-        rustsecp256k1zkp_v0_10_0_generator gen;
-        if (!rustsecp256k1zkp_v0_10_0_generator_parse(ctx, &gen, &data[33 * n])) {
+        rustsecp256k1zkp_v0_11_0_generator gen;
+        if (!rustsecp256k1zkp_v0_11_0_generator_parse(ctx, &gen, &data[33 * n])) {
             free(ret->gens);
             free(ret);
             return NULL;
         }
-        rustsecp256k1zkp_v0_10_0_generator_load(&ret->gens[n], &gen);
+        rustsecp256k1zkp_v0_11_0_generator_load(&ret->gens[n], &gen);
     }
     return ret;
 }
 
-int rustsecp256k1zkp_v0_10_0_bppp_generators_serialize(const rustsecp256k1zkp_v0_10_0_context* ctx, const rustsecp256k1zkp_v0_10_0_bppp_generators* gens, unsigned char* data, size_t *data_len) {
+int rustsecp256k1zkp_v0_11_0_bppp_generators_serialize(const rustsecp256k1zkp_v0_11_0_context* ctx, const rustsecp256k1zkp_v0_11_0_bppp_generators* gens, unsigned char* data, size_t *data_len) {
     size_t i;
 
     VERIFY_CHECK(ctx != NULL);
@@ -94,16 +95,16 @@ int rustsecp256k1zkp_v0_10_0_bppp_generators_serialize(const rustsecp256k1zkp_v0
 
     memset(data, 0, *data_len);
     for (i = 0; i < gens->n; i++) {
-        rustsecp256k1zkp_v0_10_0_generator gen;
-        rustsecp256k1zkp_v0_10_0_generator_save(&gen, &gens->gens[i]);
-        rustsecp256k1zkp_v0_10_0_generator_serialize(ctx, &data[33 * i], &gen);
+        rustsecp256k1zkp_v0_11_0_generator gen;
+        rustsecp256k1zkp_v0_11_0_generator_save(&gen, &gens->gens[i]);
+        rustsecp256k1zkp_v0_11_0_generator_serialize(ctx, &data[33 * i], &gen);
     }
 
     *data_len = 33 * gens->n;
     return 1;
 }
 
-void rustsecp256k1zkp_v0_10_0_bppp_generators_destroy(const rustsecp256k1zkp_v0_10_0_context* ctx, rustsecp256k1zkp_v0_10_0_bppp_generators *gens) {
+void rustsecp256k1zkp_v0_11_0_bppp_generators_destroy(const rustsecp256k1zkp_v0_11_0_context* ctx, rustsecp256k1zkp_v0_11_0_bppp_generators *gens) {
     VERIFY_CHECK(ctx != NULL);
     (void) ctx;
     if (gens != NULL) {

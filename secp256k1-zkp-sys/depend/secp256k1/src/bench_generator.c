@@ -5,6 +5,7 @@
  **********************************************************************/
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "../include/secp256k1_generator.h"
@@ -12,7 +13,7 @@
 #include "bench.h"
 
 typedef struct {
-    rustsecp256k1zkp_v0_10_0_context* ctx;
+    rustsecp256k1zkp_v0_11_0_context* ctx;
     unsigned char key[32];
     unsigned char blind[32];
 } bench_generator_t;
@@ -28,8 +29,8 @@ static void bench_generator_generate(void* arg, int iters) {
     bench_generator_t *data = (bench_generator_t*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_10_0_generator gen;
-        CHECK(rustsecp256k1zkp_v0_10_0_generator_generate(data->ctx, &gen, data->key));
+        rustsecp256k1zkp_v0_11_0_generator gen;
+        CHECK(rustsecp256k1zkp_v0_11_0_generator_generate(data->ctx, &gen, data->key));
         data->key[i & 31]++;
     }
 }
@@ -39,8 +40,8 @@ static void bench_generator_generate_blinded(void* arg, int iters) {
     bench_generator_t *data = (bench_generator_t*)arg;
 
     for (i = 0; i < iters; i++) {
-        rustsecp256k1zkp_v0_10_0_generator gen;
-        CHECK(rustsecp256k1zkp_v0_10_0_generator_generate_blinded(data->ctx, &gen, data->key, data->blind));
+        rustsecp256k1zkp_v0_11_0_generator gen;
+        CHECK(rustsecp256k1zkp_v0_11_0_generator_generate_blinded(data->ctx, &gen, data->key, data->blind));
         data->key[1 + (i & 30)]++;
         data->blind[1 + (i & 30)]++;
     }
@@ -49,12 +50,15 @@ static void bench_generator_generate_blinded(void* arg, int iters) {
 int main(void) {
     bench_generator_t data;
     int iters = get_iters(20000);
+    if (iters == 0) {
+        return EXIT_FAILURE;
+    }
 
-    data.ctx = rustsecp256k1zkp_v0_10_0_context_create(SECP256K1_CONTEXT_NONE);
+    data.ctx = rustsecp256k1zkp_v0_11_0_context_create(SECP256K1_CONTEXT_NONE);
 
     run_benchmark("generator_generate", bench_generator_generate, bench_generator_setup, NULL, &data, 10, iters);
     run_benchmark("generator_generate_blinded", bench_generator_generate_blinded, bench_generator_setup, NULL, &data, 10, iters);
 
-    rustsecp256k1zkp_v0_10_0_context_destroy(data.ctx);
-    return 0;
+    rustsecp256k1zkp_v0_11_0_context_destroy(data.ctx);
+    return EXIT_SUCCESS;
 }

@@ -13,10 +13,12 @@ extern "C" {
 
 #include "group.h"
 #include "ecmult_gen.h"
+#include "util_local_visibility.h"
+
 #ifdef EXHAUSTIVE_TEST_ORDER
-static rustsecp256k1zkp_v0_10_0_ge_storage rustsecp256k1zkp_v0_10_0_ecmult_gen_prec_table[ECMULT_GEN_PREC_N(ECMULT_GEN_PREC_BITS)][ECMULT_GEN_PREC_G(ECMULT_GEN_PREC_BITS)];
+static rustsecp256k1zkp_v0_11_0_ge_storage rustsecp256k1zkp_v0_11_0_ecmult_gen_prec_table[COMB_BLOCKS][COMB_POINTS];
 #else
-extern const rustsecp256k1zkp_v0_10_0_ge_storage rustsecp256k1zkp_v0_10_0_ecmult_gen_prec_table[ECMULT_GEN_PREC_N(ECMULT_GEN_PREC_BITS)][ECMULT_GEN_PREC_G(ECMULT_GEN_PREC_BITS)];
+SECP256K1_LOCAL_VAR const rustsecp256k1zkp_v0_11_0_ge_storage rustsecp256k1zkp_v0_11_0_ecmult_gen_prec_table[COMB_BLOCKS][COMB_POINTS];
 #endif /* defined(EXHAUSTIVE_TEST_ORDER) */
 
 #ifdef __cplusplus

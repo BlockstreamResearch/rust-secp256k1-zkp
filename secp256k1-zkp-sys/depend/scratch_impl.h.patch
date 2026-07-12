@@ -1,11 +1,10 @@
 diff --git a/secp256k1-zkp-sys/depend/secp256k1/src/scratch_impl.h b/secp256k1-zkp-sys/depend/secp256k1/src/scratch_impl.h
-index f71a20b..5389571 100644
 --- a/secp256k1-zkp-sys/depend/secp256k1/src/scratch_impl.h
 +++ b/secp256k1-zkp-sys/depend/secp256k1/src/scratch_impl.h
 @@ -10,31 +10,6 @@
  #include "util.h"
  #include "scratch.h"
- 
+
 -static secp256k1_scratch* secp256k1_scratch_create(const secp256k1_callback* error_callback, size_t size) {
 -    const size_t base_alloc = ROUND_TO_ALIGN(sizeof(secp256k1_scratch));
 -    void *alloc = checked_malloc(error_callback, base_alloc + size);

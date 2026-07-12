@@ -16,24 +16,25 @@
 #include "hash.h"
 #include "util.h"
 
-static uint64_t rustsecp256k1zkp_v0_10_0_test_state[4];
+static uint64_t rustsecp256k1zkp_v0_11_0_test_state[4];
 
-SECP256K1_INLINE static void rustsecp256k1zkp_v0_10_0_testrand_seed(const unsigned char *seed16) {
-    static const unsigned char PREFIX[19] = "secp256k1 test init";
+SECP256K1_INLINE static void testrand_seed(const unsigned char *seed16) {
+    static const unsigned char PREFIX[] = {'s', 'e', 'c', 'p', '2', '5', '6', 'k', '1', ' ', 't', 'e', 's', 't', ' ', 'i', 'n', 'i', 't'};
     unsigned char out32[32];
-    rustsecp256k1zkp_v0_10_0_sha256 hash;
+    rustsecp256k1zkp_v0_11_0_sha256 hash;
     int i;
+    const rustsecp256k1zkp_v0_11_0_hash_ctx *hash_ctx = rustsecp256k1zkp_v0_11_0_get_hash_context(rustsecp256k1zkp_v0_11_0_context_static);
 
     /* Use SHA256(PREFIX || seed16) as initial state. */
-    rustsecp256k1zkp_v0_10_0_sha256_initialize(&hash);
-    rustsecp256k1zkp_v0_10_0_sha256_write(&hash, PREFIX, sizeof(PREFIX));
-    rustsecp256k1zkp_v0_10_0_sha256_write(&hash, seed16, 16);
-    rustsecp256k1zkp_v0_10_0_sha256_finalize(&hash, out32);
+    rustsecp256k1zkp_v0_11_0_sha256_initialize(&hash);
+    rustsecp256k1zkp_v0_11_0_sha256_write(hash_ctx, &hash, PREFIX, sizeof(PREFIX));
+    rustsecp256k1zkp_v0_11_0_sha256_write(hash_ctx, &hash, seed16, 16);
+    rustsecp256k1zkp_v0_11_0_sha256_finalize(hash_ctx, &hash, out32);
     for (i = 0; i < 4; ++i) {
         uint64_t s = 0;
         int j;
         for (j = 0; j < 8; ++j) s = (s << 8) | out32[8*i + j];
-        rustsecp256k1zkp_v0_10_0_test_state[i] = s;
+        rustsecp256k1zkp_v0_11_0_test_state[i] = s;
     }
 }
 
@@ -41,29 +42,29 @@ SECP256K1_INLINE static uint64_t rotl(const uint64_t x, int k) {
     return (x << k) | (x >> (64 - k));
 }
 
-SECP256K1_INLINE static uint64_t rustsecp256k1zkp_v0_10_0_testrand64(void) {
+SECP256K1_INLINE static uint64_t testrand64(void) {
     /* Test-only Xoshiro256++ RNG. See https://prng.di.unimi.it/ */
-    const uint64_t result = rotl(rustsecp256k1zkp_v0_10_0_test_state[0] + rustsecp256k1zkp_v0_10_0_test_state[3], 23) + rustsecp256k1zkp_v0_10_0_test_state[0];
-    const uint64_t t = rustsecp256k1zkp_v0_10_0_test_state[1] << 17;
-    rustsecp256k1zkp_v0_10_0_test_state[2] ^= rustsecp256k1zkp_v0_10_0_test_state[0];
-    rustsecp256k1zkp_v0_10_0_test_state[3] ^= rustsecp256k1zkp_v0_10_0_test_state[1];
-    rustsecp256k1zkp_v0_10_0_test_state[1] ^= rustsecp256k1zkp_v0_10_0_test_state[2];
-    rustsecp256k1zkp_v0_10_0_test_state[0] ^= rustsecp256k1zkp_v0_10_0_test_state[3];
-    rustsecp256k1zkp_v0_10_0_test_state[2] ^= t;
-    rustsecp256k1zkp_v0_10_0_test_state[3] = rotl(rustsecp256k1zkp_v0_10_0_test_state[3], 45);
+    const uint64_t result = rotl(rustsecp256k1zkp_v0_11_0_test_state[0] + rustsecp256k1zkp_v0_11_0_test_state[3], 23) + rustsecp256k1zkp_v0_11_0_test_state[0];
+    const uint64_t t = rustsecp256k1zkp_v0_11_0_test_state[1] << 17;
+    rustsecp256k1zkp_v0_11_0_test_state[2] ^= rustsecp256k1zkp_v0_11_0_test_state[0];
+    rustsecp256k1zkp_v0_11_0_test_state[3] ^= rustsecp256k1zkp_v0_11_0_test_state[1];
+    rustsecp256k1zkp_v0_11_0_test_state[1] ^= rustsecp256k1zkp_v0_11_0_test_state[2];
+    rustsecp256k1zkp_v0_11_0_test_state[0] ^= rustsecp256k1zkp_v0_11_0_test_state[3];
+    rustsecp256k1zkp_v0_11_0_test_state[2] ^= t;
+    rustsecp256k1zkp_v0_11_0_test_state[3] = rotl(rustsecp256k1zkp_v0_11_0_test_state[3], 45);
     return result;
 }
 
-SECP256K1_INLINE static uint64_t rustsecp256k1zkp_v0_10_0_testrand_bits(int bits) {
+SECP256K1_INLINE static uint64_t testrand_bits(int bits) {
     if (bits == 0) return 0;
-    return rustsecp256k1zkp_v0_10_0_testrand64() >> (64 - bits);
+    return testrand64() >> (64 - bits);
 }
 
-SECP256K1_INLINE static uint32_t rustsecp256k1zkp_v0_10_0_testrand32(void) {
-    return rustsecp256k1zkp_v0_10_0_testrand64() >> 32;
+SECP256K1_INLINE static uint32_t testrand32(void) {
+    return testrand64() >> 32;
 }
 
-static uint32_t rustsecp256k1zkp_v0_10_0_testrand_int(uint32_t range) {
+static uint32_t testrand_int(uint32_t range) {
     uint32_t mask = 0;
     uint32_t range_copy;
     /* Reduce range by 1, changing its meaning to "maximum value". */
@@ -77,15 +78,15 @@ static uint32_t rustsecp256k1zkp_v0_10_0_testrand_int(uint32_t range) {
     }
     /* Generation loop. */
     while (1) {
-        uint32_t val = rustsecp256k1zkp_v0_10_0_testrand64() & mask;
+        uint32_t val = testrand64() & mask;
         if (val <= range) return val;
     }
 }
 
-static void rustsecp256k1zkp_v0_10_0_testrand256(unsigned char *b32) {
+static void testrand256(unsigned char *b32) {
     int i;
     for (i = 0; i < 4; ++i) {
-        uint64_t val = rustsecp256k1zkp_v0_10_0_testrand64();
+        uint64_t val = testrand64();
         b32[0] = val;
         b32[1] = val >> 8;
         b32[2] = val >> 16;
@@ -98,14 +99,14 @@ static void rustsecp256k1zkp_v0_10_0_testrand256(unsigned char *b32) {
     }
 }
 
-static void rustsecp256k1zkp_v0_10_0_testrand_bytes_test(unsigned char *bytes, size_t len) {
+static void testrand_bytes_test(unsigned char *bytes, size_t len) {
     size_t bits = 0;
     memset(bytes, 0, len);
     while (bits < len * 8) {
         int now;
         uint32_t val;
-        now = 1 + (rustsecp256k1zkp_v0_10_0_testrand_bits(6) * rustsecp256k1zkp_v0_10_0_testrand_bits(5) + 16) / 31;
-        val = rustsecp256k1zkp_v0_10_0_testrand_bits(1);
+        now = 1 + (testrand_bits(6) * testrand_bits(5) + 16) / 31;
+        val = testrand_bits(1);
         while (now > 0 && bits < len * 8) {
             bytes[bits / 8] |= val << (bits % 8);
             now--;
@@ -114,11 +115,11 @@ static void rustsecp256k1zkp_v0_10_0_testrand_bytes_test(unsigned char *bytes, s
     }
 }
 
-static void rustsecp256k1zkp_v0_10_0_testrand256_test(unsigned char *b32) {
-    rustsecp256k1zkp_v0_10_0_testrand_bytes_test(b32, 32);
+static void testrand256_test(unsigned char *b32) {
+    testrand_bytes_test(b32, 32);
 }
 
-SECP256K1_INLINE static int64_t rustsecp256k1zkp_v0_10_0_testrandi64(uint64_t min, uint64_t max) {
+SECP256K1_INLINE static int64_t testrandi64(uint64_t min, uint64_t max) {
     uint64_t range;
     uint64_t r;
     uint64_t clz;
@@ -127,19 +128,19 @@ SECP256K1_INLINE static int64_t rustsecp256k1zkp_v0_10_0_testrandi64(uint64_t mi
         return min;
     }
     range = max - min;
-    clz = rustsecp256k1zkp_v0_10_0_clz64_var(range);
+    clz = rustsecp256k1zkp_v0_11_0_clz64_var(range);
     do {
-        r = ((uint64_t)rustsecp256k1zkp_v0_10_0_testrand32() << 32) | rustsecp256k1zkp_v0_10_0_testrand32();
+        r = ((uint64_t)testrand32() << 32) | testrand32();
         r >>= clz;
     } while (r > range);
     return min + (int64_t)r;
 }
 
-static void rustsecp256k1zkp_v0_10_0_testrand_flip(unsigned char *b, size_t len) {
-    b[rustsecp256k1zkp_v0_10_0_testrand_int(len)] ^= (1 << rustsecp256k1zkp_v0_10_0_testrand_bits(3));
+static void testrand_flip(unsigned char *b, size_t len) {
+    b[testrand_int(len)] ^= (1 << testrand_bits(3));
 }
 
-static void rustsecp256k1zkp_v0_10_0_testrand_init(const char* hexseed) {
+static void testrand_init(const char* hexseed) {
     unsigned char seed16[16] = {0};
     if (hexseed && strlen(hexseed) != 0) {
         int pos = 0;
@@ -173,13 +174,7 @@ static void rustsecp256k1zkp_v0_10_0_testrand_init(const char* hexseed) {
     }
 
     printf("random seed = %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n", seed16[0], seed16[1], seed16[2], seed16[3], seed16[4], seed16[5], seed16[6], seed16[7], seed16[8], seed16[9], seed16[10], seed16[11], seed16[12], seed16[13], seed16[14], seed16[15]);
-    rustsecp256k1zkp_v0_10_0_testrand_seed(seed16);
-}
-
-static void rustsecp256k1zkp_v0_10_0_testrand_finish(void) {
-    unsigned char run32[32];
-    rustsecp256k1zkp_v0_10_0_testrand256(run32);
-    printf("random run = %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n", run32[0], run32[1], run32[2], run32[3], run32[4], run32[5], run32[6], run32[7], run32[8], run32[9], run32[10], run32[11], run32[12], run32[13], run32[14], run32[15]);
+    testrand_seed(seed16);
 }
 
 #endif /* SECP256K1_TESTRAND_IMPL_H */

@@ -27,7 +27,7 @@ index f1d7d42..3aadd75 100644
 -    ARG_CHECK(proof_out_p != NULL);
 -    *proof_out_p = 0;
 -
--    proof = (secp256k1_surjectionproof*)checked_malloc(&ctx->error_callback, sizeof(secp256k1_surjectionproof));
+-    proof = checked_malloc(&ctx->error_callback, sizeof(secp256k1_surjectionproof));
 -    if (proof != NULL) {
 -        ret = secp256k1_surjectionproof_initialize(ctx, proof, input_index, fixed_input_tags, n_input_tags, n_input_tags_to_use, fixed_output_tag, n_max_iterations, random_seed32);
 -        if (ret) {
@@ -57,5 +57,5 @@ index f1d7d42..3aadd75 100644
 -}
 -
  int secp256k1_surjectionproof_initialize(const secp256k1_context* ctx, secp256k1_surjectionproof* proof, size_t *input_index, const secp256k1_fixed_asset_tag* fixed_input_tags, const size_t n_input_tags, const size_t n_input_tags_to_use, const secp256k1_fixed_asset_tag* fixed_output_tag, const size_t n_max_iterations, const unsigned char *random_seed32) {
+     const secp256k1_hash_ctx *hash_ctx = secp256k1_get_hash_context(ctx);
      secp256k1_surjectionproof_csprng csprng;
-     size_t n_iterations = 0;

@@ -253,6 +253,7 @@ impl<'de> ::serde::Deserialize<'de> for RangeProof {
 /// The result of rewinding a range proof.
 ///
 /// Rewinding a range proof reveals ("opens") the stored information and allows us to access information the prover embedded in the proof.
+#[derive(Debug)]
 pub struct Opening {
     /// The value that the prover originally committed to in the Pedersen commitment.
     pub value: u64,
@@ -265,8 +266,8 @@ pub struct Opening {
 #[cfg(all(test, feature = "global-context"))] // use global context for convenience
 mod tests {
     use super::*;
+    use crate::rand::rng;
     use crate::{CommitmentSecrets, Tag, SECP256K1};
-    use rand::thread_rng;
 
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::wasm_bindgen_test as test;
@@ -281,7 +282,7 @@ mod tests {
         let message = b"foo";
         let additional_commitment = b"bar";
 
-        let sk = SecretKey::new(&mut thread_rng());
+        let sk = SecretKey::new(&mut rng());
         let additional_generator =
             Generator::new_blinded(SECP256K1, tag, commitment_secrets.generator_blinding_factor);
 
@@ -328,7 +329,7 @@ mod tests {
         let message = b"foo";
         let additional_commitment = b"bar";
 
-        let sk = SecretKey::new(&mut thread_rng());
+        let sk = SecretKey::new(&mut rng());
         let additional_generator =
             Generator::new_blinded(SECP256K1, tag, commitment_secrets.generator_blinding_factor);
 

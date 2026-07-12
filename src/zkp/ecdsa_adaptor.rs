@@ -9,7 +9,7 @@
 
 use crate::ffi::{self, CPtr, ECDSA_ADAPTOR_SIGNATURE_LENGTH};
 #[cfg(feature = "rand-std")]
-use crate::rand::thread_rng;
+use crate::rand::rng;
 #[cfg(feature = "actual-rand")]
 use crate::rand::{CryptoRng, Rng};
 use crate::{constants, PublicKey, Secp256k1, SecretKey};
@@ -138,8 +138,7 @@ impl EcdsaAdaptorSignature {
         sk: &SecretKey,
         enckey: &PublicKey,
     ) -> EcdsaAdaptorSignature {
-        let mut rng = thread_rng();
-        EcdsaAdaptorSignature::encrypt_with_rng(secp, msg, sk, enckey, &mut rng)
+        EcdsaAdaptorSignature::encrypt_with_rng(secp, msg, sk, enckey, &mut rng())
     }
 
     /// Creates an adaptor signature along with a proof to verify the adaptor signature,
@@ -258,7 +257,7 @@ impl EcdsaAdaptorSignature {
             return Err(Error::CannotRecoverAdaptorSecret);
         }
 
-        Ok(SecretKey::from_slice(&data)?)
+        Ok(SecretKey::from_byte_array(data)?)
     }
 
     /// Verifies that the adaptor secret can be extracted from the adaptor signature and the completed ECDSA signature.
@@ -292,17 +291,17 @@ mod tests {
     use super::Message;
     use super::*;
     #[cfg(not(rust_secp_fuzz))]
-    use crate::rand::{rngs::ThreadRng, thread_rng, RngCore};
+    use crate::rand::{rng, rngs::ThreadRng, RngCore};
     use crate::SECP256K1;
 
     #[cfg(not(rust_secp_fuzz))]
     fn test_ecdsa_adaptor_signature_helper(
         encrypt: fn(&Message, &SecretKey, &PublicKey, &mut ThreadRng) -> EcdsaAdaptorSignature,
     ) {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         let (seckey, pubkey) = SECP256K1.generate_keypair(&mut rng);
         let (adaptor_secret, adaptor) = SECP256K1.generate_keypair(&mut rng);
-        let msg = Message::from_digest_slice(&[2u8; 32]).unwrap();
+        let msg = Message::from_digest([2u8; 32]);
         let adaptor_sig = encrypt(&msg, &seckey, &adaptor, &mut rng);
 
         adaptor_sig
@@ -315,7 +314,7 @@ mod tests {
             .decrypt(&adaptor_secret)
             .expect("to be able to decrypt using the correct secret");
         SECP256K1
-            .verify_ecdsa(&msg, &sig, &pubkey)
+            .verify_ecdsa(msg, &sig, &pubkey)
             .expect("signature to be valid");
         let recovered = adaptor_sig
             .recover(SECP256K1, &sig, &adaptor)
@@ -487,7 +486,7 @@ mod tests {
     fn msg_from_str(input: &str) -> Message {
         let mut buf = [0u8; 32];
         from_hex(input, &mut buf).unwrap();
-        Message::from_digest_slice(&buf).unwrap()
+        Message::from_digest(buf)
     }
 
     fn compact_sig_from_str(input: &str) -> Signature {

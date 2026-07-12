@@ -10,7 +10,7 @@ fi
 SECP_SYS="$SECP_VENDOR_GIT_ROOT"/secp256k1-zkp-sys
 DEFAULT_VERSION_CODE=$(grep version "$SECP_SYS/Cargo.toml" | sed 's/\./_/g' | sed 's/.*"\(.*\)".*/\1/')
 DEFAULT_DEPEND_DIR="$SECP_SYS/depend"
-DEFAULT_SECP_REPO=https://github.com/ElementsProject/secp256k1-zkp.git
+DEFAULT_SECP_REPO=https://github.com/BlockstreamResearch/secp256k1-zkp.git
 
 : "${SECP_VENDOR_VERSION_CODE:=$DEFAULT_VERSION_CODE}"
 : "${SECP_VENDOR_DEPEND_DIR:=$DEFAULT_DEPEND_DIR}"
@@ -96,8 +96,8 @@ echo "$SOURCE_REV" >> ./secp256k1-HEAD-revision.txt
 # To compensate, the secp_context_create and _destroy methods are redefined in Rust.
 git apply "./secp256k1.h.patch"
 git apply "./secp256k1.c.patch"
-git apply "./scratch_impl.h.patch"
 git apply "./util.h.patch"
+git apply "./scratch_impl.h.patch"
 git apply "./surjection_impl.h.patch"
 git apply "./surjection_main_impl.h.patch"
 

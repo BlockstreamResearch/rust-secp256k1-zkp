@@ -220,11 +220,11 @@ impl CPtr for WhitelistSignature {
 #[cfg(all(test, feature = "global-context"))]
 mod tests {
     use super::*;
+    use crate::rand::rng;
     use crate::SECP256K1;
-    use rand::thread_rng;
 
     fn test_whitelist_proof_roundtrip(n_keys: usize) {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         let (keys_online, pak_online) = (0..n_keys)
             .map(|_| SECP256K1.generate_keypair(&mut rng))
             .unzip::<_, _, Vec<_>, Vec<_>>();
@@ -290,7 +290,7 @@ mod tests {
     fn test_whitelist_proof_invalid() {
         let n_keys = 255;
 
-        let mut rng = thread_rng();
+        let mut rng = rng();
         let (keys_online, pak_online) = (0..n_keys)
             .map(|_| SECP256K1.generate_keypair(&mut rng))
             .unzip::<_, _, Vec<_>, Vec<_>>();
