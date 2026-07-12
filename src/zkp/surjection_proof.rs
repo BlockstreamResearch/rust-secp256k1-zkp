@@ -13,7 +13,7 @@ pub struct SurjectionProof {
 
 #[cfg(feature = "rand")]
 mod with_rand {
-    use super::*;
+    use super::{ffi, Error, Generator, Secp256k1, SurjectionProof};
     use crate::rand::Rng;
     use crate::{Signing, Tag, Tweak};
     use ffi::CPtr;

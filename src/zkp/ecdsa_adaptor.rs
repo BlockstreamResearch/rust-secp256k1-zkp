@@ -25,7 +25,7 @@ pub struct EcdsaAdaptorSignature(ffi::EcdsaAdaptorSignature);
 
 impl fmt::LowerHex for EcdsaAdaptorSignature {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for ch in self.0.as_ref().iter() {
+        for ch in self.0.as_ref() {
             write!(f, "{:02x}", ch)?;
         }
         Ok(())
@@ -130,7 +130,7 @@ impl EcdsaAdaptorSignature {
     /// Creates an adaptor signature along with a proof to verify the adaptor signature.
     /// This function derives a nonce using a similar process as described in BIP-340.
     /// The nonce derivation process is strengthened against side channel
-    /// attacks by providing auxiliary randomness using the ThreadRng random number generator.
+    /// attacks by providing auxiliary randomness using the [`rand::rng`] random number generator.
     #[cfg(feature = "std")]
     #[cfg(feature = "rand")]
     pub fn encrypt<C: Signing>(

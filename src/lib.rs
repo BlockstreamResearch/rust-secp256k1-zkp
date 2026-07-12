@@ -280,7 +280,7 @@ impl<T: ThirtyTwoByteHash> From<T> for Message {
 
 impl fmt::LowerHex for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for byte in self.0.iter() {
+        for byte in self.0 {
             write!(f, "{:02x}", byte)?;
         }
         Ok(())
@@ -318,7 +318,7 @@ pub enum Error {
     InvalidPublicKeySum,
     /// The only valid parity values are 0 or 1.
     InvalidParityValue(key::InvalidParityValue),
-    /// Bad EllSwift value
+    /// Bad `EllSwift` value
     InvalidEllSwift,
     /// Failed to produce a surjection proof because of an internal error within `libsecp256k1-zkp`
     CannotProveSurjection,
@@ -458,7 +458,7 @@ impl<C: Context> Drop for Secp256k1<C> {
             let size = ffi::secp256k1_context_preallocated_clone_size(self.ctx.as_ptr());
             ffi::secp256k1_context_preallocated_destroy(self.ctx);
 
-            C::deallocate(self.ctx.as_ptr() as _, size);
+            C::deallocate(self.ctx.as_ptr().cast::<u8>(), size);
         }
     }
 }
@@ -579,7 +579,7 @@ fn to_hex<'a>(src: &[u8], target: &'a mut [u8]) -> Result<&'a str, ()> {
     let mut i = 0;
     for &b in src {
         target[i] = HEX_TABLE[usize::from(b >> 4)];
-        target[i + 1] = HEX_TABLE[usize::from(b & 0b00001111)];
+        target[i + 1] = HEX_TABLE[usize::from(b & 0b0000_1111)];
         i += 2;
     }
     let result = &target[..hex_len];

@@ -20,7 +20,7 @@ pub const ZERO_TWEAK: Tweak = Tweak([
 impl fmt::Debug for Tweak {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Tweak(")?;
-        for i in self[..].iter() {
+        for i in &self[..] {
             write!(f, "{:02x}", i)?;
         }
         write!(f, ")")
@@ -150,7 +150,7 @@ impl Generator {
     }
 
     /// Creates a new [`Generator`] by blinding a [`Tag`] using the given blinding factor.
-    /// Use [Generator::new_unblinded] for creating a [`Generator`] with zero blinding factor
+    /// Use [`Generator::new_unblinded`] for creating a [`Generator`] with zero blinding factor
     pub fn new_blinded<C: Signing>(secp: &Secp256k1<C>, tag: Tag, blinding_factor: Tweak) -> Self {
         let mut generator = unsafe { ffi::PublicKey::new() };
 

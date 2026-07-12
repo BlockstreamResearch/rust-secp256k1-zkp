@@ -92,7 +92,7 @@ impl RangeProof {
                 commitment_blinding.as_c_ptr(),
                 sk.as_c_ptr(),
                 exp,
-                min_bits as i32,
+                i32::from(min_bits),
                 value,
                 message.as_ptr(),
                 message.len(),
