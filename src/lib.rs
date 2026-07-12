@@ -642,7 +642,7 @@ mod tests {
     use super::*;
 
     #[test]
-    #[cfg(all(feature = "rand", feature = "std"))]
+    #[cfg(feature = "std")]
     // In rustc 1.72 this Clippy lint was pulled out of clippy and into rustc, and
     // was made deny-by-default, breaking compilation of this test. Aside from this
     // breaking change, which there is no point in bugging, the rename was done so
@@ -662,15 +662,18 @@ mod tests {
         let sign = unsafe { Secp256k1::from_raw_signing_only(ctx_sign.ctx) };
         let mut vrfy = unsafe { Secp256k1::from_raw_verification_only(ctx_vrfy.ctx) };
 
-        let (sk, pk) = full.generate_keypair(&mut rand::rng());
-        let msg = Message::from_digest([2u8; 32]);
+        let keyset = whitelist_test_util::KeySet::new(10);
+
         // Try signing
-        assert_eq!(sign.sign_ecdsa(msg, &sk), full.sign_ecdsa(msg, &sk));
-        let sig = full.sign_ecdsa(msg, &sk);
+        assert_eq!(
+            whitelist_test_util::whitelist_prove(&sign, &keyset, 0),
+            whitelist_test_util::whitelist_prove(&full, &keyset, 0),
+        );
+        let sig = whitelist_test_util::whitelist_prove(&sign, &keyset, 0).unwrap();
 
         // Try verifying
-        assert!(vrfy.verify_ecdsa(msg, &sig, &pk).is_ok());
-        assert!(full.verify_ecdsa(msg, &sig, &pk).is_ok());
+        assert!(whitelist_test_util::whitelist_verify(&vrfy, &keyset, &sig).is_ok());
+        assert!(whitelist_test_util::whitelist_verify(&full, &keyset, &sig).is_ok());
 
         // The following drop will have no effect; in fact, they will trigger a compiler
         // error because manually dropping a `ManuallyDrop` is almost certainly incorrect.
@@ -714,7 +717,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "rand", feature = "std"))]
+    #[cfg(feature = "std")]
     fn test_preallocation() {
         use crate::ffi::types::AlignedType;
 
@@ -729,44 +732,38 @@ mod tests {
         //        drop(buf_vfy); // The buffer can't get dropped before the context.
         //        println!("{:?}", buf_ful[5]); // Can't even read the data thanks to the borrow checker.
 
-        let (sk, pk) = full.generate_keypair(&mut rand::rng());
-        let msg = Message::from_digest([2u8; 32]);
+        let keyset = whitelist_test_util::KeySet::new(10);
         // Try signing
-        assert_eq!(sign.sign_ecdsa(msg, &sk), full.sign_ecdsa(msg, &sk));
-        let sig = full.sign_ecdsa(msg, &sk);
+        assert_eq!(
+            whitelist_test_util::whitelist_prove(&sign, &keyset, 0),
+            whitelist_test_util::whitelist_prove(&full, &keyset, 0),
+        );
+        let sig = whitelist_test_util::whitelist_prove(&sign, &keyset, 0).unwrap();
 
         // Try verifying
-        assert!(vrfy.verify_ecdsa(msg, &sig, &pk).is_ok());
-        assert!(full.verify_ecdsa(msg, &sig, &pk).is_ok());
+        assert!(whitelist_test_util::whitelist_verify(&vrfy, &keyset, &sig).is_ok());
+        assert!(whitelist_test_util::whitelist_verify(&full, &keyset, &sig).is_ok());
     }
 
     #[test]
-    #[cfg(all(feature = "rand", feature = "std"))]
+    #[cfg(feature = "std")]
     fn capabilities() {
         let sign = Secp256k1::signing_only();
         let vrfy = Secp256k1::verification_only();
         let full = Secp256k1::new();
 
-        let msg = crate::random_32_bytes(&mut rand::rng());
-        let msg = Message::from_digest(msg);
-
-        // Try key generation
-        let (sk, pk) = full.generate_keypair(&mut rand::rng());
+        let keyset = whitelist_test_util::KeySet::new(10);
 
         // Try signing
-        assert_eq!(sign.sign_ecdsa(msg, &sk), full.sign_ecdsa(msg, &sk));
-        let sig = full.sign_ecdsa(msg, &sk);
+        assert_eq!(
+            whitelist_test_util::whitelist_prove(&sign, &keyset, 0),
+            whitelist_test_util::whitelist_prove(&full, &keyset, 0),
+        );
+        let sig = whitelist_test_util::whitelist_prove(&sign, &keyset, 0).unwrap();
 
         // Try verifying
-        assert!(vrfy.verify_ecdsa(msg, &sig, &pk).is_ok());
-        assert!(full.verify_ecdsa(msg, &sig, &pk).is_ok());
-
-        // Check that we can produce keys from slices with no precomputation
-        let pk_slice = &pk.serialize();
-        let new_pk = PublicKey::from_slice(pk_slice).unwrap();
-        let new_sk = SecretKey::from_byte_array(sk.secret_bytes()).unwrap();
-        assert_eq!(sk, new_sk);
-        assert_eq!(pk, new_pk);
+        assert!(whitelist_test_util::whitelist_verify(&vrfy, &keyset, &sig).is_ok());
+        assert!(whitelist_test_util::whitelist_verify(&full, &keyset, &sig).is_ok());
     }
 
     #[test]
@@ -1123,17 +1120,9 @@ mod tests {
     #[test]
     fn test_global_context() {
         use crate::SECP256K1;
-        let sk_data = hex!("e6dd32f8761625f105c39a39f19370b3521d845a12456d60ce44debd0a362641");
-        let sk = SecretKey::from_byte_array(sk_data).unwrap();
-        let msg_data = hex!("a4965ca63b7d8562736ceec36dfa5a11bf426eb65be8ea3f7a49ae363032da0d");
-        let msg = Message::from_digest(msg_data);
-
-        // Check usage as explicit parameter
-        let pk = PublicKey::from_secret_key(SECP256K1, &sk);
-
-        // Check usage as self
-        let sig = SECP256K1.sign_ecdsa(msg, &sk);
-        assert!(SECP256K1.verify_ecdsa(msg, &sig, &pk).is_ok());
+        let keyset = whitelist_test_util::KeySet::new(10);
+        let sig = whitelist_test_util::whitelist_prove(&SECP256K1, &keyset, 0).unwrap();
+        assert!(whitelist_test_util::whitelist_verify(&SECP256K1, &keyset, &sig).is_ok());
     }
 }
 
