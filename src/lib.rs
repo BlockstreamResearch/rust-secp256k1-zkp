@@ -297,30 +297,12 @@ impl fmt::Display for Message {
 /// The main error type for this library.
 #[derive(Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Debug)]
 pub enum Error {
-    /// Signature failed verification.
-    IncorrectSignature,
     /// Bad sized message ("messages" are actually fixed-sized digests [`constants::MESSAGE_SIZE`]).
     InvalidMessage,
-    /// Bad public key.
-    InvalidPublicKey,
-    /// Bad signature.
-    InvalidSignature,
     /// Bad secret key.
     InvalidSecretKey,
-    /// Bad shared secret.
-    InvalidSharedSecret,
-    /// Bad recovery id.
-    InvalidRecoveryId,
-    /// Tried to add/multiply by an invalid tweak.
-    InvalidTweak,
     /// Didn't pass enough memory to context creation with preallocated memory.
     NotEnoughMemory,
-    /// Bad set of public keys.
-    InvalidPublicKeySum,
-    /// The only valid parity values are 0 or 1.
-    InvalidParityValue(InvalidParityValue),
-    /// Bad `EllSwift` value
-    InvalidEllSwift,
     /// Failed to produce a surjection proof because of an internal error within `libsecp256k1-zkp`
     CannotProveSurjection,
     /// Given bytes don't represent a valid surjection proof
@@ -358,20 +340,9 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
-            Self::IncorrectSignature => f.write_str("signature failed verification"),
             Self::InvalidMessage => f.write_str("message was not 32 bytes (do you need to hash?)"),
-            Self::InvalidPublicKey => f.write_str("malformed public key"),
-            Self::InvalidSignature => f.write_str("malformed signature"),
             Self::InvalidSecretKey => f.write_str("malformed or out-of-range secret key"),
-            Self::InvalidSharedSecret => f.write_str("malformed or out-of-range shared secret"),
-            Self::InvalidRecoveryId => f.write_str("bad recovery id"),
-            Self::InvalidTweak => f.write_str("bad tweak"),
             Self::NotEnoughMemory => f.write_str("not enough memory allocated"),
-            Self::InvalidPublicKeySum => f.write_str(
-                "the sum of public keys was invalid or the input vector lengths was less than 1",
-            ),
-            Self::InvalidParityValue(e) => write_err!(f, "couldn't create parity"; e),
-            Self::InvalidEllSwift => f.write_str("malformed EllSwift value"),
             Self::CannotProveSurjection => f.write_str("failed to prove surjection"),
             Self::InvalidSurjectionProof => f.write_str("malformed surjection proof"),
             Self::InvalidPedersenCommitment => f.write_str("malformed pedersen commitment"),
@@ -402,18 +373,9 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::IncorrectSignature => None,
             Self::InvalidMessage => None,
-            Self::InvalidPublicKey => None,
-            Self::InvalidSignature => None,
             Self::InvalidSecretKey => None,
-            Self::InvalidSharedSecret => None,
-            Self::InvalidRecoveryId => None,
-            Self::InvalidTweak => None,
             Self::NotEnoughMemory => None,
-            Self::InvalidPublicKeySum => None,
-            Self::InvalidParityValue(error) => Some(error),
-            Self::InvalidEllSwift => None,
             Self::CannotProveSurjection => None,
             Self::InvalidSurjectionProof => None,
             Self::InvalidPedersenCommitment => None,
