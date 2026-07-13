@@ -216,6 +216,7 @@ impl<C: Verification> Secp256k1<C> {
 
 #[cfg(test)]
 #[allow(unused_imports)]
+#[allow(deprecated)]
 mod tests {
     use core::str::FromStr;
 
