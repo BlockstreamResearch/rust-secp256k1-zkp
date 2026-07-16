@@ -8,9 +8,10 @@
 //!
 
 use crate::ffi::{self, CPtr, ECDSA_ADAPTOR_SIGNATURE_LENGTH};
-#[cfg(feature = "rand-std")]
+#[cfg(feature = "std")]
+#[cfg(feature = "rand")]
 use crate::rand::rng;
-#[cfg(feature = "actual-rand")]
+#[cfg(feature = "rand")]
 use crate::rand::{CryptoRng, Rng};
 use crate::{constants, PublicKey, Secp256k1, SecretKey};
 use crate::{ecdsa::Signature, Verification};
@@ -24,7 +25,7 @@ pub struct EcdsaAdaptorSignature(ffi::EcdsaAdaptorSignature);
 
 impl fmt::LowerHex for EcdsaAdaptorSignature {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for ch in self.0.as_ref().iter() {
+        for ch in self.0.as_ref() {
             write!(f, "{:02x}", ch)?;
         }
         Ok(())
@@ -129,9 +130,9 @@ impl EcdsaAdaptorSignature {
     /// Creates an adaptor signature along with a proof to verify the adaptor signature.
     /// This function derives a nonce using a similar process as described in BIP-340.
     /// The nonce derivation process is strengthened against side channel
-    /// attacks by providing auxiliary randomness using the ThreadRng random number generator.
-    /// Requires compilation with "rand-std" feature.
-    #[cfg(feature = "rand-std")]
+    /// attacks by providing auxiliary randomness using the [`rand::rng`] random number generator.
+    #[cfg(feature = "std")]
+    #[cfg(feature = "rand")]
     pub fn encrypt<C: Signing>(
         secp: &Secp256k1<C>,
         msg: &Message,
@@ -146,7 +147,7 @@ impl EcdsaAdaptorSignature {
     /// The nonce derivation process is strengthened against side channel
     /// attacks by providing auxiliary randomness using the provided random number generator.
     /// Requires compilation with "rand" feature.
-    #[cfg(feature = "actual-rand")]
+    #[cfg(feature = "rand")]
     pub fn encrypt_with_rng<C: Signing, R: Rng + CryptoRng>(
         secp: &Secp256k1<C>,
         msg: &Message,
@@ -190,6 +191,7 @@ impl EcdsaAdaptorSignature {
     /// This function derives a nonce using a similar process as described in BIP-340.
     /// The nonce derivation process is strengthened against side channel attacks by
     /// using the provided auxiliary random data.
+    #[rustfmt::skip] // attempts to create a 158-long line
     pub fn encrypt_with_aux_rand<C: Signing>(
         secp: &Secp256k1<C>,
         msg: &Message,
@@ -199,6 +201,11 @@ impl EcdsaAdaptorSignature {
     ) -> EcdsaAdaptorSignature {
         let mut adaptor_sig = ffi::EcdsaAdaptorSignature::new();
 
+        let aux_rand_ptr = aux_rand
+            .as_ptr()
+            .cast::<ffi::types::c_void>()
+            .cast_mut(); // ok as secp256k1_nonce_function_ecdsa_adaptor will not actually mutate
+
         let res = unsafe {
             ffi::secp256k1_ecdsa_adaptor_encrypt(
                 secp.ctx().as_ptr(),
@@ -207,7 +214,7 @@ impl EcdsaAdaptorSignature {
                 enckey.as_c_ptr(),
                 msg.as_c_ptr(),
                 ffi::secp256k1_nonce_function_ecdsa_adaptor,
-                aux_rand.as_c_ptr() as *mut ffi::types::c_void,
+                aux_rand_ptr,
             )
         };
         debug_assert_eq!(res, 1);
@@ -257,7 +264,7 @@ impl EcdsaAdaptorSignature {
             return Err(Error::CannotRecoverAdaptorSecret);
         }
 
-        Ok(SecretKey::from_byte_array(data)?)
+        SecretKey::from_byte_array(data)
     }
 
     /// Verifies that the adaptor secret can be extracted from the adaptor signature and the completed ECDSA signature.

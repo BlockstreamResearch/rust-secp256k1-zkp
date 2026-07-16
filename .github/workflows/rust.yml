@@ -32,13 +32,10 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.65.0
+          - 1.74.0
           - beta
           - stable
         os: [ ubuntu-latest, macos-latest ]
-        exclude:
-          - rust: 1.65.0
-            os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Crate
@@ -59,43 +56,15 @@ jobs:
           DO_FEATURE_MATRIX: true
         run: ./contrib/test.sh
 
-  WASM:
-    name: WASM
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust: [stable, beta, nightly] # No 1.29 because WASM requires Rust 1.30
-    steps:
-      - name: Checkout Crate
-        uses: actions/checkout@v2
-      - name: Install clang
-        run: sudo apt-get install -y clang
-      - name: Checkout Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ matrix.rust }}
-          override: true
-          components: rust-src
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - name: Running WASM tests
-        env:
-          DO_WASM: true
-        run: ./contrib/test.sh
-
   ReleaseTests:
     name: Release tests with global context enabled
     strategy:
       matrix:
         rust:
-          - 1.65.0
+          - 1.74.0
           - beta
           - stable
         os: [ ubuntu-latest, macos-latest ]
-        exclude:
-          - rust: 1.65.0
-            os: macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Crate

@@ -92,7 +92,7 @@ impl RangeProof {
                 commitment_blinding.as_c_ptr(),
                 sk.as_c_ptr(),
                 exp,
-                min_bits as i32,
+                i32::from(min_bits),
                 value,
                 message.as_ptr(),
                 message.len(),
@@ -268,9 +268,6 @@ mod tests {
     use super::*;
     use crate::rand::rng;
     use crate::{CommitmentSecrets, Tag, SECP256K1};
-
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::wasm_bindgen_test as test;
 
     #[test]
     fn create_and_verify_range_proof() {

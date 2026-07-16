@@ -85,8 +85,8 @@ impl WhitelistSignature {
                 secp.ctx().as_ptr(),
                 &mut sig,
                 // These two casts are legit because PublicKey has repr(transparent).
-                online_keys.as_c_ptr() as *const ffi::PublicKey,
-                offline_keys.as_c_ptr() as *const ffi::PublicKey,
+                online_keys.as_c_ptr().cast::<ffi::PublicKey>(),
+                offline_keys.as_c_ptr().cast::<ffi::PublicKey>(),
                 n_keys,
                 whitelist_key.as_c_ptr(),
                 online_secret_key.as_c_ptr(),
@@ -119,8 +119,8 @@ impl WhitelistSignature {
                 secp.ctx().as_ptr(),
                 &self.0,
                 // These two casts are legit because PublicKey has repr(transparent).
-                online_keys.as_c_ptr() as *const ffi::PublicKey,
-                offline_keys.as_c_ptr() as *const ffi::PublicKey,
+                online_keys.as_c_ptr().cast::<ffi::PublicKey>(),
+                offline_keys.as_c_ptr().cast::<ffi::PublicKey>(),
                 n_keys,
                 whitelist_key.as_c_ptr(),
             )
@@ -148,7 +148,7 @@ impl WhitelistSignature {
 #[cfg(feature = "std")]
 impl fmt::LowerHex for WhitelistSignature {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for ch in self.serialize().iter() {
+        for ch in &self.serialize() {
             write!(f, "{:02x}", ch)?;
         }
         Ok(())
@@ -174,7 +174,7 @@ impl str::FromStr for WhitelistSignature {
     type Err = Error;
     fn from_str(s: &str) -> Result<WhitelistSignature, Error> {
         let mut buf = vec![0; s.len() / 2];
-        from_hex(s, &mut buf).map_err(|_| Error::InvalidWhitelistSignature)?;
+        from_hex(s, &mut buf).map_err(|()| Error::InvalidWhitelistSignature)?;
         WhitelistSignature::from_slice(&buf)
     }
 }
@@ -336,8 +336,8 @@ mod tests {
         {
             // wrong n_keys
             let sig = unsafe {
-                let sig = correct_signature.clone();
-                let ptr = sig.as_c_ptr() as *mut ffi::WhitelistSignature;
+                let mut sig = correct_signature.clone();
+                let ptr = sig.as_mut_c_ptr().cast::<ffi::WhitelistSignature>();
                 (*ptr).n_keys -= 1;
                 sig
             };

@@ -1,5 +1,5 @@
 use crate::ffi::{self, CPtr};
-#[cfg(feature = "actual-rand")]
+#[cfg(feature = "rand")]
 use crate::rand::Rng;
 use crate::{constants, from_hex, Error, Secp256k1, Signing, Tag};
 use core::{fmt, str};
@@ -20,7 +20,7 @@ pub const ZERO_TWEAK: Tweak = Tweak([
 impl fmt::Debug for Tweak {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Tweak(")?;
-        for i in self[..].iter() {
+        for i in &self[..] {
             write!(f, "{:02x}", i)?;
         }
         write!(f, ")")
@@ -55,7 +55,7 @@ impl str::FromStr for Tweak {
 
 impl Tweak {
     /// Generate a new random Tweak
-    #[cfg(feature = "actual-rand")]
+    #[cfg(feature = "rand")]
     pub fn new<R: Rng + ?Sized>(rng: &mut R) -> Tweak {
         let mut ret = [0u8; constants::SECRET_KEY_SIZE];
         rng.fill_bytes(&mut ret);
@@ -150,7 +150,7 @@ impl Generator {
     }
 
     /// Creates a new [`Generator`] by blinding a [`Tag`] using the given blinding factor.
-    /// Use [Generator::new_unblinded] for creating a [`Generator`] with zero blinding factor
+    /// Use [`Generator::new_unblinded`] for creating a [`Generator`] with zero blinding factor
     pub fn new_blinded<C: Signing>(secp: &Secp256k1<C>, tag: Tag, blinding_factor: Tweak) -> Self {
         let mut generator = unsafe { ffi::PublicKey::new() };
 

@@ -11,9 +11,9 @@ pub struct SurjectionProof {
     inner: ffi::SurjectionProof,
 }
 
-#[cfg(feature = "actual-rand")]
+#[cfg(feature = "rand")]
 mod with_rand {
-    use super::*;
+    use super::{ffi, Error, Generator, Secp256k1, SurjectionProof};
     use crate::rand::Rng;
     use crate::{Signing, Tag, Tweak};
     use ffi::CPtr;
@@ -173,6 +173,9 @@ impl SurjectionProof {
         let domain_blinded_tags = unsafe {
             debug_assert_eq!(size_of::<Generator>(), size_of::<ffi::PublicKey>());
 
+            // First cast can be replaced with core::ptr::as_ref in Rust 1.76. The second
+            // one, from *const [T] to *const [U], seems to have no utility function on
+            // the horizon.
             &*(domain as *const [Generator] as *const [ffi::PublicKey])
         };
 
@@ -242,9 +245,6 @@ mod tests {
     use super::*;
     use crate::rand::rng;
     use crate::{Tag, Tweak, SECP256K1};
-
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::wasm_bindgen_test as test;
 
     #[test]
     fn test_create_and_verify_surjection_proof() {

@@ -48,7 +48,7 @@ impl PedersenCommitment {
 
     /// Create a new [`PedersenCommitment`] that commits to the given value with
     /// a certain blinding factor and generator.
-    /// Use the [PedersenCommitment::new_unblinded] for creating a commitment
+    /// Use the [`PedersenCommitment::new_unblinded`] for creating a commitment
     /// using zero blinding factor.
     pub fn new<C: Signing>(
         secp: &Secp256k1<C>,
@@ -248,10 +248,8 @@ mod tests {
     use crate::rand::rng;
     use crate::{Tag, SECP256K1};
 
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::wasm_bindgen_test as test;
-
     impl CommitmentSecrets {
+        #[allow(missing_docs)] // test-only
         pub fn random(value: u64) -> Self {
             Self {
                 value,
@@ -260,6 +258,7 @@ mod tests {
             }
         }
 
+        #[allow(missing_docs)] // test-only
         pub fn commit(&self, tag: Tag) -> PedersenCommitment {
             let generator = Generator::new_blinded(SECP256K1, tag, self.generator_blinding_factor);
 

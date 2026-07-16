@@ -145,7 +145,6 @@
     missing_debug_implementations
 )]
 // Experimental features we need.
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![cfg_attr(bench, feature(test))]
 
 #[cfg(feature = "alloc")]
@@ -156,7 +155,7 @@ extern crate core;
 extern crate test;
 
 #[cfg(feature = "hashes")]
-pub extern crate actual_hashes as hashes;
+pub extern crate hashes;
 
 #[macro_use]
 mod macros;
@@ -183,11 +182,11 @@ use core::{fmt, mem, str};
 #[cfg(all(feature = "global-context", feature = "std"))]
 pub use context::global::{self, SECP256K1};
 #[cfg(feature = "rand")]
-pub extern crate actual_rand as rand;
+pub extern crate rand;
 pub extern crate secp256k1_zkp_sys;
 pub use secp256k1_zkp_sys as ffi;
 #[cfg(feature = "serde")]
-pub extern crate actual_serde as serde;
+pub extern crate serde;
 
 #[cfg(feature = "alloc")]
 pub use crate::context::{All, SignOnly, VerifyOnly};
@@ -281,7 +280,7 @@ impl<T: ThirtyTwoByteHash> From<T> for Message {
 
 impl fmt::LowerHex for Message {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for byte in self.0.iter() {
+        for byte in self.0 {
             write!(f, "{:02x}", byte)?;
         }
         Ok(())
@@ -319,7 +318,7 @@ pub enum Error {
     InvalidPublicKeySum,
     /// The only valid parity values are 0 or 1.
     InvalidParityValue(key::InvalidParityValue),
-    /// Bad EllSwift value
+    /// Bad `EllSwift` value
     InvalidEllSwift,
     /// Failed to produce a surjection proof because of an internal error within `libsecp256k1-zkp`
     CannotProveSurjection,
@@ -357,41 +356,41 @@ pub enum Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        use Error::*;
-
         match *self {
-            IncorrectSignature => f.write_str("signature failed verification"),
-            InvalidMessage => f.write_str("message was not 32 bytes (do you need to hash?)"),
-            InvalidPublicKey => f.write_str("malformed public key"),
-            InvalidSignature => f.write_str("malformed signature"),
-            InvalidSecretKey => f.write_str("malformed or out-of-range secret key"),
-            InvalidSharedSecret => f.write_str("malformed or out-of-range shared secret"),
-            InvalidRecoveryId => f.write_str("bad recovery id"),
-            InvalidTweak => f.write_str("bad tweak"),
-            NotEnoughMemory => f.write_str("not enough memory allocated"),
-            InvalidPublicKeySum => f.write_str(
+            Self::IncorrectSignature => f.write_str("signature failed verification"),
+            Self::InvalidMessage => f.write_str("message was not 32 bytes (do you need to hash?)"),
+            Self::InvalidPublicKey => f.write_str("malformed public key"),
+            Self::InvalidSignature => f.write_str("malformed signature"),
+            Self::InvalidSecretKey => f.write_str("malformed or out-of-range secret key"),
+            Self::InvalidSharedSecret => f.write_str("malformed or out-of-range shared secret"),
+            Self::InvalidRecoveryId => f.write_str("bad recovery id"),
+            Self::InvalidTweak => f.write_str("bad tweak"),
+            Self::NotEnoughMemory => f.write_str("not enough memory allocated"),
+            Self::InvalidPublicKeySum => f.write_str(
                 "the sum of public keys was invalid or the input vector lengths was less than 1",
             ),
-            InvalidParityValue(e) => write_err!(f, "couldn't create parity"; e),
-            InvalidEllSwift => f.write_str("malformed EllSwift value"),
-            CannotProveSurjection => f.write_str("failed to prove surjection"),
-            InvalidSurjectionProof => f.write_str("malformed surjection proof"),
-            InvalidPedersenCommitment => f.write_str("malformed pedersen commitment"),
-            CannotMakeRangeProof => f.write_str("failed to generate range proof"),
-            InvalidRangeProof => f.write_str("failed to verify range proof"),
-            InvalidGenerator => f.write_str("malformed generator"),
-            InvalidEcdsaAdaptorSignature => f.write_str("malformed ecdsa adaptor signature"),
-            CannotDecryptAdaptorSignature => f.write_str("failed to decrypt adaptor signature"),
-            CannotRecoverAdaptorSecret => f.write_str("failed to recover adaptor secret"),
-            CannotVerifyAdaptorSignature => f.write_str("failed to verify adaptor signature"),
-            InvalidTweakLength => f.write_str("Tweak must of size 32"),
-            TweakOutOfBounds => f.write_str("Tweak must be less than secp curve order"),
-            InvalidWhitelistSignature => f.write_str("malformed whitelist signature"),
-            InvalidPakList => f.write_str("invalid PAK list"),
-            CannotCreateWhitelistSignature => {
+            Self::InvalidParityValue(e) => write_err!(f, "couldn't create parity"; e),
+            Self::InvalidEllSwift => f.write_str("malformed EllSwift value"),
+            Self::CannotProveSurjection => f.write_str("failed to prove surjection"),
+            Self::InvalidSurjectionProof => f.write_str("malformed surjection proof"),
+            Self::InvalidPedersenCommitment => f.write_str("malformed pedersen commitment"),
+            Self::CannotMakeRangeProof => f.write_str("failed to generate range proof"),
+            Self::InvalidRangeProof => f.write_str("failed to verify range proof"),
+            Self::InvalidGenerator => f.write_str("malformed generator"),
+            Self::InvalidEcdsaAdaptorSignature => f.write_str("malformed ecdsa adaptor signature"),
+            Self::CannotDecryptAdaptorSignature => {
+                f.write_str("failed to decrypt adaptor signature")
+            }
+            Self::CannotRecoverAdaptorSecret => f.write_str("failed to recover adaptor secret"),
+            Self::CannotVerifyAdaptorSignature => f.write_str("failed to verify adaptor signature"),
+            Self::InvalidTweakLength => f.write_str("Tweak must of size 32"),
+            Self::TweakOutOfBounds => f.write_str("Tweak must be less than secp curve order"),
+            Self::InvalidWhitelistSignature => f.write_str("malformed whitelist signature"),
+            Self::InvalidPakList => f.write_str("invalid PAK list"),
+            Self::CannotCreateWhitelistSignature => {
                 f.write_str("cannot create whitelist signature with the given data")
             }
-            InvalidWhitelistProof => f.write_str(
+            Self::InvalidWhitelistProof => f.write_str(
                 "given whitelist signature doesn't correctly prove inclusion in the whitelist",
             ),
         }
@@ -402,34 +401,34 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::IncorrectSignature => None,
-            Error::InvalidMessage => None,
-            Error::InvalidPublicKey => None,
-            Error::InvalidSignature => None,
-            Error::InvalidSecretKey => None,
-            Error::InvalidSharedSecret => None,
-            Error::InvalidRecoveryId => None,
-            Error::InvalidTweak => None,
-            Error::NotEnoughMemory => None,
-            Error::InvalidPublicKeySum => None,
-            Error::InvalidParityValue(error) => Some(error),
-            Error::InvalidEllSwift => None,
-            Error::CannotProveSurjection => None,
-            Error::InvalidSurjectionProof => None,
-            Error::InvalidPedersenCommitment => None,
-            Error::CannotMakeRangeProof => None,
-            Error::InvalidRangeProof => None,
-            Error::InvalidGenerator => None,
-            Error::InvalidTweakLength => None,
-            Error::TweakOutOfBounds => None,
-            Error::InvalidEcdsaAdaptorSignature => None,
-            Error::CannotDecryptAdaptorSignature => None,
-            Error::CannotRecoverAdaptorSecret => None,
-            Error::CannotVerifyAdaptorSignature => None,
-            Error::InvalidWhitelistSignature => None,
-            Error::InvalidPakList => None,
-            Error::CannotCreateWhitelistSignature => None,
-            Error::InvalidWhitelistProof => None,
+            Self::IncorrectSignature => None,
+            Self::InvalidMessage => None,
+            Self::InvalidPublicKey => None,
+            Self::InvalidSignature => None,
+            Self::InvalidSecretKey => None,
+            Self::InvalidSharedSecret => None,
+            Self::InvalidRecoveryId => None,
+            Self::InvalidTweak => None,
+            Self::NotEnoughMemory => None,
+            Self::InvalidPublicKeySum => None,
+            Self::InvalidParityValue(error) => Some(error),
+            Self::InvalidEllSwift => None,
+            Self::CannotProveSurjection => None,
+            Self::InvalidSurjectionProof => None,
+            Self::InvalidPedersenCommitment => None,
+            Self::CannotMakeRangeProof => None,
+            Self::InvalidRangeProof => None,
+            Self::InvalidGenerator => None,
+            Self::InvalidTweakLength => None,
+            Self::TweakOutOfBounds => None,
+            Self::InvalidEcdsaAdaptorSignature => None,
+            Self::CannotDecryptAdaptorSignature => None,
+            Self::CannotRecoverAdaptorSecret => None,
+            Self::CannotVerifyAdaptorSignature => None,
+            Self::InvalidWhitelistSignature => None,
+            Self::InvalidPakList => None,
+            Self::CannotCreateWhitelistSignature => None,
+            Self::InvalidWhitelistProof => None,
         }
     }
 }
@@ -459,7 +458,7 @@ impl<C: Context> Drop for Secp256k1<C> {
             let size = ffi::secp256k1_context_preallocated_clone_size(self.ctx.as_ptr());
             ffi::secp256k1_context_preallocated_destroy(self.ctx);
 
-            C::deallocate(self.ctx.as_ptr() as _, size);
+            C::deallocate(self.ctx.as_ptr().cast::<u8>(), size);
         }
     }
 }
@@ -484,7 +483,7 @@ impl<C: Context> Secp256k1<C> {
         let word_size = mem::size_of::<AlignedType>();
         let bytes = unsafe { ffi::secp256k1_context_preallocated_size(C::FLAGS) };
 
-        (bytes + word_size - 1) / word_size
+        bytes.div_ceil(word_size)
     }
 
     /// (Re)randomizes the Secp256k1 context for extra sidechannel resistance.
@@ -580,7 +579,7 @@ fn to_hex<'a>(src: &[u8], target: &'a mut [u8]) -> Result<&'a str, ()> {
     let mut i = 0;
     for &b in src {
         target[i] = HEX_TABLE[usize::from(b >> 4)];
-        target[i + 1] = HEX_TABLE[usize::from(b & 0b00001111)];
+        target[i + 1] = HEX_TABLE[usize::from(b & 0b0000_1111)];
         i += 2;
     }
     let result = &target[..hex_len];
@@ -600,8 +599,6 @@ mod tests {
     use std::str::FromStr;
 
     use hex_lit::hex;
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::wasm_bindgen_test as test;
 
     use super::*;
 

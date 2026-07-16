@@ -1705,6 +1705,7 @@ impl<'de> serde::Deserialize<'de> for XOnlyPublicKey {
 
 #[cfg(test)]
 #[allow(unused_imports)]
+#[allow(deprecated)]
 mod test {
     use core::str::FromStr;
 
