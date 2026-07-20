@@ -666,7 +666,7 @@ mod tests {
     fn test_global_context() {
         use crate::SECP256K1;
         let keyset = whitelist_test_util::KeySet::new(10);
-        let sig = whitelist_test_util::whitelist_prove(&SECP256K1, &keyset, 0).unwrap();
-        assert!(whitelist_test_util::whitelist_verify(&SECP256K1, &keyset, &sig).is_ok());
+        let sig = whitelist_test_util::whitelist_prove(SECP256K1, &keyset, 0).unwrap();
+        assert!(whitelist_test_util::whitelist_verify(SECP256K1, &keyset, &sig).is_ok());
     }
 }
