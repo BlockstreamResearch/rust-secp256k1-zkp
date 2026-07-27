@@ -32,6 +32,9 @@ pub mod recovery;
 pub mod zkp;
 pub use zkp::*;
 
+pub mod musig;
+pub use musig::*;
+
 use core::ptr::NonNull;
 use core::{ptr, slice};
 use types::*;
