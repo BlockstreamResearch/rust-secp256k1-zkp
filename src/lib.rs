@@ -335,6 +335,22 @@ pub enum Error {
     CannotCreateWhitelistSignature,
     /// The given whitelist signature doesn't correctly prove inclusion in the whitelist.
     InvalidWhitelistProof,
+    /// Given bytes don't represent a valid MuSig public or aggregate nonce.
+    InvalidMusigNonce,
+    /// Given bytes don't represent a valid MuSig partial signature.
+    InvalidMusigPartialSignature,
+    /// Failed to aggregate the given set of MuSig public keys.
+    CannotAggregateMusigPubkeys,
+    /// Failed to tweak a MuSig aggregate public key (tweak was out of range).
+    InvalidMusigTweak,
+    /// Failed to process the aggregate nonce into a MuSig signing session.
+    CannotProcessMusigNonce,
+    /// Failed to aggregate the given set of MuSig partial signatures.
+    CannotAggregateMusigPartialSignatures,
+    /// Failed to aggregate the given set of MuSig public nonces.
+    CannotAggregateMusigNonces,
+    /// Failed to generate a MuSig nonce (e.g. the session randomness was zero).
+    CannotGenerateMusigNonce,
 }
 
 impl fmt::Display for Error {
@@ -365,6 +381,16 @@ impl fmt::Display for Error {
             Self::InvalidWhitelistProof => f.write_str(
                 "given whitelist signature doesn't correctly prove inclusion in the whitelist",
             ),
+            Self::InvalidMusigNonce => f.write_str("malformed MuSig nonce"),
+            Self::InvalidMusigPartialSignature => f.write_str("malformed MuSig partial signature"),
+            Self::CannotAggregateMusigPubkeys => f.write_str("failed to aggregate MuSig pubkeys"),
+            Self::InvalidMusigTweak => f.write_str("MuSig tweak was invalid or out of range"),
+            Self::CannotProcessMusigNonce => f.write_str("failed to process MuSig aggregate nonce"),
+            Self::CannotAggregateMusigPartialSignatures => {
+                f.write_str("failed to aggregate MuSig partial signatures")
+            }
+            Self::CannotAggregateMusigNonces => f.write_str("failed to aggregate MuSig nonces"),
+            Self::CannotGenerateMusigNonce => f.write_str("failed to generate MuSig nonce"),
         }
     }
 }
@@ -392,6 +418,14 @@ impl std::error::Error for Error {
             Self::InvalidPakList => None,
             Self::CannotCreateWhitelistSignature => None,
             Self::InvalidWhitelistProof => None,
+            Self::InvalidMusigNonce => None,
+            Self::InvalidMusigPartialSignature => None,
+            Self::CannotAggregateMusigPubkeys => None,
+            Self::InvalidMusigTweak => None,
+            Self::CannotProcessMusigNonce => None,
+            Self::CannotAggregateMusigPartialSignatures => None,
+            Self::CannotAggregateMusigNonces => None,
+            Self::CannotGenerateMusigNonce => None,
         }
     }
 }
