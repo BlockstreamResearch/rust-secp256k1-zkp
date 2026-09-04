@@ -7,6 +7,7 @@
 //! for details.
 //!
 
+use crate::constants;
 use crate::ffi::{self, CPtr, ECDSA_ADAPTOR_SIGNATURE_LENGTH};
 #[cfg(feature = "std")]
 #[cfg(feature = "rand")]
@@ -14,9 +15,6 @@ use crate::rand::rng;
 #[cfg(feature = "rand")]
 use crate::rand::{CryptoRng, Rng};
 use crate::ConvertFromUpstream as _;
-use crate::Signing;
-use crate::Verification;
-use crate::{constants, Secp256k1};
 use crate::{from_hex, Error};
 use core::{fmt, ptr, str};
 
@@ -137,13 +135,8 @@ impl EcdsaAdaptorSignature {
     /// attacks by providing auxiliary randomness using the [`rand::rng`] random number generator.
     #[cfg(feature = "std")]
     #[cfg(feature = "rand")]
-    pub fn encrypt<C: Signing>(
-        secp: &Secp256k1<C>,
-        msg: &Message,
-        sk: &SecretKey,
-        enckey: &PublicKey,
-    ) -> EcdsaAdaptorSignature {
-        EcdsaAdaptorSignature::encrypt_with_rng(secp, msg, sk, enckey, &mut rng())
+    pub fn encrypt(msg: &Message, sk: &SecretKey, enckey: &PublicKey) -> EcdsaAdaptorSignature {
+        EcdsaAdaptorSignature::encrypt_with_rng(msg, sk, enckey, &mut rng())
     }
 
     /// Creates an adaptor signature along with a proof to verify the adaptor signature,
@@ -152,8 +145,7 @@ impl EcdsaAdaptorSignature {
     /// attacks by providing auxiliary randomness using the provided random number generator.
     /// Requires compilation with "rand" feature.
     #[cfg(feature = "rand")]
-    pub fn encrypt_with_rng<C: Signing, R: Rng + CryptoRng>(
-        secp: &Secp256k1<C>,
+    pub fn encrypt_with_rng<R: Rng + CryptoRng>(
         msg: &Message,
         sk: &SecretKey,
         enckey: &PublicKey,
@@ -161,31 +153,40 @@ impl EcdsaAdaptorSignature {
     ) -> EcdsaAdaptorSignature {
         let mut aux = [0u8; 32];
         rng.fill_bytes(&mut aux);
-        EcdsaAdaptorSignature::encrypt_with_aux_rand(secp, msg, sk, enckey, &aux)
+        EcdsaAdaptorSignature::encrypt_with_aux_rand(msg, sk, enckey, &aux)
     }
 
     /// Creates an adaptor signature along with a proof to verify the adaptor signature,
     /// without using any auxiliary random data. Note that using this function
     /// is still considered safe.
-    pub fn encrypt_no_aux_rand<C: Signing>(
-        secp: &Secp256k1<C>,
+    pub fn encrypt_no_aux_rand(
         msg: &Message,
         sk: &SecretKey,
         enckey: &PublicKey,
     ) -> EcdsaAdaptorSignature {
         let mut adaptor_sig = ffi::EcdsaAdaptorSignature::new();
 
-        let res = unsafe {
-            ffi::secp256k1_ecdsa_adaptor_encrypt(
-                secp.ctx().as_ptr(),
-                &mut adaptor_sig,
-                sk.as_secret_bytes().as_ptr(),
-                enckey.to_zkp_ffi(),
-                msg.as_ref().as_ptr(),
-                ffi::secp256k1_nonce_function_ecdsa_adaptor,
-                ptr::null_mut(),
-            )
-        };
+        // xor the secret key and message together to get a rerandomization seed
+        // for timing analysis defense-in-depth
+        let mut rerandomize = sk.to_secret_bytes();
+        for (rera, byte) in rerandomize.iter_mut().zip(msg[..].iter()) {
+            *rera ^= *byte;
+        }
+
+        let res = crate::context::with_raw_global_context(
+            |ctx| unsafe {
+                ffi::secp256k1_ecdsa_adaptor_encrypt(
+                    ctx.as_ptr(),
+                    &mut adaptor_sig,
+                    sk.as_secret_bytes().as_ptr(),
+                    enckey.to_zkp_ffi(),
+                    msg.as_ref().as_ptr(),
+                    ffi::secp256k1_nonce_function_ecdsa_adaptor,
+                    ptr::null_mut(),
+                )
+            },
+            Some(&rerandomize),
+        );
         debug_assert_eq!(res, 1);
 
         EcdsaAdaptorSignature(adaptor_sig)
@@ -196,8 +197,7 @@ impl EcdsaAdaptorSignature {
     /// The nonce derivation process is strengthened against side channel attacks by
     /// using the provided auxiliary random data.
     #[rustfmt::skip] // attempts to create a 158-long line
-    pub fn encrypt_with_aux_rand<C: Signing>(
-        secp: &Secp256k1<C>,
+    pub fn encrypt_with_aux_rand(
         msg: &Message,
         sk: &SecretKey,
         enckey: &PublicKey,
@@ -210,17 +210,27 @@ impl EcdsaAdaptorSignature {
             .cast::<core::ffi::c_void>()
             .cast_mut(); // ok as secp256k1_nonce_function_ecdsa_adaptor will not actually mutate
 
-        let res = unsafe {
-            ffi::secp256k1_ecdsa_adaptor_encrypt(
-                secp.ctx().as_ptr(),
-                &mut adaptor_sig,
-                sk.as_secret_bytes().as_ptr(),
-                enckey.to_zkp_ffi(),
-                msg.as_ref().as_ptr(),
-                ffi::secp256k1_nonce_function_ecdsa_adaptor,
-                aux_rand_ptr,
-            )
-        };
+        // xor the secret key and message and aux_rand together to get a rerandomization seed
+        // for timing analysis defense-in-depth
+        let mut rerandomize = sk.to_secret_bytes();
+        for ((rera, byte), byte2) in rerandomize.iter_mut().zip(msg[..].iter()).zip(aux_rand) {
+            *rera ^= *byte ^ *byte2;
+        }
+
+        let res = crate::context::with_raw_global_context(
+            |ctx| unsafe {
+                ffi::secp256k1_ecdsa_adaptor_encrypt(
+                    ctx.as_ptr(),
+                    &mut adaptor_sig,
+                    sk.as_secret_bytes().as_ptr(),
+                    enckey.to_zkp_ffi(),
+                    msg.as_ref().as_ptr(),
+                    ffi::secp256k1_nonce_function_ecdsa_adaptor,
+                    aux_rand_ptr,
+                )
+            },
+            Some(&rerandomize),
+        );
         debug_assert_eq!(res, 1);
 
         EcdsaAdaptorSignature(adaptor_sig)
@@ -253,23 +263,21 @@ impl EcdsaAdaptorSignature {
     }
 
     /// Extracts the adaptor secret from the complete signature and the adaptor signature.
-    pub fn recover<C: Signing>(
-        &self,
-        secp: &Secp256k1<C>,
-        sig: &Signature,
-        encryption_key: &PublicKey,
-    ) -> Result<SecretKey, Error> {
+    pub fn recover(&self, sig: &Signature, encryption_key: &PublicKey) -> Result<SecretKey, Error> {
         let mut data: [u8; constants::SECRET_KEY_SIZE] = [0; constants::SECRET_KEY_SIZE];
 
-        let ret = unsafe {
-            ffi::secp256k1_ecdsa_adaptor_recover(
-                secp.ctx().as_ptr(),
-                data.as_mut_c_ptr(),
-                sig.to_zkp_ffi(),
-                self.as_c_ptr(),
-                encryption_key.to_zkp_ffi(),
-            )
-        };
+        let ret = crate::context::with_raw_global_context(
+            |ctx| unsafe {
+                ffi::secp256k1_ecdsa_adaptor_recover(
+                    ctx.as_ptr(),
+                    data.as_mut_c_ptr(),
+                    sig.to_zkp_ffi(),
+                    self.as_c_ptr(),
+                    encryption_key.to_zkp_ffi(),
+                )
+            },
+            None,
+        );
 
         if ret != 1 {
             return Err(Error::CannotRecoverAdaptorSecret);
@@ -281,22 +289,24 @@ impl EcdsaAdaptorSignature {
     }
 
     /// Verifies that the adaptor secret can be extracted from the adaptor signature and the completed ECDSA signature.
-    pub fn verify<C: Verification>(
+    pub fn verify(
         &self,
-        secp: &Secp256k1<C>,
         msg: &Message,
         pubkey: &PublicKey,
         encryption_key: &PublicKey,
     ) -> Result<(), Error> {
-        let res = unsafe {
-            ffi::secp256k1_ecdsa_adaptor_verify(
-                secp.ctx().as_ptr(),
-                self.as_c_ptr(),
-                pubkey.to_zkp_ffi(),
-                msg.as_ref().as_ptr(),
-                encryption_key.to_zkp_ffi(),
-            )
-        };
+        let res = crate::context::with_raw_global_context(
+            |ctx| unsafe {
+                ffi::secp256k1_ecdsa_adaptor_verify(
+                    ctx.as_ptr(),
+                    self.as_c_ptr(),
+                    pubkey.to_zkp_ffi(),
+                    msg.as_ref().as_ptr(),
+                    encryption_key.to_zkp_ffi(),
+                )
+            },
+            None,
+        );
 
         if res != 1 {
             return Err(Error::CannotVerifyAdaptorSignature);
@@ -306,71 +316,73 @@ impl EcdsaAdaptorSignature {
     }
 }
 
-#[cfg(all(test, feature = "global-context"))]
+#[cfg(test)]
 mod tests {
     use super::Message;
     use super::*;
+    #[cfg(feature = "rand")]
     #[cfg(not(secp256k1_fuzz))]
-    use crate::rand::{rng, rngs::ThreadRng, RngCore};
-    use crate::SECP256K1 as SECP256K1_ZKP;
+    use crate::rand::rng;
+    use crate::test_util::KeyPairStream;
 
     #[cfg(not(secp256k1_fuzz))]
     fn test_ecdsa_adaptor_signature_helper(
-        encrypt: fn(&Message, &SecretKey, &PublicKey, &mut ThreadRng) -> EcdsaAdaptorSignature,
+        encrypt: fn(&Message, &SecretKey, &PublicKey) -> EcdsaAdaptorSignature,
     ) {
-        let mut rng = rng();
-        let (seckey, pubkey) = secp256k1::generate_keypair(&mut rng);
-        let (adaptor_secret, adaptor) = secp256k1::generate_keypair(&mut rng);
+        let mut keypairs = KeyPairStream::new();
+        let (seckey, pubkey) = keypairs.next().unwrap();
+        let (adaptor_secret, adaptor) = keypairs.next().unwrap();
         let msg = Message::from_digest([2u8; 32]);
-        let adaptor_sig = encrypt(&msg, &seckey, &adaptor, &mut rng);
+        let adaptor_sig = encrypt(&msg, &seckey, &adaptor);
 
         adaptor_sig
-            .verify(SECP256K1_ZKP, &msg, &pubkey, &adaptor)
+            .verify(&msg, &pubkey, &adaptor)
             .expect("adaptor signature to be valid");
         adaptor_sig
-            .verify(SECP256K1_ZKP, &msg, &adaptor, &pubkey)
+            .verify(&msg, &adaptor, &pubkey)
             .expect_err("adaptor signature to be invalid");
         let sig = adaptor_sig
             .decrypt(&adaptor_secret)
             .expect("to be able to decrypt using the correct secret");
         secp256k1::ecdsa::verify(&sig, msg, &pubkey).expect("signature to be valid");
         let recovered = adaptor_sig
-            .recover(SECP256K1_ZKP, &sig, &adaptor)
+            .recover(&sig, &adaptor)
             .expect("to be able to recover the secret");
         assert_eq!(adaptor_secret, recovered);
     }
 
     #[test]
     #[cfg(not(secp256k1_fuzz))]
+    #[cfg(feature = "std")]
+    #[cfg(feature = "rand")]
     fn test_ecdsa_adaptor_signature_encrypt() {
-        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, _| {
-            EcdsaAdaptorSignature::encrypt(SECP256K1_ZKP, msg, sk, adaptor)
+        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor| {
+            EcdsaAdaptorSignature::encrypt(msg, sk, adaptor)
         })
     }
 
     #[test]
     #[cfg(not(secp256k1_fuzz))]
+    #[cfg(feature = "rand")]
     fn test_ecdsa_adaptor_signature_encrypt_with_rng() {
-        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, rng| {
-            EcdsaAdaptorSignature::encrypt_with_rng(SECP256K1_ZKP, msg, sk, adaptor, rng)
+        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor| {
+            EcdsaAdaptorSignature::encrypt_with_rng(msg, sk, adaptor, &mut rng())
         })
     }
 
     #[test]
     #[cfg(not(secp256k1_fuzz))]
     fn test_ecdsa_adaptor_signature_encrypt_with_aux_rand() {
-        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, rng| {
-            let mut aux_rand = [0; 32];
-            rng.fill_bytes(&mut aux_rand);
-            EcdsaAdaptorSignature::encrypt_with_aux_rand(SECP256K1_ZKP, msg, sk, adaptor, &aux_rand)
+        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor| {
+            EcdsaAdaptorSignature::encrypt_with_aux_rand(msg, sk, adaptor, &[0x55; 32])
         })
     }
 
     #[test]
     #[cfg(not(secp256k1_fuzz))]
     fn test_ecdsa_adaptor_signature_encrypt_no_aux_rand() {
-        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, _| {
-            EcdsaAdaptorSignature::encrypt_no_aux_rand(SECP256K1_ZKP, msg, sk, adaptor)
+        test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor| {
+            EcdsaAdaptorSignature::encrypt_no_aux_rand(msg, sk, adaptor)
         })
     }
 
@@ -389,7 +401,7 @@ mod tests {
             .unwrap();
 
         adaptor_sig
-            .verify(SECP256K1_ZKP, &msg, &pubkey, &encryption_key)
+            .verify(&msg, &pubkey, &encryption_key)
             .expect("adaptor signature verification to pass");
 
         let sig = compact_sig_from_str(
@@ -401,7 +413,7 @@ mod tests {
                 .unwrap();
 
         let recovered = adaptor_sig
-            .recover(SECP256K1_ZKP, &sig, &encryption_key)
+            .recover(&sig, &encryption_key)
             .expect("to be able to recover the decryption key");
 
         assert_eq!(expected_decryption_key, recovered);
@@ -421,7 +433,7 @@ mod tests {
             .unwrap();
 
         adaptor_sig
-            .verify(SECP256K1_ZKP, &msg, &pubkey, &encryption_key)
+            .verify(&msg, &pubkey, &encryption_key)
             .expect_err("providing a wrong proof should fail validation");
     }
 
@@ -438,7 +450,7 @@ mod tests {
             "f7f7fe6bd056fc4abd70d335f72d0aa1e8406bba68f3e579e4789475323564a452c46176c7fb40aa37d5651341f55697dab27d84a213b30c93011a7790bace8c",
         );
         adaptor_sig
-            .recover(SECP256K1_ZKP, &sig, &encryption_key)
+            .recover(&sig, &encryption_key)
             .expect_err("providing wrong r value should prevent us from recovering decryption key");
     }
 
@@ -460,7 +472,7 @@ mod tests {
                 .parse()
                 .unwrap();
         let recovered = adaptor_sig
-            .recover(SECP256K1_ZKP, &sig, &encryption_key)
+            .recover(&sig, &encryption_key)
             .expect("with high s we should still be able to recover the decryption key");
 
         assert_eq!(expected_decryption_key, recovered);
