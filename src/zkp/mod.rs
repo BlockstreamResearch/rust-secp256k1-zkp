@@ -17,5 +17,7 @@ pub use self::surjection_proof::SurjectionProof;
 pub use self::tag::Tag;
 pub use self::whitelist::WhitelistSignature;
 
+pub use self::ecdsa_adaptor::Error as EcdsaAdaptorSignatureError;
+
 #[cfg(test)]
 pub use self::whitelist::whitelist_test_util;

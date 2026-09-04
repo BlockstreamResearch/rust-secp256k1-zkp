@@ -131,11 +131,7 @@
 
 // Coding conventions
 #![deny(non_upper_case_globals, non_camel_case_types, non_snake_case)]
-#![warn(
-    missing_docs,
-    missing_copy_implementations,
-    missing_debug_implementations
-)]
+#![warn(missing_docs, missing_debug_implementations)]
 // Experimental features we need.
 #![cfg_attr(bench, feature(test))]
 
@@ -311,12 +307,6 @@ pub enum Error {
     InvalidTweakLength,
     /// Tweak must be less than secp curve order
     TweakOutOfBounds,
-    /// Failed to decrypt an adaptor signature because of an internal error within `libsecp256k1-zkp`
-    CannotDecryptAdaptorSignature,
-    /// Failed to recover an adaptor secret from an adaptor signature because of an internal error within `libsecp256k1-zkp`
-    CannotRecoverAdaptorSecret,
-    /// Given adaptor signature is not valid for the provided combination of public key, encryption key and message
-    CannotVerifyAdaptorSignature,
     /// Given bytes don't represent a valid whitelist signature
     InvalidWhitelistSignature,
     /// Invalid PAK list
@@ -339,11 +329,6 @@ impl fmt::Display for Error {
             Self::CannotMakeRangeProof => f.write_str("failed to generate range proof"),
             Self::InvalidRangeProof => f.write_str("failed to verify range proof"),
             Self::InvalidGenerator => f.write_str("malformed generator"),
-            Self::CannotDecryptAdaptorSignature => {
-                f.write_str("failed to decrypt adaptor signature")
-            }
-            Self::CannotRecoverAdaptorSecret => f.write_str("failed to recover adaptor secret"),
-            Self::CannotVerifyAdaptorSignature => f.write_str("failed to verify adaptor signature"),
             Self::InvalidTweakLength => f.write_str("Tweak must of size 32"),
             Self::TweakOutOfBounds => f.write_str("Tweak must be less than secp curve order"),
             Self::InvalidWhitelistSignature => f.write_str("malformed whitelist signature"),
@@ -373,9 +358,6 @@ impl std::error::Error for Error {
             Self::InvalidGenerator => None,
             Self::InvalidTweakLength => None,
             Self::TweakOutOfBounds => None,
-            Self::CannotDecryptAdaptorSignature => None,
-            Self::CannotRecoverAdaptorSecret => None,
-            Self::CannotVerifyAdaptorSignature => None,
             Self::InvalidWhitelistSignature => None,
             Self::InvalidPakList => None,
             Self::CannotCreateWhitelistSignature => None,
