@@ -15,11 +15,55 @@ use crate::rand::rng;
 #[cfg(feature = "rand")]
 use crate::rand::{CryptoRng, Rng};
 use crate::ConvertFromUpstream as _;
-use crate::Error;
 use core::{fmt, ptr, str};
 
 use secp256k1::ecdsa::Signature;
 use secp256k1::{Message, PublicKey, SecretKey};
+
+/// An adaptor-signature related error.
+///
+/// Each function returns only one of these variants, but they are bundled into a single
+/// error enum to make composition easier.
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Error {
+    /// Failed to decrypt an adaptor signature.
+    ///
+    /// This can happen due to a malformed signature or because the provided secret key is zero.
+    CannotDecryptAdaptorSignature,
+    /// Failed to recover an adaptor secret from an adaptor signature.
+    ///
+    /// This can happen due to a malformed signature, a signature whose encryption key does not
+    /// match the provided key, or a zero secret key.
+    CannotRecoverAdaptorSecret,
+    /// Failed to verify an adaptor signature.
+    ///
+    /// This can happen due to a malformed signature, incorrect DLEQ proof embedded in the
+    /// signature, or the signature failing to verify as an adaptor signature.
+    CannotVerifyAdaptorSignature,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Self::CannotDecryptAdaptorSignature => {
+                f.write_str("failed to decrypt adaptor signature")
+            }
+            Self::CannotRecoverAdaptorSecret => f.write_str("failed to recover adaptor secret"),
+            Self::CannotVerifyAdaptorSignature => f.write_str("failed to verify adaptor signature"),
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::CannotDecryptAdaptorSignature => None,
+            Self::CannotRecoverAdaptorSecret => None,
+            Self::CannotVerifyAdaptorSignature => None,
+        }
+    }
+}
 
 /// Represents an adaptor signature and dleq proof.
 #[derive(Debug, PartialEq, Clone, Copy, Eq)]
@@ -103,6 +147,7 @@ impl EcdsaAdaptorSignature {
 
 impl EcdsaAdaptorSignature {
     /// Creates an adaptor signature along with a proof to verify the adaptor signature.
+    ///
     /// This function derives a nonce using a similar process as described in BIP-340.
     /// The nonce derivation process is strengthened against side channel
     /// attacks by providing auxiliary randomness using the [`rand::rng`] random number generator.
@@ -113,6 +158,7 @@ impl EcdsaAdaptorSignature {
     }
 
     /// Creates an adaptor signature along with a proof to verify the adaptor signature,
+    ///
     /// This function derives a nonce using a similar process as described in BIP-340.
     /// The nonce derivation process is strengthened against side channel
     /// attacks by providing auxiliary randomness using the provided random number generator.
@@ -130,8 +176,10 @@ impl EcdsaAdaptorSignature {
     }
 
     /// Creates an adaptor signature along with a proof to verify the adaptor signature,
-    /// without using any auxiliary random data. Note that using this function
-    /// is still considered safe.
+    /// without using any auxiliary random data.
+    ///
+    /// This function is safe to use, but skips some defense-in-depth sidechannel protection
+    /// provided by the other `encrypt` methods.
     pub fn encrypt_no_aux_rand(
         msg: &Message,
         sk: &SecretKey,
@@ -256,9 +304,8 @@ impl EcdsaAdaptorSignature {
             return Err(Error::CannotRecoverAdaptorSecret);
         }
 
-        // Upstream `SecretKey::from_secret_bytes` only ever returns the `InvalidSecretKey`
-        // error variant, so we can just convert it directly.
-        SecretKey::from_secret_bytes(data).map_err(|_| Error::InvalidSecretKey)
+        Ok(SecretKey::from_secret_bytes(data)
+            .expect("secp256k1_ecdsa_adaptor_recover provides a valid secret key"))
     }
 
     /// Verifies that the adaptor secret can be extracted from the adaptor signature and the completed ECDSA signature.
