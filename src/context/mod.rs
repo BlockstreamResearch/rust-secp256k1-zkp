@@ -11,16 +11,25 @@ use crate::ffi::types::AlignedType;
 use crate::ffi::{self, CPtr};
 use crate::{Error, Secp256k1};
 
+#[cfg_attr(feature = "std", path = "internal_std.rs")]
+#[cfg_attr(not(feature = "std"), path = "internal_nostd.rs")]
+mod internal;
+
+#[cfg(not(feature = "std"))]
+mod spinlock;
+
+pub use internal::{rerandomize_global_context, with_global_context, with_raw_global_context};
+
 #[cfg(all(feature = "global-context", feature = "std"))]
-/// Module implementing a singleton pattern for a global `Secp256k1` context.
+/// Module implementing a singleton pattern for a global [`Secp256k1`] context.
 pub mod global {
 
     use std::ops::Deref;
-    use std::sync::OnceLock;
+    use std::sync::Once;
 
     use crate::{All, Secp256k1};
 
-    /// Proxy struct for global `SECP256K1` context.
+    /// Proxy struct for global [`SECP256K1`] context.
     #[derive(Debug, Copy, Clone)]
     pub struct GlobalContext {
         __private: (),
@@ -36,9 +45,15 @@ pub mod global {
         type Target = Secp256k1<All>;
 
         #[allow(unused_mut)] // Unused when `rand` + `std` is not enabled.
+        #[allow(static_mut_refs)] // The "proper" way to do this is with OnceLock (MSRV 1.70) or LazyLock (MSRV 1.80)
+                                  // See https://doc.rust-lang.org/nightly/edition-guide/rust-2024/static-mut-references.html
         fn deref(&self) -> &Self::Target {
-            static CONTEXT: OnceLock<Secp256k1<All>> = OnceLock::new();
-            CONTEXT.get_or_init(Secp256k1::new)
+            static ONCE: Once = Once::new();
+            static mut CONTEXT: Option<Secp256k1<All>> = None;
+            ONCE.call_once(|| unsafe {
+                CONTEXT = Some(Secp256k1::new());
+            });
+            unsafe { CONTEXT.as_ref().unwrap() }
         }
     }
 }
@@ -48,7 +63,7 @@ pub mod global {
 ///
 /// # Safety
 ///
-/// This trait is marked unsafe to allow unsafe implementations of `deallocate`.
+/// This trait is marked unsafe to allow unsafe implementations of [`Self::deallocate`].
 pub unsafe trait Context: private::Sealed {
     /// Flags for the ffi.
     const FLAGS: c_uint;
@@ -169,8 +184,8 @@ mod alloc_only {
         /// follows:
         /// ```
         /// # #[cfg(all(feature = "rand", feature = "std"))] {
-        /// # use secp256k1_zkp::Secp256k1;
-        /// # use secp256k1_zkp::rand::{rng, RngCore};
+        /// # use secp256k1::Secp256k1;
+        /// # use secp256k1::rand::{rng, RngCore};
         /// let mut ctx = Secp256k1::new();
         /// # let mut rng = rng();
         /// # let mut seed = [0u8; 32];
@@ -199,17 +214,10 @@ mod alloc_only {
                 phantom: PhantomData,
             };
 
-            #[cfg(all(
-                not(target_arch = "wasm32"),
-                feature = "rand",
-                feature = "std",
-                not(feature = "global-context-less-secure")
-            ))]
-            {
-                ctx.randomize(&mut rand::rng());
-            }
+            #[cfg(all(feature = "std", feature = "rand"))]
+            ctx.randomize(&mut rand::rng());
 
-            #[allow(clippy::let_and_return)] // as for unusted_mut
+            #[allow(clippy::let_and_return)] // as for unused_mut
             ctx
         }
     }
@@ -311,7 +319,7 @@ unsafe impl Context for AllPreallocated<'_> {
 /// # Safety
 ///
 /// This trait is used internally to gate which context markers can safely
-/// be used with the `preallocated_gen_new` function. Do not implement it
+/// be used with the [`Secp256k1::preallocated_gen_new`] function. Do not implement it
 /// on your own structures.
 pub unsafe trait PreallocatedContext<'a> {}
 
@@ -321,6 +329,11 @@ unsafe impl<'buf> PreallocatedContext<'buf> for VerifyOnlyPreallocated<'buf> {}
 
 impl<'buf, C: Context + PreallocatedContext<'buf>> Secp256k1<C> {
     /// Lets you create a context with a preallocated buffer in a generic manner (sign/verify/all).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::NotEnoughMemory`] if `buf` is smaller than
+    /// [`Secp256k1::preallocate_size_gen`].
     pub fn preallocated_gen_new(buf: &'buf mut [AlignedType]) -> Result<Secp256k1<C>, Error> {
         #[cfg(target_arch = "wasm32")]
         ffi::types::sanity_checks_for_wasm();
@@ -340,12 +353,19 @@ impl<'buf, C: Context + PreallocatedContext<'buf>> Secp256k1<C> {
 
 impl<'buf> Secp256k1<AllPreallocated<'buf>> {
     /// Creates a new Secp256k1 context with all capabilities.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::NotEnoughMemory`] if `buf` is smaller than
+    /// [`Secp256k1::preallocate_size`].
     pub fn preallocated_new(
         buf: &'buf mut [AlignedType],
     ) -> Result<Secp256k1<AllPreallocated<'buf>>, Error> {
         Secp256k1::preallocated_gen_new(buf)
     }
-    /// Uses the ffi `secp256k1_context_preallocated_size` to check the memory size needed for a context.
+    /// Uses the ffi [`secp256k1_context_preallocated_size`] to check the memory size needed for a context.
+    ///
+    /// [`secp256k1_context_preallocated_size`]: ffi::secp256k1_context_preallocated_size
     pub fn preallocate_size() -> usize {
         Self::preallocate_size_gen()
     }
@@ -353,7 +373,7 @@ impl<'buf> Secp256k1<AllPreallocated<'buf>> {
     /// Creates a context from a raw context.
     ///
     /// The returned [`core::mem::ManuallyDrop`] context will never deallocate the memory pointed to
-    /// by `raw_ctx` nor destroy the context. This may lead to memory leaks. `ManuallyDrop::drop`
+    /// by `raw_ctx` nor destroy the context. This may lead to memory leaks. [`ManuallyDrop::drop`]
     /// (or [`core::ptr::drop_in_place`]) will only destroy the context; the caller is required to
     /// free the memory.
     ///
@@ -367,7 +387,8 @@ impl<'buf> Secp256k1<AllPreallocated<'buf>> {
     /// * The version of `libsecp256k1` used to create `raw_ctx` must be **exactly the one linked
     ///   into this library**.
     /// * The lifetime of the `raw_ctx` pointer must outlive `'buf`.
-    /// * `raw_ctx` must point to writable memory (cannot be `ffi::secp256k1_context_static`).
+    /// * `raw_ctx` must point to writable memory (cannot be [`ffi::secp256k1_context_static`]),
+    ///   **or** the user must never attempt to rerandomize the context.
     pub unsafe fn from_raw_all(
         raw_ctx: NonNull<ffi::Context>,
     ) -> ManuallyDrop<Secp256k1<AllPreallocated<'buf>>> {
@@ -380,6 +401,11 @@ impl<'buf> Secp256k1<AllPreallocated<'buf>> {
 
 impl<'buf> Secp256k1<SignOnlyPreallocated<'buf>> {
     /// Creates a new Secp256k1 context that can only be used for signing.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::NotEnoughMemory`] if `buf` is smaller than
+    /// [`Secp256k1::preallocate_signing_size`].
     pub fn preallocated_signing_only(
         buf: &'buf mut [AlignedType],
     ) -> Result<Secp256k1<SignOnlyPreallocated<'buf>>, Error> {
@@ -409,6 +435,11 @@ impl<'buf> Secp256k1<SignOnlyPreallocated<'buf>> {
 
 impl<'buf> Secp256k1<VerifyOnlyPreallocated<'buf>> {
     /// Creates a new Secp256k1 context that can only be used for verification
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::NotEnoughMemory`] if `buf` is smaller than
+    /// [`Secp256k1::preallocate_verification_size`].
     pub fn preallocated_verification_only(
         buf: &'buf mut [AlignedType],
     ) -> Result<Secp256k1<VerifyOnlyPreallocated<'buf>>, Error> {
@@ -433,5 +464,29 @@ impl<'buf> Secp256k1<VerifyOnlyPreallocated<'buf>> {
             ctx: raw_ctx,
             phantom: PhantomData,
         })
+    }
+}
+
+#[cfg(all(test, not(secp256k1_fuzz)))]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[ignore] // padding in opaque struct is uninitialized and fails MSAN, so we test this manually.
+    fn rerandomizes_before_secret_operation() {
+        fn context_bytes(ctx: NonNull<ffi::Context>) -> Vec<u8> {
+            // SAFETY: `ctx` is non-null and we check the length with libsecp.
+            unsafe {
+                let len = ffi::secp256k1_context_preallocated_clone_size(ctx.as_ptr());
+                core::slice::from_raw_parts(ctx.as_ptr().cast::<u8>(), len).to_vec()
+            }
+        }
+
+        let unseeded = with_raw_global_context(context_bytes, None);
+        let seeded = with_raw_global_context(context_bytes, Some(&[42; 32]));
+        assert_ne!(
+            unseeded, seeded,
+            "secret operation was not rerandomized before running"
+        );
     }
 }
