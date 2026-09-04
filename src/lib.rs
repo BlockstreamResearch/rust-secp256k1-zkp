@@ -311,8 +311,6 @@ pub enum Error {
     InvalidTweakLength,
     /// Tweak must be less than secp curve order
     TweakOutOfBounds,
-    /// Given bytes don't represent a valid adaptor signature
-    InvalidEcdsaAdaptorSignature,
     /// Failed to decrypt an adaptor signature because of an internal error within `libsecp256k1-zkp`
     CannotDecryptAdaptorSignature,
     /// Failed to recover an adaptor secret from an adaptor signature because of an internal error within `libsecp256k1-zkp`
@@ -341,7 +339,6 @@ impl fmt::Display for Error {
             Self::CannotMakeRangeProof => f.write_str("failed to generate range proof"),
             Self::InvalidRangeProof => f.write_str("failed to verify range proof"),
             Self::InvalidGenerator => f.write_str("malformed generator"),
-            Self::InvalidEcdsaAdaptorSignature => f.write_str("malformed ecdsa adaptor signature"),
             Self::CannotDecryptAdaptorSignature => {
                 f.write_str("failed to decrypt adaptor signature")
             }
@@ -376,7 +373,6 @@ impl std::error::Error for Error {
             Self::InvalidGenerator => None,
             Self::InvalidTweakLength => None,
             Self::TweakOutOfBounds => None,
-            Self::InvalidEcdsaAdaptorSignature => None,
             Self::CannotDecryptAdaptorSignature => None,
             Self::CannotRecoverAdaptorSecret => None,
             Self::CannotVerifyAdaptorSignature => None,
