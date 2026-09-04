@@ -37,6 +37,41 @@ where
     }
 }
 
+pub struct ArrayVisitor<const N: usize, F> {
+    expectation: &'static str,
+    parse_fn: F,
+}
+
+impl<const N: usize, F, T, Err> ArrayVisitor<N, F>
+where
+    F: FnOnce([u8; N]) -> Result<T, Err>,
+    Err: fmt::Display,
+{
+    pub fn new(expectation: &'static str, parse_fn: F) -> Self {
+        ArrayVisitor {
+            expectation,
+            parse_fn,
+        }
+    }
+}
+
+impl<const N: usize, F, T, Err> de::Visitor<'_> for ArrayVisitor<N, F>
+where
+    F: FnOnce([u8; N]) -> Result<T, Err>,
+    Err: fmt::Display,
+{
+    type Value = T;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str(self.expectation)
+    }
+
+    fn visit_bytes<E: de::Error>(self, v: &[u8]) -> Result<Self::Value, E> {
+        let arr = <[u8; N]>::try_from(v).map_err(|_| E::invalid_length(N, &self))?;
+        (self.parse_fn)(arr).map_err(E::custom)
+    }
+}
+
 pub struct BytesVisitor<F> {
     expectation: &'static str,
     parse_fn: F,

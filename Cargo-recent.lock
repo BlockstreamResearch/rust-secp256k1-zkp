@@ -173,6 +173,7 @@ version = "0.12.0"
 dependencies = [
  "bitcoin-private",
  "bitcoin_hashes",
+ "hex-conservative",
  "hex_lit",
  "rand",
  "secp256k1",

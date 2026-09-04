@@ -15,7 +15,7 @@ use crate::rand::rng;
 #[cfg(feature = "rand")]
 use crate::rand::{CryptoRng, Rng};
 use crate::ConvertFromUpstream as _;
-use crate::{from_hex, Error};
+use crate::Error;
 use core::{fmt, ptr, str};
 
 use secp256k1::ecdsa::Signature;
@@ -23,7 +23,7 @@ use secp256k1::{Message, PublicKey, SecretKey};
 
 /// Represents an adaptor signature and dleq proof.
 #[derive(Debug, PartialEq, Clone, Copy, Eq)]
-pub struct EcdsaAdaptorSignature(ffi::EcdsaAdaptorSignature);
+pub struct EcdsaAdaptorSignature([u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH]);
 
 impl fmt::LowerHex for EcdsaAdaptorSignature {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -41,15 +41,9 @@ impl fmt::Display for EcdsaAdaptorSignature {
 }
 
 impl str::FromStr for EcdsaAdaptorSignature {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<EcdsaAdaptorSignature, Error> {
-        let mut res = [0; ECDSA_ADAPTOR_SIGNATURE_LENGTH];
-        match from_hex(s, &mut res) {
-            Ok(ECDSA_ADAPTOR_SIGNATURE_LENGTH) => {
-                EcdsaAdaptorSignature::from_slice(&res[0..ECDSA_ADAPTOR_SIGNATURE_LENGTH])
-            }
-            _ => Err(Error::InvalidEcdsaAdaptorSignature),
-        }
+    type Err = hex::DecodeFixedLengthBytesError;
+    fn from_str(s: &str) -> Result<EcdsaAdaptorSignature, Self::Err> {
+        hex::decode_to_array(s).map(Self::from_byte_array)
     }
 }
 
@@ -68,26 +62,16 @@ impl ::serde::Serialize for EcdsaAdaptorSignature {
 impl<'de> ::serde::Deserialize<'de> for EcdsaAdaptorSignature {
     fn deserialize<D: ::serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         use crate::serde_util;
+        use core::convert::Infallible;
 
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
         } else {
-            d.deserialize_bytes(serde_util::BytesVisitor::new(
-                "a bytestring",
-                EcdsaAdaptorSignature::from_slice,
+            d.deserialize_bytes(serde_util::ArrayVisitor::new(
+                "a length-32 bytestring",
+                |arr| Result::<_, Infallible>::Ok(EcdsaAdaptorSignature::from_byte_array(arr)),
             ))
         }
-    }
-}
-
-impl CPtr for EcdsaAdaptorSignature {
-    type Target = ffi::EcdsaAdaptorSignature;
-    fn as_c_ptr(&self) -> *const Self::Target {
-        self.as_ptr()
-    }
-
-    fn as_mut_c_ptr(&mut self) -> *mut Self::Target {
-        self.as_mut_ptr()
     }
 }
 
@@ -98,33 +82,22 @@ impl AsRef<[u8]> for EcdsaAdaptorSignature {
 }
 
 impl EcdsaAdaptorSignature {
-    /// Creates an [`EcdsaAdaptorSignature`] directly from a slice
+    /// Encodes an [`EcdsaAdaptorSignature`] as a byte array.
     #[inline]
-    pub fn from_slice(data: &[u8]) -> Result<EcdsaAdaptorSignature, Error> {
-        match data.len() {
-            ECDSA_ADAPTOR_SIGNATURE_LENGTH => {
-                let mut ret = [0; ECDSA_ADAPTOR_SIGNATURE_LENGTH];
-                ret[..].copy_from_slice(data);
-                unsafe {
-                    Ok(EcdsaAdaptorSignature(
-                        ffi::EcdsaAdaptorSignature::from_array_unchecked(ret),
-                    ))
-                }
-            }
-            _ => Err(Error::InvalidEcdsaAdaptorSignature),
-        }
+    pub fn to_byte_array(&self) -> [u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH] {
+        self.0
     }
 
-    /// Obtains a raw const pointer suitable for use with FFI functions
+    /// Encodes an [`EcdsaAdaptorSignature`] as a byte array.
     #[inline]
-    pub fn as_ptr(&self) -> *const ffi::EcdsaAdaptorSignature {
+    pub fn as_byte_array(&self) -> &[u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH] {
         &self.0
     }
 
-    /// Obtains a raw mutable pointer suitable for use with FFI functions
+    /// Decodes a byte array as an [`EcdsaAdaptorSignature`].
     #[inline]
-    pub fn as_mut_ptr(&mut self) -> *mut ffi::EcdsaAdaptorSignature {
-        &mut self.0
+    pub fn from_byte_array(data: [u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH]) -> Self {
+        Self(data)
     }
 }
 
@@ -164,7 +137,7 @@ impl EcdsaAdaptorSignature {
         sk: &SecretKey,
         enckey: &PublicKey,
     ) -> EcdsaAdaptorSignature {
-        let mut adaptor_sig = ffi::EcdsaAdaptorSignature::new();
+        let mut adaptor_sig = [0; ECDSA_ADAPTOR_SIGNATURE_LENGTH];
 
         // xor the secret key and message together to get a rerandomization seed
         // for timing analysis defense-in-depth
@@ -177,7 +150,7 @@ impl EcdsaAdaptorSignature {
             |ctx| unsafe {
                 ffi::secp256k1_ecdsa_adaptor_encrypt(
                     ctx.as_ptr(),
-                    &mut adaptor_sig,
+                    adaptor_sig.as_mut_ptr(),
                     sk.as_secret_bytes().as_ptr(),
                     enckey.to_zkp_ffi(),
                     msg.as_ref().as_ptr(),
@@ -203,7 +176,7 @@ impl EcdsaAdaptorSignature {
         enckey: &PublicKey,
         aux_rand: &[u8; 32],
     ) -> EcdsaAdaptorSignature {
-        let mut adaptor_sig = ffi::EcdsaAdaptorSignature::new();
+        let mut adaptor_sig = [0; ECDSA_ADAPTOR_SIGNATURE_LENGTH];
 
         let aux_rand_ptr = aux_rand
             .as_ptr()
@@ -221,7 +194,7 @@ impl EcdsaAdaptorSignature {
             |ctx| unsafe {
                 ffi::secp256k1_ecdsa_adaptor_encrypt(
                     ctx.as_ptr(),
-                    &mut adaptor_sig,
+                    adaptor_sig.as_mut_ptr(),
                     sk.as_secret_bytes().as_ptr(),
                     enckey.to_zkp_ffi(),
                     msg.as_ref().as_ptr(),
@@ -244,7 +217,7 @@ impl EcdsaAdaptorSignature {
                 ffi::secp256k1_context_static,
                 &mut signature,
                 decryption_key.as_secret_bytes().as_ptr(),
-                self.as_c_ptr(),
+                self.as_byte_array().as_ptr(),
             );
 
             if ret != 1 {
@@ -272,7 +245,7 @@ impl EcdsaAdaptorSignature {
                     ctx.as_ptr(),
                     data.as_mut_c_ptr(),
                     sig.to_zkp_ffi(),
-                    self.as_c_ptr(),
+                    self.as_byte_array().as_ptr(),
                     encryption_key.to_zkp_ffi(),
                 )
             },
@@ -299,7 +272,7 @@ impl EcdsaAdaptorSignature {
             |ctx| unsafe {
                 ffi::secp256k1_ecdsa_adaptor_verify(
                     ctx.as_ptr(),
-                    self.as_c_ptr(),
+                    self.as_byte_array().as_ptr(),
                     pubkey.to_zkp_ffi(),
                     msg.as_ref().as_ptr(),
                     encryption_key.to_zkp_ffi(),
@@ -484,7 +457,7 @@ mod tests {
         use serde_test::Configure;
         use serde_test::{assert_tokens, Token};
 
-        let sig = EcdsaAdaptorSignature::from_slice(&[
+        let sig = EcdsaAdaptorSignature::from_byte_array([
             3, 44, 99, 124, 215, 151, 221, 140, 44, 226, 97, 144, 126, 212, 62, 130, 214, 209, 164,
             140, 186, 187, 190, 206, 128, 17, 51, 221, 141, 112, 160, 27, 20, 3, 235, 97, 90, 62,
             89, 177, 203, 191, 79, 135, 172, 175, 100, 91, 225, 237, 163, 42, 6, 102, 17, 243, 93,
@@ -494,8 +467,7 @@ mod tests {
             19, 75, 234, 3, 247, 132, 210, 133, 181, 198, 193, 90, 86, 228, 225, 250, 180, 188, 53,
             106, 187, 222, 187, 59, 143, 225, 229, 94, 109, 214, 210, 169, 234, 69, 126, 145, 178,
             230, 100, 47, 174, 105, 249, 219, 181, 37, 136, 84,
-        ])
-        .unwrap();
+        ]);
 
         assert_tokens(
             &sig.readable(),
@@ -522,14 +494,11 @@ mod tests {
     }
 
     fn msg_from_str(input: &str) -> Message {
-        let mut buf = [0u8; 32];
-        from_hex(input, &mut buf).unwrap();
-        Message::from_digest(buf)
+        Message::from_digest(hex::decode_to_array(input).unwrap())
     }
 
     fn compact_sig_from_str(input: &str) -> Signature {
-        let mut buf = [0u8; 64];
-        from_hex(input, &mut buf).unwrap();
-        Signature::from_compact(&buf).unwrap()
+        // Upstream should fix `Signature::from_compact` to take an array.
+        Signature::from_compact(&hex::decode_to_array::<64>(input).unwrap()).unwrap()
     }
 }
