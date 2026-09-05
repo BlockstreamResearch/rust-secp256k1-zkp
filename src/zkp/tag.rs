@@ -8,11 +8,25 @@ use core::fmt;
 pub struct Tag(ffi::Tag);
 
 impl Tag {
-    pub(crate) fn into_inner(self) -> ffi::Tag {
-        self.0
+    /// Converts a byte array to a [`Tag`].
+    #[inline]
+    pub fn from_byte_array(data: [u8; 32]) -> Self {
+        Self(data.into())
     }
 
-    #[cfg(feature = "rand")]
+    /// Returns the tag as a byte array.
+    #[inline]
+    pub fn to_byte_array(&self) -> [u8; 32] {
+        self.0.into()
+    }
+
+    /// Returns the tag as a byte array.
+    #[inline]
+    pub fn as_byte_array(&self) -> &[u8; 32] {
+        self.0.as_ref()
+    }
+
+    #[inline]
     pub(crate) fn as_inner(&self) -> &ffi::Tag {
         &self.0
     }
@@ -25,17 +39,20 @@ impl AsRef<[u8]> for Tag {
 }
 
 impl fmt::Display for Tag {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{:x}", self)
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::LowerHex::fmt(self, f)
     }
 }
 
 impl fmt::LowerHex for Tag {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        for i in self.0.as_ref() {
-            write!(f, "{:02x}", i)?;
-        }
-        Ok(())
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        hex::fmt_hex_exact!(f, 32, self.as_byte_array(), hex::Case::Lower)
+    }
+}
+
+impl fmt::UpperHex for Tag {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        hex::fmt_hex_exact!(f, 32, self.as_byte_array(), hex::Case::Upper)
     }
 }
 
@@ -50,18 +67,6 @@ impl Tag {
         let mut bytes = [0u8; 32];
         crate::rand::rng().fill_bytes(&mut bytes);
 
-        Self::from(bytes)
-    }
-}
-
-impl From<[u8; 32]> for Tag {
-    fn from(bytes: [u8; 32]) -> Self {
-        Tag(ffi::Tag::from(bytes))
-    }
-}
-
-impl From<Tag> for [u8; 32] {
-    fn from(tag: Tag) -> Self {
-        tag.0.into()
+        Self::from_byte_array(bytes)
     }
 }

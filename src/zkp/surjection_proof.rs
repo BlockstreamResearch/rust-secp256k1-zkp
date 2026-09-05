@@ -44,7 +44,7 @@ mod with_rand {
 
             for (blinded_tag, tag, bf) in domain {
                 domain_blinded_tags.push(*blinded_tag.as_inner());
-                domain_tags.push(tag.into_inner());
+                domain_tags.push(*tag.as_inner());
                 domain_blinding_factors.push(*bf);
             }
 
