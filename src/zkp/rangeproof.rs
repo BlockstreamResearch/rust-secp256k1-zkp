@@ -193,7 +193,7 @@ impl RangeProof {
 
         let opening = Opening {
             value,
-            blinding_factor: Tweak::from_slice(&blinding_factor)?,
+            blinding_factor: Tweak::from_byte_array(blinding_factor)?,
             message: message[..message_length].into(),
         };
 

@@ -2,7 +2,7 @@ use ffi::CPtr;
 
 use crate::ffi;
 use crate::{from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
-use core::{fmt, slice, str};
+use core::{fmt, str};
 
 /// Represents a commitment to a single u64 value.
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, PartialOrd, Ord)]
@@ -164,9 +164,10 @@ pub fn compute_adaptive_blinding_factor<C: Signing>(
     };
     assert_eq!(1, ret, "failed to compute blinding factor");
 
-    let last = vbf.last().expect("this vector is never empty");
-    let slice = unsafe { slice::from_raw_parts(*last, 32) };
-    Tweak::from_slice(slice).expect("data is always 32 bytes")
+    secrets
+        .last()
+        .expect("this vector is nonempty (explicit push above)")
+        .0
 }
 
 /// Verifies that the sum of the committed values within the commitments of both sets is equal.
