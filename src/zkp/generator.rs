@@ -1,7 +1,7 @@
 use crate::ffi::{self, CPtr};
 #[cfg(feature = "rand")]
 use crate::rand::Rng;
-use crate::{constants, from_hex, Error, Secp256k1, Signing, Tag};
+use crate::{constants, from_hex, Error, Tag};
 use core::{fmt, str};
 
 /// Represents a blinding factor/Tweak on secp256k1 curve
@@ -157,17 +157,20 @@ impl Generator {
 
     /// Creates a new [`Generator`] by blinding a [`Tag`] using the given blinding factor.
     /// Use [`Generator::new_unblinded`] for creating a [`Generator`] with zero blinding factor
-    pub fn new_blinded<C: Signing>(secp: &Secp256k1<C>, tag: Tag, blinding_factor: Tweak) -> Self {
+    pub fn new_blinded(tag: Tag, blinding_factor: Tweak) -> Self {
         let mut generator = unsafe { ffi::PublicKey::new() };
 
-        let ret = unsafe {
-            ffi::secp256k1_generator_generate_blinded(
-                secp.ctx().as_ptr(),
-                &mut generator,
-                tag.as_inner().as_c_ptr(),
-                blinding_factor.as_c_ptr(),
-            )
-        };
+        let ret = crate::context::with_raw_global_context(
+            |ctx| unsafe {
+                ffi::secp256k1_generator_generate_blinded(
+                    ctx.as_ptr(),
+                    &mut generator,
+                    tag.as_inner().as_c_ptr(),
+                    blinding_factor.as_c_ptr(),
+                )
+            },
+            Some(&blinding_factor.0),
+        );
         assert_eq!(ret, 1);
 
         Generator(generator)
@@ -175,8 +178,8 @@ impl Generator {
 
     /// Creates a new unblinded [`Generator`] by from [`Tag`]
     /// Same as using zero [`Tweak`] with [`Generator::new_blinded`]
-    pub fn new_unblinded<C: Signing>(secp: &Secp256k1<C>, tag: Tag) -> Self {
-        Generator::new_blinded(secp, tag, ZERO_TWEAK)
+    pub fn new_unblinded(tag: Tag) -> Self {
+        Generator::new_blinded(tag, ZERO_TWEAK)
     }
 
     /// Extracts the internal representation of this generator.
