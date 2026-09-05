@@ -301,12 +301,6 @@ pub enum Error {
     CannotMakeRangeProof,
     /// Given range proof does not prove that the commitment is within a range
     InvalidRangeProof,
-    /// Bad generator
-    InvalidGenerator,
-    /// Tweak must of len 32
-    InvalidTweakLength,
-    /// Tweak must be less than secp curve order
-    TweakOutOfBounds,
     /// Given bytes don't represent a valid whitelist signature
     InvalidWhitelistSignature,
     /// Invalid PAK list
@@ -315,6 +309,13 @@ pub enum Error {
     CannotCreateWhitelistSignature,
     /// The given whitelist signature doesn't correctly prove inclusion in the whitelist.
     InvalidWhitelistProof,
+}
+
+// FIXME will be removed in next commit; for now we just need a stub
+impl From<crate::zkp::TweakOutOfBoundsError> for Error {
+    fn from(_: crate::zkp::TweakOutOfBoundsError) -> Self {
+        Self::InvalidMessage
+    }
 }
 
 impl fmt::Display for Error {
@@ -328,9 +329,6 @@ impl fmt::Display for Error {
             Self::InvalidPedersenCommitment => f.write_str("malformed pedersen commitment"),
             Self::CannotMakeRangeProof => f.write_str("failed to generate range proof"),
             Self::InvalidRangeProof => f.write_str("failed to verify range proof"),
-            Self::InvalidGenerator => f.write_str("malformed generator"),
-            Self::InvalidTweakLength => f.write_str("Tweak must of size 32"),
-            Self::TweakOutOfBounds => f.write_str("Tweak must be less than secp curve order"),
             Self::InvalidWhitelistSignature => f.write_str("malformed whitelist signature"),
             Self::InvalidPakList => f.write_str("invalid PAK list"),
             Self::CannotCreateWhitelistSignature => {
@@ -355,9 +353,6 @@ impl std::error::Error for Error {
             Self::InvalidPedersenCommitment => None,
             Self::CannotMakeRangeProof => None,
             Self::InvalidRangeProof => None,
-            Self::InvalidGenerator => None,
-            Self::InvalidTweakLength => None,
-            Self::TweakOutOfBounds => None,
             Self::InvalidWhitelistSignature => None,
             Self::InvalidPakList => None,
             Self::CannotCreateWhitelistSignature => None,
