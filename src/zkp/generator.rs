@@ -164,7 +164,7 @@ impl Generator {
             ffi::secp256k1_generator_generate_blinded(
                 secp.ctx().as_ptr(),
                 &mut generator,
-                tag.into_inner().as_c_ptr(),
+                tag.as_inner().as_c_ptr(),
                 blinding_factor.as_c_ptr(),
             )
         };
