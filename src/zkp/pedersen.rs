@@ -266,7 +266,7 @@ mod tests {
 
         #[allow(missing_docs)] // test-only
         pub fn commit(&self, tag: Tag) -> PedersenCommitment {
-            let generator = Generator::new_blinded(SECP256K1, tag, self.generator_blinding_factor);
+            let generator = Generator::new_blinded(tag, self.generator_blinding_factor);
 
             PedersenCommitment::new(SECP256K1, self.value, self.value_blinding_factor, generator)
         }
@@ -275,7 +275,7 @@ mod tests {
     #[test]
     fn test_unblinded_pedersen_commitments() {
         let tag = Tag::random();
-        let unblinded_gen = Generator::new_unblinded(SECP256K1, tag);
+        let unblinded_gen = Generator::new_unblinded(tag);
         let one_comm = PedersenCommitment::new_unblinded(SECP256K1, 1, unblinded_gen); // 1*G
         let two_comm = PedersenCommitment::new_unblinded(SECP256K1, 2, unblinded_gen); // 2*G
         let three_comm = PedersenCommitment::new_unblinded(SECP256K1, 3, unblinded_gen); // 3*G
@@ -327,7 +327,7 @@ mod tests {
         let commitment_3 = secrets_3.commit(tag_1);
 
         let tbf_4 = Tweak::new(&mut rng());
-        let blinded_tag_4 = Generator::new_blinded(SECP256K1, tag_2, tbf_4);
+        let blinded_tag_4 = Generator::new_blinded(tag_2, tbf_4);
         let vbf_4 = compute_adaptive_blinding_factor(
             SECP256K1,
             1000,
