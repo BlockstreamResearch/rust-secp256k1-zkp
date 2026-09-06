@@ -1,9 +1,10 @@
 use crate::{impl_array_newtype, impl_raw_debug};
 use core::{
+    ffi::{c_int, c_uchar, c_void},
     fmt,
     hash::{self, Hash},
 };
-use {types::*, Context, PublicKey, Signature};
+use {types::size_t, Context, PublicKey, Signature};
 
 /// Rangeproof maximum length
 pub const RANGEPROOF_MAX_LENGTH: size_t = 5134;

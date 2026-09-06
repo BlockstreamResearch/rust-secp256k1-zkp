@@ -1,17 +1,7 @@
 // SPDX-License-Identifier: CC0-1.0
 
-#![allow(non_camel_case_types)]
-
-pub type c_int = i32;
-pub type c_uchar = u8;
-pub type c_uint = u32;
+#[allow(non_camel_case_types)]
 pub type size_t = usize;
-
-/// This might not match C's `c_char` exactly.
-/// The way we use it makes it fine either way but this type shouldn't be used outside of the library.
-pub type c_char = i8;
-
-pub use core::ffi::c_void;
 
 /// A type that is as aligned as the biggest alignment for fundamental types in C
 /// since C11 that means as aligned as `max_align_t` is.
@@ -37,18 +27,11 @@ pub(crate) const ALIGN_TO: usize = core::mem::align_of::<AlignedType>();
 #[cfg(test)]
 mod tests {
     extern crate libc;
-    use crate::{types, AlignedType};
-    use std::any::TypeId;
+    use super::AlignedType;
     use std::mem;
-    use std::os::raw;
 
     #[test]
     fn verify_types() {
-        assert_eq!(TypeId::of::<types::c_int>(), TypeId::of::<raw::c_int>());
-        assert_eq!(TypeId::of::<types::c_uchar>(), TypeId::of::<raw::c_uchar>());
-        assert_eq!(TypeId::of::<types::c_uint>(), TypeId::of::<raw::c_uint>());
-        assert_eq!(TypeId::of::<types::c_char>(), TypeId::of::<raw::c_char>());
-
         assert!(mem::align_of::<AlignedType>() >= mem::align_of::<self::libc::max_align_t>());
     }
 }
@@ -56,6 +39,7 @@ mod tests {
 #[doc(hidden)]
 #[cfg(target_arch = "wasm32")]
 pub fn sanity_checks_for_wasm() {
+    use core::ffi::{c_int, c_uchar, c_uint};
     use core::mem::{align_of, size_of};
     extern "C" {
         pub static WASM32_INT_SIZE: c_uchar;

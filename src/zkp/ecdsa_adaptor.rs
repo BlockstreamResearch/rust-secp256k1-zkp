@@ -207,7 +207,7 @@ impl EcdsaAdaptorSignature {
 
         let aux_rand_ptr = aux_rand
             .as_ptr()
-            .cast::<ffi::types::c_void>()
+            .cast::<core::ffi::c_void>()
             .cast_mut(); // ok as secp256k1_nonce_function_ecdsa_adaptor will not actually mutate
 
         let res = unsafe {
@@ -391,7 +391,9 @@ mod tests {
             .verify(SECP256K1_ZKP, &msg, &pubkey, &encryption_key)
             .expect("adaptor signature verification to pass");
 
-        let sig = compact_sig_from_str("424d14a5471c048ab87b3b83f6085d125d5864249ae4297a57c84e74710bb67329e80e0ee60e57af3e625bbae1672b1ecaa58effe613426b024fa1621d903394");
+        let sig = compact_sig_from_str(
+            "424d14a5471c048ab87b3b83f6085d125d5864249ae4297a57c84e74710bb67329e80e0ee60e57af3e625bbae1672b1ecaa58effe613426b024fa1621d903394",
+        );
         let expected_decryption_key: SecretKey =
             "0b2aba63b885a0f0e96fa0f303920c7fb7431ddfa94376ad94d969fbf4109dc8"
                 .parse()
@@ -431,7 +433,9 @@ mod tests {
             .parse()
             .unwrap();
 
-        let sig = compact_sig_from_str("f7f7fe6bd056fc4abd70d335f72d0aa1e8406bba68f3e579e4789475323564a452c46176c7fb40aa37d5651341f55697dab27d84a213b30c93011a7790bace8c");
+        let sig = compact_sig_from_str(
+            "f7f7fe6bd056fc4abd70d335f72d0aa1e8406bba68f3e579e4789475323564a452c46176c7fb40aa37d5651341f55697dab27d84a213b30c93011a7790bace8c",
+        );
         adaptor_sig
             .recover(SECP256K1_ZKP, &sig, &encryption_key)
             .expect_err("providing wrong r value should prevent us from recovering decryption key");
@@ -446,7 +450,9 @@ mod tests {
             .parse()
             .unwrap();
 
-        let sig = compact_sig_from_str("2c637cd797dd8c2ce261907ed43e82d6d1a48cbabbbece801133dd8d70a01b14b5f24321f550b7b9dd06ee4fcfd82bdad8b142ff93a790cc4d9f7962b38c6a3b");
+        let sig = compact_sig_from_str(
+            "2c637cd797dd8c2ce261907ed43e82d6d1a48cbabbbece801133dd8d70a01b14b5f24321f550b7b9dd06ee4fcfd82bdad8b142ff93a790cc4d9f7962b38c6a3b",
+        );
         let expected_decryption_key: SecretKey =
             "324719b51ff2474c9438eb76494b0dc0bcceeb529f0a5428fd198ad8f886e99c"
                 .parse()
