@@ -26,7 +26,6 @@ const THIS_UNUSED_CONSTANT_IS_YOUR_WARNING_THAT_ALL_THE_CRYPTO_IN_THIS_LIB_IS_DI
 mod macros;
 pub mod types;
 
-#[cfg(feature = "recovery")]
 pub mod recovery;
 
 pub mod zkp;
