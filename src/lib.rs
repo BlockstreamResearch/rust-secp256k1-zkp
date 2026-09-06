@@ -295,8 +295,6 @@ pub enum Error {
     CannotProveSurjection,
     /// Given bytes don't represent a valid surjection proof
     InvalidSurjectionProof,
-    /// Given bytes don't represent a valid pedersen commitment
-    InvalidPedersenCommitment,
     /// Failed to produce a range proof because of an internal error within `libsecp256k1-zkp`
     CannotMakeRangeProof,
     /// Given range proof does not prove that the commitment is within a range
@@ -326,7 +324,6 @@ impl fmt::Display for Error {
             Self::NotEnoughMemory => f.write_str("not enough memory allocated"),
             Self::CannotProveSurjection => f.write_str("failed to prove surjection"),
             Self::InvalidSurjectionProof => f.write_str("malformed surjection proof"),
-            Self::InvalidPedersenCommitment => f.write_str("malformed pedersen commitment"),
             Self::CannotMakeRangeProof => f.write_str("failed to generate range proof"),
             Self::InvalidRangeProof => f.write_str("failed to verify range proof"),
             Self::InvalidWhitelistSignature => f.write_str("malformed whitelist signature"),
@@ -350,7 +347,6 @@ impl std::error::Error for Error {
             Self::NotEnoughMemory => None,
             Self::CannotProveSurjection => None,
             Self::InvalidSurjectionProof => None,
-            Self::InvalidPedersenCommitment => None,
             Self::CannotMakeRangeProof => None,
             Self::InvalidRangeProof => None,
             Self::InvalidWhitelistSignature => None,
