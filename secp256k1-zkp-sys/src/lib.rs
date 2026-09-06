@@ -580,10 +580,7 @@ mod fuzz_dummy {
         ) -> NonNull<Context>;
     }
 
-    #[cfg(feature = "lowmemory")]
-    const CTX_SIZE: usize = 1024 * 65;
-    #[cfg(not(feature = "lowmemory"))]
-    const CTX_SIZE: usize = 1024 * (1024 + 128);
+    const CTX_SIZE: usize = 512;
     // Contexts
     pub unsafe fn secp256k1_context_preallocated_size(flags: c_uint) -> size_t {
         assert!(
@@ -701,9 +698,9 @@ mod fuzz_dummy {
     /// Checks that pk != 0xffff...ffff and pk[1..32] == pk[33..64]
     unsafe fn test_pk_validate(cx: *const Context, pk: *const PublicKey) -> c_int {
         check_context_flags(cx, 0);
-        if (*pk).0[1..32] != (*pk).0[33..64]
-            || ((*pk).0[32] != 0 && (*pk).0[32] != 0xff)
-            || secp256k1_ec_seckey_verify(cx, (*pk).0[0..32].as_ptr()) == 0
+        if (&*pk).0[1..32] != (&*pk).0[33..64]
+            || ((&*pk).0[32] != 0 && (&*pk).0[32] != 0xff)
+            || secp256k1_ec_seckey_verify(cx, (&*pk).0[0..32].as_ptr()) == 0
         {
             0
         } else {
