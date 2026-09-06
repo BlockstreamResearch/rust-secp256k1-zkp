@@ -38,7 +38,7 @@ impl RangeProof {
 
         let ret = unsafe {
             ffi::secp256k1_rangeproof_info(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut exp,
                 &mut mantissa,
                 &mut min_value,

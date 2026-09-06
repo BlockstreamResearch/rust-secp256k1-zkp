@@ -112,7 +112,7 @@ impl PublicKey {
         let mut len = 33;
         unsafe {
             let ret = secp256k1_ec_pubkey_serialize(
-                secp256k1_context_no_precomp,
+                secp256k1_context_static,
                 buf.as_mut_c_ptr(),
                 &mut len,
                 self,
@@ -135,7 +135,7 @@ impl PartialOrd for PublicKey {
 #[cfg(not(secp256k1_fuzz))]
 impl Ord for PublicKey {
     fn cmp(&self, other: &PublicKey) -> core::cmp::Ordering {
-        let ret = unsafe { secp256k1_ec_pubkey_cmp(secp256k1_context_no_precomp, self, other) };
+        let ret = unsafe { secp256k1_ec_pubkey_cmp(secp256k1_context_static, self, other) };
         ret.cmp(&0i32)
     }
 }
@@ -218,9 +218,9 @@ pub fn non_secure_erase_impl<T>(dst: &mut T, src: T) {
 extern "C" {
     #[cfg_attr(
         not(rust_secp_zkp_no_symbol_renaming),
-        link_name = "rustsecp256k1zkp_v0_11_0_context_no_precomp"
+        link_name = "rustsecp256k1zkp_v0_11_0_context_static"
     )]
-    pub static secp256k1_context_no_precomp: *const Context;
+    pub static secp256k1_context_static: *const Context;
 
     // Contexts
     #[cfg_attr(
@@ -683,7 +683,7 @@ mod fuzz_dummy {
 
     unsafe fn check_context_flags(cx: *const Context, required_flags: c_uint) {
         assert!(!cx.is_null());
-        let cx_flags = if cx == secp256k1_context_no_precomp {
+        let cx_flags = if cx == secp256k1_context_static {
             1
         } else {
             let ptr = (cx as *const u8)

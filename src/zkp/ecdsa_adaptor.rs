@@ -231,7 +231,7 @@ impl EcdsaAdaptorSignature {
         unsafe {
             let mut signature = ffi::Signature::new();
             let ret = ffi::secp256k1_ecdsa_adaptor_decrypt(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut signature,
                 decryption_key.as_secret_bytes().as_ptr(),
                 self.as_c_ptr(),

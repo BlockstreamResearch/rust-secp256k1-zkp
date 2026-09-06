@@ -71,7 +71,7 @@ impl Tweak {
                 let mut ret = [0; constants::SECRET_KEY_SIZE];
                 unsafe {
                     if ffi::secp256k1_ec_seckey_verify(
-                        ffi::secp256k1_context_no_precomp,
+                        ffi::secp256k1_context_static,
                         data.as_ref().as_c_ptr(),
                     ) == 0
                     {
@@ -93,7 +93,7 @@ impl Tweak {
     pub fn from_inner(data: [u8; 32]) -> Result<Tweak, Error> {
         unsafe {
             if ffi::secp256k1_ec_seckey_verify(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 data.as_ref().as_c_ptr(),
             ) == 0
             {
@@ -119,7 +119,7 @@ impl Generator {
 
         let ret = unsafe {
             ffi::secp256k1_generator_serialize(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 output.as_mut_ptr(),
                 &self.0,
             )
@@ -142,7 +142,7 @@ impl Generator {
 
         let ret = unsafe {
             ffi::secp256k1_generator_parse(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut public_key,
                 bytes.as_ptr(),
             )
