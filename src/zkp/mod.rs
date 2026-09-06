@@ -19,6 +19,7 @@ pub use self::whitelist::WhitelistSignature;
 
 pub use self::ecdsa_adaptor::Error as EcdsaAdaptorSignatureError;
 pub use self::generator::Error as GeneratorError;
+pub use self::pedersen::Error as PedersenCommitmentError;
 
 #[cfg(test)]
 pub use self::whitelist::whitelist_test_util;

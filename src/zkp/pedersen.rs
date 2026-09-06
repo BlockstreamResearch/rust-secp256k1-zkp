@@ -1,8 +1,36 @@
 use ffi::CPtr;
 
 use crate::ffi;
-use crate::{from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
+use crate::{Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
 use core::{fmt, str};
+
+/// An error related to [`PedersenCommitment`].
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Error {
+    /// Decoding a hex string failed.
+    Hex(hex::DecodeFixedLengthBytesError),
+    /// Bad commitment
+    InvalidCommitment,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Self::Hex(_) => f.write_str("failed to decode hex string"),
+            Self::InvalidCommitment => f.write_str("invalid commitment"),
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match *self {
+            Self::Hex(ref e) => Some(e),
+            Self::InvalidCommitment => None,
+        }
+    }
+}
 
 /// Represents a commitment to a single u64 value.
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, PartialOrd, Ord)]
@@ -12,7 +40,7 @@ impl PedersenCommitment {
     /// Serialize a pedersen commitment.
     ///
     /// The format of this serialization is stable and platform-independent.
-    pub fn serialize(&self) -> [u8; 33] {
+    pub fn to_byte_array(&self) -> [u8; 33] {
         let mut bytes = [0u8; 33];
 
         let ret = unsafe {
@@ -28,13 +56,7 @@ impl PedersenCommitment {
     }
 
     /// Parse a pedersen commitment from a byte slice.
-    pub fn from_slice(bytes: &[u8]) -> Result<Self, Error> {
-        // The FFI parser takes no length and unconditionally reads 33 bytes
-        // from the slice pointer; reject other lengths here to avoid an
-        // out-of-bounds read (a segfault on empty input).
-        if bytes.len() != 33 {
-            return Err(Error::InvalidPedersenCommitment);
-        }
+    pub fn from_byte_array(bytes: [u8; 33]) -> Result<Self, Error> {
         let mut commitment = ffi::PedersenCommitment::default();
 
         let ret = unsafe {
@@ -46,7 +68,7 @@ impl PedersenCommitment {
         };
 
         if ret != 1 {
-            return Err(Error::InvalidPedersenCommitment);
+            return Err(Error::InvalidCommitment);
         }
 
         Ok(PedersenCommitment(commitment))
@@ -195,11 +217,8 @@ pub fn verify_commitments_sum_to_equal<C: Signing>(
 
 impl fmt::LowerHex for PedersenCommitment {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let ser = self.serialize();
-        for ch in &ser[..] {
-            write!(f, "{:02x}", *ch)?;
-        }
-        Ok(())
+        let ser = self.to_byte_array();
+        hex::fmt_hex_exact!(f, 33, ser, hex::Case::Lower)
     }
 }
 
@@ -211,12 +230,10 @@ impl fmt::Display for PedersenCommitment {
 
 impl str::FromStr for PedersenCommitment {
     type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Error> {
-        let mut res = [0; 33];
-        match from_hex(s, &mut res) {
-            Ok(33) => Self::from_slice(&res[0..33]),
-            _ => Err(Error::InvalidPedersenCommitment),
-        }
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let arr = hex::decode_to_array(s).map_err(Error::Hex)?;
+        Self::from_byte_array(arr)
     }
 }
 
@@ -226,7 +243,7 @@ impl ::serde::Serialize for PedersenCommitment {
         if s.is_human_readable() {
             s.collect_str(self)
         } else {
-            s.serialize_bytes(&self.serialize())
+            s.serialize_bytes(&self.to_byte_array())
         }
     }
 }
@@ -239,9 +256,9 @@ impl<'de> ::serde::Deserialize<'de> for PedersenCommitment {
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
         } else {
-            d.deserialize_bytes(serde_util::BytesVisitor::new(
-                "a bytestring",
-                PedersenCommitment::from_slice,
+            d.deserialize_bytes(serde_util::ArrayVisitor::new(
+                "a length-33 bytestring",
+                PedersenCommitment::from_byte_array,
             ))
         }
     }
@@ -295,23 +312,10 @@ mod tests {
     fn test_serialize_and_parse_pedersen_commitment() {
         let commitment = CommitmentSecrets::random(1000).commit(Tag::random());
 
-        let bytes = commitment.serialize();
-        let got = PedersenCommitment::from_slice(&bytes).unwrap();
+        let bytes = commitment.to_byte_array();
+        let got = PedersenCommitment::from_byte_array(bytes).unwrap();
 
         assert_eq!(got, commitment);
-    }
-
-    #[test]
-    fn from_slice_rejects_bad_lengths() {
-        // The FFI parser takes no length and unconditionally reads 33 bytes
-        // from the slice pointer; empty and short slices must be rejected
-        // before reaching FFI (an empty slice segfaults on address 0x1).
-        for len in [0usize, 1, 32] {
-            let bytes = vec![0u8; len];
-            assert!(PedersenCommitment::from_slice(&bytes).is_err());
-        }
-        // A 33-byte input reaches FFI and is rejected on content, not by crash.
-        assert!(PedersenCommitment::from_slice(&[0u8; 33]).is_err());
     }
 
     #[test]
@@ -363,7 +367,7 @@ mod tests {
         use serde_test::Configure;
         use serde_test::{assert_tokens, Token};
 
-        let commitment = PedersenCommitment::from_slice(&[
+        let commitment = PedersenCommitment::from_byte_array([
             9, 7, 166, 63, 171, 227, 228, 157, 87, 19, 233, 218, 252, 171, 254, 202, 228, 138, 19,
             124, 26, 29, 131, 42, 33, 212, 151, 151, 89, 0, 135, 201, 254,
         ])
