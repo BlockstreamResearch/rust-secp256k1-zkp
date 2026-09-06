@@ -470,34 +470,6 @@ impl SurjectionProof {
     }
 }
 
-#[cfg(feature = "alloc")]
-#[repr(C)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct RangeProof(alloc::boxed::Box<[c_uchar]>);
-
-#[cfg(feature = "alloc")]
-impl RangeProof {
-    pub fn new(bytes: &[u8]) -> Self {
-        RangeProof(bytes.into())
-    }
-
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    pub fn as_ptr(&self) -> *const c_uchar {
-        self.0.as_ptr()
-    }
-
-    pub fn to_bytes(&self) -> alloc::vec::Vec<u8> {
-        self.0.to_vec()
-    }
-}
-
 #[repr(C)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct Tag([c_uchar; 32]);
