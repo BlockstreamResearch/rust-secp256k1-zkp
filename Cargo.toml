@@ -21,7 +21,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["std"]
-std = ["alloc", "rand?/std", "rand?/std_rng", "secp256k1-zkp-sys/std", "secp256k1/std"]
+std = ["alloc", "rand?/std", "rand?/std_rng", "secp256k1/std"]
 alloc = ["secp256k1-zkp-sys/alloc", "secp256k1/alloc"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory", "secp256k1/lowmemory"]
 global-context = ["std", "rand", "secp256k1/global-context"]

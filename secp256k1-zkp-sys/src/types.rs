@@ -28,7 +28,7 @@ pub(crate) const ALIGN_TO: usize = core::mem::align_of::<AlignedType>();
 mod tests {
     extern crate libc;
     use super::AlignedType;
-    use std::mem;
+    use core::mem;
 
     #[test]
     fn verify_types() {

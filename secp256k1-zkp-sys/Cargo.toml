@@ -27,9 +27,8 @@ cc = "1.0.28"
 libc = "0.2.154"
 
 [features]
-default = ["std"]
+default = ["alloc"]
 lowmemory = []
-std = ["alloc"]
 alloc = []
 
 [lints.rust]

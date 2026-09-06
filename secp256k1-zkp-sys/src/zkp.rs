@@ -106,7 +106,6 @@ extern "C" {
         ncnt: size_t,
     ) -> c_int;
 
-    #[cfg(feature = "std")]
     #[cfg_attr(
         not(rust_secp_zkp_no_symbol_renaming),
         link_name = "rustsecp256k1zkp_v0_11_0_rangeproof_info"
@@ -121,7 +120,6 @@ extern "C" {
         plen: size_t,
     ) -> c_int;
 
-    #[cfg(feature = "std")]
     #[cfg_attr(
         not(rust_secp_zkp_no_symbol_renaming),
         link_name = "rustsecp256k1zkp_v0_11_0_rangeproof_rewind"
@@ -143,7 +141,6 @@ extern "C" {
         gen: *const PublicKey,
     ) -> c_int;
 
-    #[cfg(feature = "std")]
     #[cfg_attr(
         not(rust_secp_zkp_no_symbol_renaming),
         link_name = "rustsecp256k1zkp_v0_11_0_rangeproof_verify"
@@ -160,7 +157,6 @@ extern "C" {
         gen: *const PublicKey,
     ) -> c_int;
 
-    #[cfg(feature = "std")]
     #[cfg_attr(
         not(rust_secp_zkp_no_symbol_renaming),
         link_name = "rustsecp256k1zkp_v0_11_0_rangeproof_sign"
@@ -474,12 +470,12 @@ impl SurjectionProof {
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 #[repr(C)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct RangeProof(Box<[c_uchar]>);
+pub struct RangeProof(alloc::boxed::Box<[c_uchar]>);
 
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 impl RangeProof {
     pub fn new(bytes: &[u8]) -> Self {
         RangeProof(bytes.into())
@@ -497,7 +493,7 @@ impl RangeProof {
         self.0.as_ptr()
     }
 
-    pub fn to_bytes(&self) -> Vec<u8> {
+    pub fn to_bytes(&self) -> alloc::vec::Vec<u8> {
         self.0.to_vec()
     }
 }

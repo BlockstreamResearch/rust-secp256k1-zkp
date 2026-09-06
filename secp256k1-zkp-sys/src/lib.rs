@@ -4,18 +4,7 @@
 //! Direct bindings to the underlying C library functions. These should
 //! not be needed for most users.
 
-// Coding conventions
-#![deny(
-    non_upper_case_globals,
-    non_camel_case_types,
-    non_snake_case,
-    unused_mut
-)]
-#![cfg_attr(all(not(test), not(feature = "std")), no_std)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
-
-#[cfg(any(test, feature = "std"))]
-extern crate core;
+#![no_std]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -639,8 +628,6 @@ mod fuzz_dummy {
                 // Another thread is building, just busy-loop until they're done.
                 assert_eq!(have_ctx, HAVE_CONTEXT_WORKING);
                 have_ctx = HAVE_PREALLOCATED_CONTEXT.load(Ordering::Acquire);
-                #[cfg(feature = "std")]
-                std::thread::yield_now();
             }
         }
         ptr::copy_nonoverlapping(
@@ -744,9 +731,10 @@ pub use self::fuzz_dummy::*;
 mod tests {
     #[cfg(not(rust_secp_zkp_no_symbol_renaming))]
     #[test]
+    #[cfg(feature = "alloc")]
     fn test_strlen() {
         use super::strlen;
-        use std::ffi::CString;
+        use alloc::ffi::CString;
 
         let orig = "test strlen \t \n";
         let test = CString::new(orig).unwrap();
