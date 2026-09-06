@@ -23,6 +23,9 @@ features = [ "recovery", "lowmemory" ]
 [build-dependencies]
 cc = "1.0.28"
 
+[dev-dependencies]
+libc = "0.2.154"
+
 [features]
 default = ["std"]
 recovery = []

@@ -45,3 +45,7 @@ hex_lit = "0.1.1"
 
 [lints.rust]
 unexpected_cfgs = { level = "deny", check-cfg = [ "cfg(rust_secp_fuzz)", "cfg(bench)", "cfg(secp256k1_fuzz)" ] }
+
+[workspace]
+members = ["secp256k1-zkp-sys"]
+
