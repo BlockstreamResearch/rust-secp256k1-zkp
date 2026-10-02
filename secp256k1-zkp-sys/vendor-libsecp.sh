@@ -34,8 +34,8 @@ while (( "$#" )); do
         ;;
     *)
         if [ -z "$SECP_REV" ]; then
-            echo "Using secp256k1 revision $SECP_REV."
             SECP_REV="$1"
+            echo "Using secp256k1 revision $SECP_REV."
         else
             echo "WARNING: ignoring unknown command-line argument $1"
         fi
@@ -94,12 +94,17 @@ echo "$SOURCE_REV" >> ./secp256k1-HEAD-revision.txt
 
 # To support compiling for WASM, we need to remove all methods that use malloc.
 # To compensate, the secp_context_create and _destroy methods are redefined in Rust.
-git apply "./secp256k1.h.patch"
-git apply "./secp256k1.c.patch"
-git apply "./util.h.patch"
-git apply "./scratch_impl.h.patch"
-git apply "./surjection_impl.h.patch"
-git apply "./surjection_main_impl.h.patch"
+patch "$DIR/include/secp256k1.h" "./secp256k1.h.patch"
+patch "$DIR/src/secp256k1.c" "./secp256k1.c.patch"
+patch "$DIR/src/util.h" "./util.h.patch"
+patch "$DIR/src/scratch_impl.h" "./scratch_impl.h.patch"
+patch "$DIR/src/modules/surjection/surjection_impl.h" "./surjection_impl.h.patch"
+patch "$DIR/src/modules/surjection/main_impl.h" "./surjection_main_impl.h.patch"
+# patch leaves .orig files around which we don't need or want
+rm "$DIR/include/secp256k1.h.orig" || true
+rm "$DIR/src/secp256k1.c.orig" || true
+rm "$DIR/src/util.h.orig" || true
+rm "$DIR/src/modules/surjection/main_impl.h.orig" || true
 
 # Make sure none of the includes have a space
 find "$DIR" -not -path '*/\.*' -type f -print0 | xargs -0 sed -i "s/# include/#include/g"
