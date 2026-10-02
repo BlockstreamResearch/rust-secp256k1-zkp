@@ -18,13 +18,13 @@ use std::str;
 /// TODO: Store rangeproof info
 #[derive(Debug, PartialEq, Clone, Eq, Hash, PartialOrd, Ord)]
 pub struct RangeProof {
-    inner: ffi::RangeProof,
+    inner: Box<[u8]>,
 }
 
 impl RangeProof {
     /// Serialize to bytes.
     pub fn serialize(&self) -> Vec<u8> {
-        self.inner.to_bytes()
+        self.inner.to_vec()
     }
 
     /// Parse from byte slice.
@@ -38,7 +38,7 @@ impl RangeProof {
 
         let ret = unsafe {
             ffi::secp256k1_rangeproof_info(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut exp,
                 &mut mantissa,
                 &mut min_value,
@@ -53,7 +53,7 @@ impl RangeProof {
         }
 
         Ok(RangeProof {
-            inner: ffi::RangeProof::new(bytes),
+            inner: Box::from(bytes),
         })
     }
 
@@ -110,7 +110,7 @@ impl RangeProof {
         }
 
         Ok(RangeProof {
-            inner: ffi::RangeProof::new(&proof[..proof_length]),
+            inner: Box::from(&proof[..proof_length]),
         })
     }
 

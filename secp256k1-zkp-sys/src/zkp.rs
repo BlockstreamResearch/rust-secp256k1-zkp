@@ -1,9 +1,10 @@
 use crate::{impl_array_newtype, impl_raw_debug};
 use core::{
+    ffi::{c_int, c_uchar, c_void},
     fmt,
     hash::{self, Hash},
 };
-use {types::*, Context, PublicKey, Signature};
+use {types::size_t, Context, PublicKey, Signature};
 
 /// Rangeproof maximum length
 pub const RANGEPROOF_MAX_LENGTH: size_t = 5134;
@@ -105,7 +106,6 @@ extern "C" {
         ncnt: size_t,
     ) -> c_int;
 
-    #[cfg(feature = "std")]
     #[cfg_attr(
         not(rust_secp_zkp_no_symbol_renaming),
         link_name = "rustsecp256k1zkp_v0_11_0_rangeproof_info"
@@ -120,7 +120,6 @@ extern "C" {
         plen: size_t,
     ) -> c_int;
 
-    #[cfg(feature = "std")]
     #[cfg_attr(
         not(rust_secp_zkp_no_symbol_renaming),
         link_name = "rustsecp256k1zkp_v0_11_0_rangeproof_rewind"
@@ -142,7 +141,6 @@ extern "C" {
         gen: *const PublicKey,
     ) -> c_int;
 
-    #[cfg(feature = "std")]
     #[cfg_attr(
         not(rust_secp_zkp_no_symbol_renaming),
         link_name = "rustsecp256k1zkp_v0_11_0_rangeproof_verify"
@@ -159,7 +157,6 @@ extern "C" {
         gen: *const PublicKey,
     ) -> c_int;
 
-    #[cfg(feature = "std")]
     #[cfg_attr(
         not(rust_secp_zkp_no_symbol_renaming),
         link_name = "rustsecp256k1zkp_v0_11_0_rangeproof_sign"
@@ -470,34 +467,6 @@ impl SurjectionProof {
             used_inputs: [0u8; 32],
             data: [0u8; 8224],
         }
-    }
-}
-
-#[cfg(feature = "std")]
-#[repr(C)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct RangeProof(Box<[c_uchar]>);
-
-#[cfg(feature = "std")]
-impl RangeProof {
-    pub fn new(bytes: &[u8]) -> Self {
-        RangeProof(bytes.into())
-    }
-
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    pub fn as_ptr(&self) -> *const c_uchar {
-        self.0.as_ptr()
-    }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
-        self.0.to_vec()
     }
 }
 

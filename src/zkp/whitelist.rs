@@ -32,7 +32,7 @@ impl WhitelistSignature {
         let mut out_len = buf.len();
         let ret = unsafe {
             ffi::secp256k1_whitelist_signature_serialize(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 buf.as_mut_ptr(),
                 &mut out_len,
                 &self.0,
@@ -54,7 +54,7 @@ impl WhitelistSignature {
 
         let ret = unsafe {
             ffi::secp256k1_whitelist_signature_parse(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut sig,
                 bytes.as_ptr(),
                 bytes.len(),
