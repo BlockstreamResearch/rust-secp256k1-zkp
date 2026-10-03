@@ -132,6 +132,12 @@ impl Generator {
 
     /// Parse a generator from a slice of bytes.
     pub fn from_slice(bytes: &[u8]) -> Result<Self, Error> {
+        // The FFI parser takes no length and unconditionally reads 33 bytes
+        // from the slice pointer; reject other lengths here to avoid an
+        // out-of-bounds read (a segfault on empty input).
+        if bytes.len() != 33 {
+            return Err(Error::InvalidGenerator);
+        }
         let mut public_key = unsafe { ffi::PublicKey::new() };
 
         let ret = unsafe {
@@ -266,5 +272,20 @@ impl<'de> ::serde::Deserialize<'de> for Tweak {
 
 #[cfg(test)]
 mod tests {
+    use super::Generator;
+
     // TODO: Test prefix of serialization
+
+    #[test]
+    fn from_slice_rejects_bad_lengths() {
+        // The FFI parser takes no length and unconditionally reads 33 bytes
+        // from the slice pointer; empty and short slices must be rejected
+        // before reaching FFI (an empty slice segfaults on address 0x1).
+        for len in [0usize, 1, 32] {
+            let bytes = vec![0u8; len];
+            assert!(Generator::from_slice(&bytes).is_err());
+        }
+        // A 33-byte input reaches FFI and is rejected on content, not by crash.
+        assert!(Generator::from_slice(&[0u8; 33]).is_err());
+    }
 }
