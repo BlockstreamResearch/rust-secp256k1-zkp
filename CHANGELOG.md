@@ -1,3 +1,7 @@
+# 0.11.2 - 2026-10-02
+
+- Fix out-of-bounds read in `PedersenCommitment::from_slice` and `Generator::from_slice` on short input (backport of #101)
+
 # 0.11.0 - 2024-07-09
 
 - Update upstream to 6152622613fdf1c5af6f31f74c427c4e9ee120ce
