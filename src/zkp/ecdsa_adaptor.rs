@@ -375,6 +375,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_ecdsa_adaptor_signature_plain_valid() {
         let msg = msg_from_str("8131e6f4b45754f2c90bd06688ceeabc0c45055460729928b4eecf11026a9e2d");
         let pubkey = "035be5e9478209674a96e60f1f037f6176540fd001fa1d64694770c56a7709c42c"
@@ -442,6 +443,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_ecdsa_adaptor_signature_recover_from_high_s_signature() {
         let encryption_key = "02042537e913ad74c4bbd8da9607ad3b9cb297d08e014afc51133083f1bd687a62"
             .parse()

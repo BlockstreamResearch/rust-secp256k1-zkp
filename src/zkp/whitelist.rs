@@ -311,6 +311,7 @@ mod tests {
 
     use super::whitelist_test_util as test_util;
 
+    #[cfg(not(secp256k1_fuzz))]
     fn test_whitelist_proof_roundtrip(n_keys: usize) {
         let keyset = test_util::KeySet::new(n_keys);
 
@@ -332,21 +333,25 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_whitelist_proof_roundtrip_n1() {
         test_whitelist_proof_roundtrip(1);
     }
 
     #[test]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_whitelist_proof_roundtrip_n50() {
         test_whitelist_proof_roundtrip(50);
     }
 
     #[test]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_whitelist_proof_roundtrip_n255() {
         test_whitelist_proof_roundtrip(255);
     }
 
     #[test]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_whitelist_proof_invalid() {
         let n_keys = 255;
         let our_idx = 100;
