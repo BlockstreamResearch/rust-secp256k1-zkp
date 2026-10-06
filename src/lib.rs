@@ -37,6 +37,7 @@
 //! let message = Message::from_digest(digest.to_byte_array());
 //!
 //! let sig = ecdsa::sign(message, &secret_key);
+//! # #[cfg(not(secp256k1_fuzz))]
 //! assert!(ecdsa::verify(&sig, message, &public_key).is_ok());
 //! # }
 //! ```
@@ -651,6 +652,7 @@ mod tests {
     }
 
     #[cfg(feature = "global-context")]
+    #[cfg(not(secp256k1_fuzz))]
     #[test]
     fn test_global_context() {
         use crate::SECP256K1;
