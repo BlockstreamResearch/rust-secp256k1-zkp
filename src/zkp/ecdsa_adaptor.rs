@@ -310,11 +310,11 @@ impl EcdsaAdaptorSignature {
 mod tests {
     use super::Message;
     use super::*;
-    #[cfg(not(rust_secp_fuzz))]
+    #[cfg(not(secp256k1_fuzz))]
     use crate::rand::{rng, rngs::ThreadRng, RngCore};
     use crate::SECP256K1 as SECP256K1_ZKP;
 
-    #[cfg(not(rust_secp_fuzz))]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_ecdsa_adaptor_signature_helper(
         encrypt: fn(&Message, &SecretKey, &PublicKey, &mut ThreadRng) -> EcdsaAdaptorSignature,
     ) {
@@ -341,7 +341,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(rust_secp_fuzz))]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_ecdsa_adaptor_signature_encrypt() {
         test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, _| {
             EcdsaAdaptorSignature::encrypt(SECP256K1_ZKP, msg, sk, adaptor)
@@ -349,7 +349,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(rust_secp_fuzz))]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_ecdsa_adaptor_signature_encrypt_with_rng() {
         test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, rng| {
             EcdsaAdaptorSignature::encrypt_with_rng(SECP256K1_ZKP, msg, sk, adaptor, rng)
@@ -357,7 +357,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(rust_secp_fuzz))]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_ecdsa_adaptor_signature_encrypt_with_aux_rand() {
         test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, rng| {
             let mut aux_rand = [0; 32];
@@ -367,7 +367,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(rust_secp_fuzz))]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_ecdsa_adaptor_signature_encrypt_no_aux_rand() {
         test_ecdsa_adaptor_signature_helper(|msg, sk, adaptor, _| {
             EcdsaAdaptorSignature::encrypt_no_aux_rand(SECP256K1_ZKP, msg, sk, adaptor)

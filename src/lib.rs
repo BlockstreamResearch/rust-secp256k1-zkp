@@ -534,6 +534,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "std")]
+    #[cfg(not(secp256k1_fuzz))]
     // In rustc 1.72 this Clippy lint was pulled out of clippy and into rustc, and
     // was made deny-by-default, breaking compilation of this test. Aside from this
     // breaking change, which there is no point in bugging, the rename was done so
@@ -599,6 +600,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "std")]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_preallocation() {
         use crate::ffi::types::AlignedType;
 
@@ -628,6 +630,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "std")]
+    #[cfg(not(secp256k1_fuzz))]
     fn capabilities() {
         let sign = Secp256k1::signing_only();
         let vrfy = Secp256k1::verification_only();
