@@ -17,7 +17,7 @@ impl PedersenCommitment {
 
         let ret = unsafe {
             ffi::secp256k1_pedersen_commitment_serialize(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 bytes.as_mut_ptr(),
                 &self.0,
             )
@@ -39,7 +39,7 @@ impl PedersenCommitment {
 
         let ret = unsafe {
             ffi::secp256k1_pedersen_commitment_parse(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut commitment,
                 bytes.as_ptr(),
             )

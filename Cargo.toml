@@ -21,9 +21,8 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["std"]
-std = ["alloc", "rand?/std", "rand?/std_rng", "secp256k1-zkp-sys/std", "secp256k1/std"]
+std = ["alloc", "rand?/std", "rand?/std_rng", "secp256k1/std"]
 alloc = ["secp256k1-zkp-sys/alloc", "secp256k1/alloc"]
-recovery = ["secp256k1-zkp-sys/recovery", "secp256k1/recovery"]
 lowmemory = ["secp256k1-zkp-sys/lowmemory", "secp256k1/lowmemory"]
 global-context = ["std", "rand", "secp256k1/global-context"]
 global-context-less-secure = ["global-context", "secp256k1/global-context-less-secure"]
@@ -45,3 +44,7 @@ hex_lit = "0.1.1"
 
 [lints.rust]
 unexpected_cfgs = { level = "deny", check-cfg = [ "cfg(rust_secp_fuzz)", "cfg(bench)", "cfg(secp256k1_fuzz)" ] }
+
+[workspace]
+members = ["secp256k1-zkp-sys"]
+

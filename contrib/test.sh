@@ -1,6 +1,6 @@
 #!/bin/sh -ex
 
-FEATURES="hashes global-context lowmemory rand recovery serde"
+FEATURES="hashes global-context lowmemory rand serde"
 
 cargo --version
 rustc --version

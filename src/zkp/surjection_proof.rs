@@ -102,7 +102,7 @@ impl SurjectionProof {
 
         let ret = unsafe {
             ffi::secp256k1_surjectionproof_parse(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &mut proof,
                 bytes.as_ptr(),
                 bytes.len(),
@@ -122,7 +122,7 @@ impl SurjectionProof {
     pub fn serialize(&self) -> Vec<u8> {
         let mut size = unsafe {
             ffi::secp256k1_surjectionproof_serialized_size(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &self.inner,
             )
         };
@@ -131,7 +131,7 @@ impl SurjectionProof {
 
         let ret = unsafe {
             ffi::secp256k1_surjectionproof_serialize(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 bytes.as_mut_ptr(),
                 &mut size,
                 &self.inner,
@@ -147,7 +147,7 @@ impl SurjectionProof {
     pub fn len(&self) -> usize {
         unsafe {
             ffi::secp256k1_surjectionproof_serialized_size(
-                ffi::secp256k1_context_no_precomp,
+                ffi::secp256k1_context_static,
                 &self.inner,
             )
         }

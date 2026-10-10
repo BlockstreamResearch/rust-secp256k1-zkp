@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: CC0-1.0
 
+use core::ffi::{c_uint, c_void};
 use core::marker::PhantomData;
 use core::mem::ManuallyDrop;
 use core::ptr::NonNull;
 
 #[cfg(feature = "alloc")]
 pub use self::alloc_only::{All, SignOnly, VerifyOnly};
-use crate::ffi::types::{c_uint, c_void, AlignedType};
+use crate::ffi::types::AlignedType;
 use crate::ffi::{self, CPtr};
 use crate::{Error, Secp256k1};
 
@@ -96,12 +97,12 @@ mod private {
 
 #[cfg(feature = "alloc")]
 mod alloc_only {
+    use core::ffi::{c_uint, c_void};
     use core::marker::PhantomData;
     use core::ptr::NonNull;
 
     use super::private;
     use crate::alloc::alloc;
-    use crate::ffi::types::{c_uint, c_void};
     use crate::ffi::{self};
     use crate::{AlignedType, Context, Secp256k1, Signing, Verification};
 
@@ -366,7 +367,7 @@ impl<'buf> Secp256k1<AllPreallocated<'buf>> {
     /// * The version of `libsecp256k1` used to create `raw_ctx` must be **exactly the one linked
     ///   into this library**.
     /// * The lifetime of the `raw_ctx` pointer must outlive `'buf`.
-    /// * `raw_ctx` must point to writable memory (cannot be `ffi::secp256k1_context_no_precomp`).
+    /// * `raw_ctx` must point to writable memory (cannot be `ffi::secp256k1_context_static`).
     pub unsafe fn from_raw_all(
         raw_ctx: NonNull<ffi::Context>,
     ) -> ManuallyDrop<Secp256k1<AllPreallocated<'buf>>> {
