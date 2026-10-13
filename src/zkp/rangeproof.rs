@@ -14,8 +14,6 @@ use std::ops::Range;
 use std::str;
 
 /// Represents a range proof.
-///
-/// TODO: Store rangeproof info
 #[derive(Debug, PartialEq, Clone, Eq, Hash, PartialOrd, Ord)]
 pub struct RangeProof {
     inner: Box<[u8]>,
@@ -28,9 +26,22 @@ impl RangeProof {
     }
 
     /// Parse from byte slice.
-    ///
-    /// TODO: Rename to parse (and other similar functions)
     pub fn from_slice(bytes: &[u8]) -> Result<Self, Error> {
+        Self::parse_info(bytes)?;
+        Ok(RangeProof {
+            inner: Box::from(bytes),
+        })
+    }
+
+    /// Get the metadata claimed by the proof.
+    ///
+    /// This does not verify the proof.
+    /// Call [`RangeProof::verify`] to establish that a committed value lies within these bounds.
+    pub fn info(&self) -> RangeProofInfo {
+        Self::parse_info(&self.inner).expect("proofs are parsed or signed on construction")
+    }
+
+    fn parse_info(bytes: &[u8]) -> Result<RangeProofInfo, Error> {
         let mut exp = 0;
         let mut mantissa = 0;
         let mut min_value = 0;
@@ -52,8 +63,11 @@ impl RangeProof {
             return Err(Error::InvalidRangeProof);
         }
 
-        Ok(RangeProof {
-            inner: Box::from(bytes),
+        Ok(RangeProofInfo {
+            exp,
+            mantissa: mantissa as u8,
+            min_value,
+            max_value,
         })
     }
 
@@ -253,6 +267,19 @@ impl<'de> ::serde::Deserialize<'de> for RangeProof {
     }
 }
 
+/// Metadata claimed by a range proof.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct RangeProofInfo {
+    /// Base-10 exponent of the proven range, or -1 if the proof reveals an exact value.
+    pub exp: i32,
+    /// Number of bits proven, or 0 if the proof reveals an exact value.
+    pub mantissa: u8,
+    /// Inclusive lower bound on the committed value.
+    pub min_value: u64,
+    /// Inclusive upper bound on the committed value.
+    pub max_value: u64,
+}
+
 /// The result of rewinding a range proof.
 ///
 /// Rewinding a range proof reveals ("opens") the stored information and allows us to access information the prover embedded in the proof.
@@ -368,5 +395,76 @@ mod tests {
         assert!(opening
             .message
             .ends_with(&vec![0; opening.message.len() - message.len()]));
+    }
+
+    #[test]
+    fn range_proof_info() {
+        let cases = [
+            ((1, 1_000, 0, 52), (0, 52, 1, 1 << 52)),
+            // A positive exponent reveals the low digits, raising the lower bound.
+            ((0, 12_345, 2, 0), (2, 7, 45, 12_745)),
+            ((0, 1_000, 0, 64), (0, 64, 0, u64::MAX)),
+            ((u64::MAX, u64::MAX, -1, 0), (-1, 0, u64::MAX, u64::MAX)),
+        ];
+        for ((min_value, value, exp, min_bits), expected) in cases {
+            let secrets = CommitmentSecrets::random(value);
+            let tag = Tag::random();
+            let commitment = secrets.commit(tag);
+            let generator =
+                Generator::new_blinded(SECP256K1, tag, secrets.generator_blinding_factor);
+            let proof = RangeProof::new(
+                SECP256K1,
+                min_value,
+                commitment,
+                value,
+                secrets.value_blinding_factor,
+                &[],
+                &[],
+                SecretKey::new(&mut rng()),
+                exp,
+                min_bits,
+                generator,
+            )
+            .unwrap();
+            let verify = |proof: &RangeProof| proof.verify(SECP256K1, commitment, &[], generator);
+
+            let info = proof.info();
+            assert_eq!(
+                (info.exp, info.mantissa, info.min_value, info.max_value),
+                expected
+            );
+            // `verify` cannot represent an upper bound of `u64::MAX`.
+            if info.max_value < u64::MAX {
+                assert_eq!(verify(&proof), Ok(info.min_value..info.max_value + 1));
+            }
+
+            // Info is parsed from the header, so it survives corruption that fails verification.
+            let mut corrupted = proof.serialize();
+            *corrupted.last_mut().unwrap() ^= 1;
+            let corrupted = RangeProof::from_slice(&corrupted).unwrap();
+            assert_eq!(corrupted.info(), info);
+            assert_eq!(verify(&corrupted), Err(Error::InvalidRangeProof));
+        }
+
+        // Each header rejection: too short, reserved bit, exponent above 18, mantissa above 64,
+        // and an upper bound overflowing through the exponent or through the minimum.
+        let header = |prefix: &[u8]| {
+            let mut bytes = vec![0; 65];
+            bytes[..prefix.len()].copy_from_slice(prefix);
+            bytes
+        };
+        for bytes in [
+            vec![0; 64],
+            header(&[0x80]),
+            header(&[0x40 | 19]),
+            header(&[0x40, 64]),
+            header(&[0x40 | 1, 63]),
+            header(&[0x60, 63, 0, 0, 0, 0, 0, 0, 0, 1]),
+        ] {
+            assert_eq!(
+                RangeProof::from_slice(&bytes),
+                Err(Error::InvalidRangeProof)
+            );
+        }
     }
 }
