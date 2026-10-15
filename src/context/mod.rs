@@ -18,7 +18,7 @@ mod internal;
 #[cfg(not(feature = "std"))]
 mod spinlock;
 
-pub use internal::{rerandomize_global_context, with_global_context, with_raw_global_context};
+pub use internal::with_raw_global_context;
 
 #[cfg(all(feature = "global-context", feature = "std"))]
 /// Module implementing a singleton pattern for a global [`Secp256k1`] context.
