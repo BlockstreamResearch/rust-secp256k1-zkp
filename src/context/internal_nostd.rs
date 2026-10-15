@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: CC0-1.0
 
-use core::marker::PhantomData;
-use core::mem::ManuallyDrop;
 use core::ptr::NonNull;
 
 use crate::context::spinlock::SpinLock;
-use crate::{ffi, Context, Secp256k1};
+use crate::ffi;
 
 mod self_contained_context {
     use core::ffi::c_void;
@@ -80,29 +78,6 @@ pub(super) use self_contained_context::SelfContainedContext;
 
 static SECP256K1: SpinLock<SelfContainedContext> = SpinLock::<SelfContainedContext>::new();
 
-/// Borrows the global context and does some operation on it.
-///
-/// If `randomize_seed` is provided, it is used to rerandomize the context before the
-/// operation. If it is not provided, randomization is skipped.
-///
-/// Only a bit or two per signing operation is needed; if you have any entropy at all,
-/// you should provide it, even if you can't provide 32 random bytes.
-pub fn with_global_context<T, Ctx: Context, F: FnOnce(&Secp256k1<Ctx>) -> T>(
-    f: F,
-    rerandomize_seed: Option<&[u8; 32]>,
-) -> T {
-    with_raw_global_context(
-        |ctx| {
-            let secp = ManuallyDrop::new(Secp256k1 {
-                ctx,
-                phantom: PhantomData,
-            });
-            f(&*secp)
-        },
-        rerandomize_seed,
-    )
-}
-
 /// Borrows the global context as a raw pointer and does some operation on it.
 ///
 /// If `randomize_seed` is provided, it is used to rerandomize the context before the
@@ -158,12 +133,4 @@ pub fn with_raw_global_context<T, F: FnOnce(NonNull<ffi::Context>) -> T>(
 
     // Lastly, call the function.
     f(ctx_ptr)
-}
-
-/// Rerandomize the global context, using the given data as a seed.
-///
-/// The provided data will be mixed with the entropy from previous calls in a timing
-/// analysis resistant way. It is safe to directly pass secret data to this function.
-pub fn rerandomize_global_context(seed: &[u8; 32]) {
-    with_raw_global_context(|_| {}, Some(seed))
 }
