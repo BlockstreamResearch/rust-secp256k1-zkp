@@ -44,7 +44,7 @@ mod with_rand {
 
             for (blinded_tag, tag, bf) in domain {
                 domain_blinded_tags.push(*blinded_tag.as_inner());
-                domain_tags.push(tag.into_inner());
+                domain_tags.push(*tag.as_inner());
                 domain_blinding_factors.push(*bf);
             }
 
@@ -67,7 +67,7 @@ mod with_rand {
             }
 
             let codomain_blinded_tag =
-                Generator::new_blinded(secp, codomain_tag, codomain_blinding_factor);
+                Generator::new_blinded(codomain_tag, codomain_blinding_factor);
 
             let ret = unsafe {
                 ffi::secp256k1_surjectionproof_generate(
@@ -319,7 +319,7 @@ mod tests {
 
     fn blind_tag(tag: Tag) -> (Generator, Tweak) {
         let bf = Tweak::new(&mut rng());
-        let blinded_tag = Generator::new_blinded(SECP256K1, tag, bf);
+        let blinded_tag = Generator::new_blinded(tag, bf);
 
         (blinded_tag, bf)
     }

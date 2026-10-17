@@ -1,8 +1,36 @@
 use ffi::CPtr;
 
 use crate::ffi;
-use crate::{from_hex, Error, Generator, Secp256k1, Signing, Tweak, ZERO_TWEAK};
-use core::{fmt, slice, str};
+use crate::{Generator, Tweak, ZERO_TWEAK};
+use core::{fmt, str};
+
+/// An error related to [`PedersenCommitment`].
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub enum Error {
+    /// Decoding a hex string failed.
+    Hex(hex::DecodeFixedLengthBytesError),
+    /// Bad commitment
+    InvalidCommitment,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match *self {
+            Self::Hex(_) => f.write_str("failed to decode hex string"),
+            Self::InvalidCommitment => f.write_str("invalid commitment"),
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match *self {
+            Self::Hex(ref e) => Some(e),
+            Self::InvalidCommitment => None,
+        }
+    }
+}
 
 /// Represents a commitment to a single u64 value.
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, PartialOrd, Ord)]
@@ -12,7 +40,7 @@ impl PedersenCommitment {
     /// Serialize a pedersen commitment.
     ///
     /// The format of this serialization is stable and platform-independent.
-    pub fn serialize(&self) -> [u8; 33] {
+    pub fn to_byte_array(&self) -> [u8; 33] {
         let mut bytes = [0u8; 33];
 
         let ret = unsafe {
@@ -28,13 +56,7 @@ impl PedersenCommitment {
     }
 
     /// Parse a pedersen commitment from a byte slice.
-    pub fn from_slice(bytes: &[u8]) -> Result<Self, Error> {
-        // The FFI parser takes no length and unconditionally reads 33 bytes
-        // from the slice pointer; reject other lengths here to avoid an
-        // out-of-bounds read (a segfault on empty input).
-        if bytes.len() != 33 {
-            return Err(Error::InvalidPedersenCommitment);
-        }
+    pub fn from_byte_array(bytes: [u8; 33]) -> Result<Self, Error> {
         let mut commitment = ffi::PedersenCommitment::default();
 
         let ret = unsafe {
@@ -46,7 +68,7 @@ impl PedersenCommitment {
         };
 
         if ret != 1 {
-            return Err(Error::InvalidPedersenCommitment);
+            return Err(Error::InvalidCommitment);
         }
 
         Ok(PedersenCommitment(commitment))
@@ -56,23 +78,21 @@ impl PedersenCommitment {
     /// a certain blinding factor and generator.
     /// Use the [`PedersenCommitment::new_unblinded`] for creating a commitment
     /// using zero blinding factor.
-    pub fn new<C: Signing>(
-        secp: &Secp256k1<C>,
-        value: u64,
-        blinding_factor: Tweak,
-        generator: Generator,
-    ) -> Self {
+    pub fn new(value: u64, blinding_factor: Tweak, generator: Generator) -> Self {
         let mut commitment = ffi::PedersenCommitment::default();
 
-        let ret = unsafe {
-            ffi::secp256k1_pedersen_commit(
-                secp.ctx().as_ptr(),
-                &mut commitment,
-                blinding_factor.as_c_ptr(),
-                value,
-                generator.as_inner(),
-            )
-        };
+        let ret = crate::context::with_raw_global_context(
+            |ctx| unsafe {
+                ffi::secp256k1_pedersen_commit(
+                    ctx.as_ptr(),
+                    &mut commitment,
+                    blinding_factor.as_c_ptr(),
+                    value,
+                    generator.as_inner(),
+                )
+            },
+            Some(blinding_factor.as_byte_array()),
+        );
         assert_eq!(
             ret, 1,
             "failed to create pedersen commitment, likely a bad blinding factor"
@@ -83,12 +103,8 @@ impl PedersenCommitment {
 
     /// Create a new [`PedersenCommitment`] that commits to the given value
     /// with a zero blinding factor and the [`Generator`].
-    pub fn new_unblinded<C: Signing>(
-        secp: &Secp256k1<C>,
-        value: u64,
-        generator: Generator,
-    ) -> Self {
-        PedersenCommitment::new(secp, value, ZERO_TWEAK, generator)
+    pub fn new_unblinded(value: u64, generator: Generator) -> Self {
+        PedersenCommitment::new(value, ZERO_TWEAK, generator)
     }
 
     pub(crate) fn as_inner(&self) -> &ffi::PedersenCommitment {
@@ -125,8 +141,7 @@ impl CommitmentSecrets {
 }
 
 /// Compute a blinding factor such that the sum of all blinding factors in both sets is equal.
-pub fn compute_adaptive_blinding_factor<C: Signing>(
-    secp: &Secp256k1<C>,
+pub fn compute_adaptive_blinding_factor(
     value: u64,
     generator_blinding_factor: Tweak,
     set_a: &[CommitmentSecrets],
@@ -152,53 +167,53 @@ pub fn compute_adaptive_blinding_factor<C: Signing>(
         .map(|(s_v, s_g)| (s_v.as_mut_c_ptr(), s_g.as_c_ptr()))
         .unzip::<_, _, Vec<_>, Vec<_>>();
 
-    let ret = unsafe {
-        ffi::secp256k1_pedersen_blind_generator_blind_sum(
-            secp.ctx().as_ptr(),
-            values.as_ptr(),
-            gbf.as_ptr(),
-            vbf.as_ptr(),
-            set_a.len() + set_b.len() + 1,
-            set_a.len(),
-        )
-    };
+    let ret = crate::context::with_raw_global_context(
+        |ctx| unsafe {
+            ffi::secp256k1_pedersen_blind_generator_blind_sum(
+                ctx.as_ptr(),
+                values.as_ptr(),
+                gbf.as_ptr(),
+                vbf.as_ptr(),
+                set_a.len() + set_b.len() + 1,
+                set_a.len(),
+            )
+        },
+        Some(generator_blinding_factor.as_byte_array()),
+    );
     assert_eq!(1, ret, "failed to compute blinding factor");
 
-    let last = vbf.last().expect("this vector is never empty");
-    let slice = unsafe { slice::from_raw_parts(*last, 32) };
-    Tweak::from_slice(slice).expect("data is always 32 bytes")
+    secrets
+        .last()
+        .expect("this vector is nonempty (explicit push above)")
+        .0
 }
 
 /// Verifies that the sum of the committed values within the commitments of both sets is equal.
 #[must_use]
-pub fn verify_commitments_sum_to_equal<C: Signing>(
-    secp: &Secp256k1<C>,
-    a: &[PedersenCommitment],
-    b: &[PedersenCommitment],
-) -> bool {
+pub fn verify_commitments_sum_to_equal(a: &[PedersenCommitment], b: &[PedersenCommitment]) -> bool {
     let a = a.iter().map(|c| &c.0).collect::<Vec<_>>();
     let b = b.iter().map(|c| &c.0).collect::<Vec<_>>();
 
-    let ret = unsafe {
-        ffi::secp256k1_pedersen_verify_tally(
-            secp.ctx().as_ptr(),
-            a.as_ptr(),
-            a.len(),
-            b.as_ptr(),
-            b.len(),
-        )
-    };
+    let ret = crate::context::with_raw_global_context(
+        |ctx| unsafe {
+            ffi::secp256k1_pedersen_verify_tally(
+                ctx.as_ptr(),
+                a.as_ptr(),
+                a.len(),
+                b.as_ptr(),
+                b.len(),
+            )
+        },
+        None,
+    );
 
     ret == 1
 }
 
 impl fmt::LowerHex for PedersenCommitment {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let ser = self.serialize();
-        for ch in &ser[..] {
-            write!(f, "{:02x}", *ch)?;
-        }
-        Ok(())
+        let ser = self.to_byte_array();
+        hex::fmt_hex_exact!(f, 33, ser, hex::Case::Lower)
     }
 }
 
@@ -210,12 +225,10 @@ impl fmt::Display for PedersenCommitment {
 
 impl str::FromStr for PedersenCommitment {
     type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Error> {
-        let mut res = [0; 33];
-        match from_hex(s, &mut res) {
-            Ok(33) => Self::from_slice(&res[0..33]),
-            _ => Err(Error::InvalidPedersenCommitment),
-        }
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let arr = hex::decode_to_array(s).map_err(Error::Hex)?;
+        Self::from_byte_array(arr)
     }
 }
 
@@ -225,7 +238,7 @@ impl ::serde::Serialize for PedersenCommitment {
         if s.is_human_readable() {
             s.collect_str(self)
         } else {
-            s.serialize_bytes(&self.serialize())
+            s.serialize_bytes(&self.to_byte_array())
         }
     }
 }
@@ -238,24 +251,26 @@ impl<'de> ::serde::Deserialize<'de> for PedersenCommitment {
         if d.is_human_readable() {
             d.deserialize_str(serde_util::FromStrVisitor::new("an ASCII hex string"))
         } else {
-            d.deserialize_bytes(serde_util::BytesVisitor::new(
-                "a bytestring",
-                PedersenCommitment::from_slice,
+            d.deserialize_bytes(serde_util::ArrayVisitor::new(
+                "a length-33 bytestring",
+                PedersenCommitment::from_byte_array,
             ))
         }
     }
 }
 
-#[cfg(all(test, feature = "global-context"))]
+#[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
     use super::*;
+    #[cfg(all(feature = "rand", feature = "std"))]
     use crate::rand::rng;
-    use crate::{Tag, SECP256K1};
+    use crate::Tag;
 
     impl CommitmentSecrets {
         #[allow(missing_docs)] // test-only
+        #[cfg(all(feature = "rand", feature = "std"))]
         pub fn random(value: u64) -> Self {
             Self {
                 value,
@@ -266,54 +281,41 @@ mod tests {
 
         #[allow(missing_docs)] // test-only
         pub fn commit(&self, tag: Tag) -> PedersenCommitment {
-            let generator = Generator::new_blinded(SECP256K1, tag, self.generator_blinding_factor);
+            let generator = Generator::new_blinded(tag, self.generator_blinding_factor);
 
-            PedersenCommitment::new(SECP256K1, self.value, self.value_blinding_factor, generator)
+            PedersenCommitment::new(self.value, self.value_blinding_factor, generator)
         }
     }
 
     #[test]
+    #[cfg(all(feature = "rand", feature = "std"))]
     fn test_unblinded_pedersen_commitments() {
         let tag = Tag::random();
-        let unblinded_gen = Generator::new_unblinded(SECP256K1, tag);
-        let one_comm = PedersenCommitment::new_unblinded(SECP256K1, 1, unblinded_gen); // 1*G
-        let two_comm = PedersenCommitment::new_unblinded(SECP256K1, 2, unblinded_gen); // 2*G
-        let three_comm = PedersenCommitment::new_unblinded(SECP256K1, 3, unblinded_gen); // 3*G
-        let six_comm = PedersenCommitment::new_unblinded(SECP256K1, 6, unblinded_gen); // 6*G
+        let unblinded_gen = Generator::new_unblinded(tag);
+        let one_comm = PedersenCommitment::new_unblinded(1, unblinded_gen); // 1*G
+        let two_comm = PedersenCommitment::new_unblinded(2, unblinded_gen); // 2*G
+        let three_comm = PedersenCommitment::new_unblinded(3, unblinded_gen); // 3*G
+        let six_comm = PedersenCommitment::new_unblinded(6, unblinded_gen); // 6*G
 
-        let commitment_sums_are_equal = verify_commitments_sum_to_equal(
-            SECP256K1,
-            &[one_comm, two_comm, three_comm],
-            &[six_comm],
-        );
+        let commitment_sums_are_equal =
+            verify_commitments_sum_to_equal(&[one_comm, two_comm, three_comm], &[six_comm]);
 
         assert!(commitment_sums_are_equal);
     }
 
     #[test]
+    #[cfg(all(feature = "rand", feature = "std"))]
     fn test_serialize_and_parse_pedersen_commitment() {
         let commitment = CommitmentSecrets::random(1000).commit(Tag::random());
 
-        let bytes = commitment.serialize();
-        let got = PedersenCommitment::from_slice(&bytes).unwrap();
+        let bytes = commitment.to_byte_array();
+        let got = PedersenCommitment::from_byte_array(bytes).unwrap();
 
         assert_eq!(got, commitment);
     }
 
     #[test]
-    fn from_slice_rejects_bad_lengths() {
-        // The FFI parser takes no length and unconditionally reads 33 bytes
-        // from the slice pointer; empty and short slices must be rejected
-        // before reaching FFI (an empty slice segfaults on address 0x1).
-        for len in [0usize, 1, 32] {
-            let bytes = vec![0u8; len];
-            assert!(PedersenCommitment::from_slice(&bytes).is_err());
-        }
-        // A 33-byte input reaches FFI and is rejected on content, not by crash.
-        assert!(PedersenCommitment::from_slice(&[0u8; 33]).is_err());
-    }
-
-    #[test]
+    #[cfg(all(feature = "rand", feature = "std"))]
     fn test_equal_sum_of_commitments() {
         let tag_1 = Tag::random();
         let tag_2 = Tag::random();
@@ -327,18 +329,12 @@ mod tests {
         let commitment_3 = secrets_3.commit(tag_1);
 
         let tbf_4 = Tweak::new(&mut rng());
-        let blinded_tag_4 = Generator::new_blinded(SECP256K1, tag_2, tbf_4);
-        let vbf_4 = compute_adaptive_blinding_factor(
-            SECP256K1,
-            1000,
-            tbf_4,
-            &[secrets_1, secrets_2],
-            &[secrets_3],
-        );
-        let commitment_4 = PedersenCommitment::new(SECP256K1, 1000, vbf_4, blinded_tag_4);
+        let blinded_tag_4 = Generator::new_blinded(tag_2, tbf_4);
+        let vbf_4 =
+            compute_adaptive_blinding_factor(1000, tbf_4, &[secrets_1, secrets_2], &[secrets_3]);
+        let commitment_4 = PedersenCommitment::new(1000, vbf_4, blinded_tag_4);
 
         let commitment_sums_are_equal = verify_commitments_sum_to_equal(
-            SECP256K1,
             &[commitment_1, commitment_2],
             &[commitment_3, commitment_4],
         );
@@ -347,6 +343,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(all(feature = "rand", feature = "std"))]
     fn test_pedersen_from_str() {
         let commitment = CommitmentSecrets::random(1000).commit(Tag::random());
 
@@ -362,7 +359,7 @@ mod tests {
         use serde_test::Configure;
         use serde_test::{assert_tokens, Token};
 
-        let commitment = PedersenCommitment::from_slice(&[
+        let commitment = PedersenCommitment::from_byte_array([
             9, 7, 166, 63, 171, 227, 228, 157, 87, 19, 233, 218, 252, 171, 254, 202, 228, 138, 19,
             124, 26, 29, 131, 42, 33, 212, 151, 151, 89, 0, 135, 201, 254,
         ])

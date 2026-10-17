@@ -37,6 +37,7 @@
 //! let message = Message::from_digest(digest.to_byte_array());
 //!
 //! let sig = ecdsa::sign(message, &secret_key);
+//! # #[cfg(not(secp256k1_fuzz))]
 //! assert!(ecdsa::verify(&sig, message, &public_key).is_ok());
 //! # }
 //! ```
@@ -130,11 +131,7 @@
 
 // Coding conventions
 #![deny(non_upper_case_globals, non_camel_case_types, non_snake_case)]
-#![warn(
-    missing_docs,
-    missing_copy_implementations,
-    missing_debug_implementations
-)]
+#![warn(missing_docs, missing_debug_implementations)]
 // Experimental features we need.
 #![cfg_attr(bench, feature(test))]
 
@@ -298,26 +295,10 @@ pub enum Error {
     CannotProveSurjection,
     /// Given bytes don't represent a valid surjection proof
     InvalidSurjectionProof,
-    /// Given bytes don't represent a valid pedersen commitment
-    InvalidPedersenCommitment,
     /// Failed to produce a range proof because of an internal error within `libsecp256k1-zkp`
     CannotMakeRangeProof,
     /// Given range proof does not prove that the commitment is within a range
     InvalidRangeProof,
-    /// Bad generator
-    InvalidGenerator,
-    /// Tweak must of len 32
-    InvalidTweakLength,
-    /// Tweak must be less than secp curve order
-    TweakOutOfBounds,
-    /// Given bytes don't represent a valid adaptor signature
-    InvalidEcdsaAdaptorSignature,
-    /// Failed to decrypt an adaptor signature because of an internal error within `libsecp256k1-zkp`
-    CannotDecryptAdaptorSignature,
-    /// Failed to recover an adaptor secret from an adaptor signature because of an internal error within `libsecp256k1-zkp`
-    CannotRecoverAdaptorSecret,
-    /// Given adaptor signature is not valid for the provided combination of public key, encryption key and message
-    CannotVerifyAdaptorSignature,
     /// Given bytes don't represent a valid whitelist signature
     InvalidWhitelistSignature,
     /// Invalid PAK list
@@ -328,6 +309,13 @@ pub enum Error {
     InvalidWhitelistProof,
 }
 
+// FIXME will be removed in next commit; for now we just need a stub
+impl From<crate::zkp::TweakOutOfBoundsError> for Error {
+    fn from(_: crate::zkp::TweakOutOfBoundsError) -> Self {
+        Self::InvalidMessage
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
@@ -336,18 +324,8 @@ impl fmt::Display for Error {
             Self::NotEnoughMemory => f.write_str("not enough memory allocated"),
             Self::CannotProveSurjection => f.write_str("failed to prove surjection"),
             Self::InvalidSurjectionProof => f.write_str("malformed surjection proof"),
-            Self::InvalidPedersenCommitment => f.write_str("malformed pedersen commitment"),
             Self::CannotMakeRangeProof => f.write_str("failed to generate range proof"),
             Self::InvalidRangeProof => f.write_str("failed to verify range proof"),
-            Self::InvalidGenerator => f.write_str("malformed generator"),
-            Self::InvalidEcdsaAdaptorSignature => f.write_str("malformed ecdsa adaptor signature"),
-            Self::CannotDecryptAdaptorSignature => {
-                f.write_str("failed to decrypt adaptor signature")
-            }
-            Self::CannotRecoverAdaptorSecret => f.write_str("failed to recover adaptor secret"),
-            Self::CannotVerifyAdaptorSignature => f.write_str("failed to verify adaptor signature"),
-            Self::InvalidTweakLength => f.write_str("Tweak must of size 32"),
-            Self::TweakOutOfBounds => f.write_str("Tweak must be less than secp curve order"),
             Self::InvalidWhitelistSignature => f.write_str("malformed whitelist signature"),
             Self::InvalidPakList => f.write_str("invalid PAK list"),
             Self::CannotCreateWhitelistSignature => {
@@ -369,16 +347,8 @@ impl std::error::Error for Error {
             Self::NotEnoughMemory => None,
             Self::CannotProveSurjection => None,
             Self::InvalidSurjectionProof => None,
-            Self::InvalidPedersenCommitment => None,
             Self::CannotMakeRangeProof => None,
             Self::InvalidRangeProof => None,
-            Self::InvalidGenerator => None,
-            Self::InvalidTweakLength => None,
-            Self::TweakOutOfBounds => None,
-            Self::InvalidEcdsaAdaptorSignature => None,
-            Self::CannotDecryptAdaptorSignature => None,
-            Self::CannotRecoverAdaptorSecret => None,
-            Self::CannotVerifyAdaptorSignature => None,
             Self::InvalidWhitelistSignature => None,
             Self::InvalidPakList => None,
             Self::CannotCreateWhitelistSignature => None,
@@ -534,6 +504,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "std")]
+    #[cfg(not(secp256k1_fuzz))]
     // In rustc 1.72 this Clippy lint was pulled out of clippy and into rustc, and
     // was made deny-by-default, breaking compilation of this test. Aside from this
     // breaking change, which there is no point in bugging, the rename was done so
@@ -599,6 +570,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "std")]
+    #[cfg(not(secp256k1_fuzz))]
     fn test_preallocation() {
         use crate::ffi::types::AlignedType;
 
@@ -628,6 +600,7 @@ mod tests {
 
     #[test]
     #[cfg(feature = "std")]
+    #[cfg(not(secp256k1_fuzz))]
     fn capabilities() {
         let sign = Secp256k1::signing_only();
         let vrfy = Secp256k1::verification_only();
@@ -648,6 +621,7 @@ mod tests {
     }
 
     #[cfg(feature = "global-context")]
+    #[cfg(not(secp256k1_fuzz))]
     #[test]
     fn test_global_context() {
         use crate::SECP256K1;

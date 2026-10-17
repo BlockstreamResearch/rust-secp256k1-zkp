@@ -296,7 +296,7 @@ extern "C" {
     )]
     pub fn secp256k1_ecdsa_adaptor_encrypt(
         cx: *const Context,
-        adaptor_sig162: *mut EcdsaAdaptorSignature,
+        adaptor_sig162: *mut c_uchar,
         seckey32: *const c_uchar,
         enckey: *const PublicKey,
         msg32: *const c_uchar,
@@ -310,7 +310,7 @@ extern "C" {
     )]
     pub fn secp256k1_ecdsa_adaptor_verify(
         cx: *const Context,
-        adaptor_sig162: *const EcdsaAdaptorSignature,
+        adaptor_sig162: *const c_uchar,
         pubkey: *const PublicKey,
         msg32: *const c_uchar,
         enckey: *const PublicKey,
@@ -324,7 +324,7 @@ extern "C" {
         cx: *const Context,
         sig: *mut Signature,
         deckey32: *const c_uchar,
-        adaptor_sig162: *const EcdsaAdaptorSignature,
+        adaptor_sig162: *const c_uchar,
     ) -> c_int;
 
     #[cfg_attr(
@@ -335,7 +335,7 @@ extern "C" {
         cx: *const Context,
         deckey32: *mut c_uchar,
         sig: *const Signature,
-        adaptor_sig162: *const EcdsaAdaptorSignature,
+        adaptor_sig162: *const c_uchar,
         enckey: *const PublicKey,
     ) -> c_int;
 
@@ -579,43 +579,3 @@ pub type EcdsaAdaptorNonceFn = Option<
         data: *mut c_void,
     ) -> c_int,
 >;
-
-#[repr(C)]
-#[derive(Copy, Clone)]
-pub struct EcdsaAdaptorSignature([u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH]);
-impl_array_newtype!(EcdsaAdaptorSignature, u8, ECDSA_ADAPTOR_SIGNATURE_LENGTH);
-impl_raw_debug!(EcdsaAdaptorSignature);
-
-impl Default for EcdsaAdaptorSignature {
-    fn default() -> EcdsaAdaptorSignature {
-        EcdsaAdaptorSignature::new()
-    }
-}
-
-impl EcdsaAdaptorSignature {
-    /// Create a new (zeroed) ecdsa adaptor signature usable for the FFI interface
-    pub fn new() -> Self {
-        EcdsaAdaptorSignature([0u8; ECDSA_ADAPTOR_SIGNATURE_LENGTH])
-    }
-
-    /// Create a new ecdsa adaptor signature usable for the FFI interface from raw bytes
-    ///
-    /// # Safety
-    ///
-    /// Does not check the validity of the underlying representation. If it is
-    /// invalid the result may be assertation failures (and process aborts) from
-    /// the underlying library. You should not use this method except with data
-    /// that you obtained from the FFI interface of the same version of this
-    /// library.
-    pub unsafe fn from_array_unchecked(data: [c_uchar; ECDSA_ADAPTOR_SIGNATURE_LENGTH]) -> Self {
-        Self(data)
-    }
-}
-
-impl PartialEq for EcdsaAdaptorSignature {
-    fn eq(&self, other: &Self) -> bool {
-        self.0[..] == other.0[..]
-    }
-}
-
-impl Eq for EcdsaAdaptorSignature {}

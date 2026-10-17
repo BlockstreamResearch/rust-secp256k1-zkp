@@ -193,7 +193,7 @@ impl RangeProof {
 
         let opening = Opening {
             value,
-            blinding_factor: Tweak::from_slice(&blinding_factor)?,
+            blinding_factor: Tweak::from_byte_array(blinding_factor)?,
             message: message[..message_length].into(),
         };
 
@@ -284,7 +284,7 @@ mod tests {
 
         let sk = SecretKey::new(&mut rng());
         let additional_generator =
-            Generator::new_blinded(SECP256K1, tag, commitment_secrets.generator_blinding_factor);
+            Generator::new_blinded(tag, commitment_secrets.generator_blinding_factor);
 
         let proof = RangeProof::new(
             SECP256K1,
@@ -331,7 +331,7 @@ mod tests {
 
         let sk = SecretKey::new(&mut rng());
         let additional_generator =
-            Generator::new_blinded(SECP256K1, tag, commitment_secrets.generator_blinding_factor);
+            Generator::new_blinded(tag, commitment_secrets.generator_blinding_factor);
 
         let proof = RangeProof::new(
             SECP256K1,
