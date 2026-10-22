@@ -33,13 +33,13 @@ if [ "$DO_FEATURE_MATRIX" = true ]; then
     done
 
     # Other combos
-    RUSTFLAGS='--cfg=rust_secp_fuzz' cargo test --all
-    RUSTFLAGS='--cfg=rust_secp_fuzz' cargo test --all --features="$FEATURES"
+    RUSTDOCFLAGS='--cfg=secp256k1_fuzz' RUSTFLAGS='--cfg=secp256k1_fuzz' cargo test --all
+    RUSTDOCFLAGS='--cfg=secp256k1_fuzz' RUSTFLAGS='--cfg=secp256k1_fuzz' cargo test --all --features="$FEATURES"
     cargo test --all --features="rand"
     cargo test --all --features="rand serde"
 
     cargo test --all --all-features
-    RUSTFLAGS='--cfg=rust_secp_fuzz' RUSTDOCFLAGS='--cfg=rust_secp_fuzz' cargo test --all --all-features
+    RUSTDOCFLAGS='--cfg=secp256k1_fuzz' RUSTFLAGS='--cfg=secp256k1_fuzz' cargo test --all --all-features
 fi
 
 # Docs

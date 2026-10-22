@@ -413,7 +413,7 @@ pub unsafe extern "C" fn rustsecp256k1zkp_v0_11_0_context_destroy(mut ctx: NonNu
 ///
 /// `message` string should be a null terminated C string and, up to the first null byte, must be valid UTF8.
 ///
-/// For exact safety constraints see [`std::slice::from_raw_parts`] and [`std::str::from_utf8_unchecked`].
+/// For exact safety constraints see [`core::slice::from_raw_parts`] and [`core::str::from_utf8_unchecked`].
 #[no_mangle]
 #[cfg(not(rust_secp_zkp_no_symbol_renaming))]
 pub unsafe extern "C" fn rustsecp256k1zkp_v0_11_0_default_illegal_callback_fn(
@@ -444,7 +444,7 @@ pub unsafe extern "C" fn rustsecp256k1zkp_v0_11_0_default_illegal_callback_fn(
 ///
 /// `message` string should be a null terminated C string and, up to the first null byte, must be valid UTF8.
 ///
-/// For exact safety constraints see [`std::slice::from_raw_parts`] and [`std::str::from_utf8_unchecked`].
+/// For exact safety constraints see [`core::slice::from_raw_parts`] and [`core::str::from_utf8_unchecked`].
 #[no_mangle]
 #[cfg(not(rust_secp_zkp_no_symbol_renaming))]
 pub unsafe extern "C" fn rustsecp256k1zkp_v0_11_0_default_error_callback_fn(
@@ -574,7 +574,7 @@ mod fuzz_dummy {
     pub unsafe fn secp256k1_context_preallocated_size(flags: c_uint) -> size_t {
         assert!(
             rustsecp256k1zkp_v0_11_0_context_preallocated_size(flags)
-                + std::mem::size_of::<c_uint>()
+                + core::mem::size_of::<c_uint>()
                 <= CTX_SIZE
         );
         CTX_SIZE
@@ -602,7 +602,7 @@ mod fuzz_dummy {
                     assert!(
                         rustsecp256k1zkp_v0_11_0_context_preallocated_size(
                             SECP256K1_START_SIGN | SECP256K1_START_VERIFY
-                        ) + std::mem::size_of::<c_uint>()
+                        ) + core::mem::size_of::<c_uint>()
                             <= CTX_SIZE
                     );
                     assert_eq!(
@@ -637,7 +637,7 @@ mod fuzz_dummy {
         );
         let ptr = (prealloc.as_ptr())
             .add(CTX_SIZE)
-            .sub(std::mem::size_of::<c_uint>());
+            .sub(core::mem::size_of::<c_uint>());
         (ptr as *mut c_uint).write(flags);
         NonNull::new_unchecked(prealloc.as_ptr() as *mut Context)
     }
@@ -650,10 +650,10 @@ mod fuzz_dummy {
     ) -> NonNull<Context> {
         let orig_ptr = (cx as *mut u8)
             .add(CTX_SIZE)
-            .sub(std::mem::size_of::<c_uint>());
+            .sub(core::mem::size_of::<c_uint>());
         let new_ptr = (prealloc.as_ptr() as *mut u8)
             .add(CTX_SIZE)
-            .sub(std::mem::size_of::<c_uint>());
+            .sub(core::mem::size_of::<c_uint>());
         let flags = (orig_ptr as *mut c_uint).read();
         (new_ptr as *mut c_uint).write(flags);
         rustsecp256k1zkp_v0_11_0_context_preallocated_clone(cx, prealloc)
@@ -675,7 +675,7 @@ mod fuzz_dummy {
         } else {
             let ptr = (cx as *const u8)
                 .add(CTX_SIZE)
-                .sub(std::mem::size_of::<c_uint>());
+                .sub(core::mem::size_of::<c_uint>());
             (ptr as *const c_uint).read()
         };
         assert_eq!(cx_flags & 1, 1); // SECP256K1_FLAGS_TYPE_CONTEXT
