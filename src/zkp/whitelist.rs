@@ -81,6 +81,12 @@ impl WhitelistSignature {
             return Err(Error::InvalidPakList);
         }
         let n_keys = online_keys.len();
+        if n_keys == 0 || n_keys > ffi::WHITELIST_MAX_N_KEYS {
+            return Err(Error::InvalidPakList);
+        }
+        if key_index >= n_keys {
+            return Err(Error::CannotCreateWhitelistSignature);
+        }
 
         let mut sig = ffi::WhitelistSignature::default();
         let ret = unsafe {
@@ -374,6 +380,42 @@ mod tests {
         assert_eq!(
             Err(Error::InvalidPakList),
             test_util::whitelist_prove(SECP256K1, &keyset, our_idx),
+        );
+
+        // Key index out of range.
+        let summed_key = original_keyset.keys_offline[0]
+            .add_tweak(&original_keyset.whitelist_sk.into())
+            .unwrap();
+        assert_eq!(
+            Err(Error::CannotCreateWhitelistSignature),
+            WhitelistSignature::new(
+                SECP256K1,
+                &original_keyset.pak_online,
+                &original_keyset.pak_offline,
+                &original_keyset.whitelist_pk,
+                &original_keyset.keys_online[0],
+                &summed_key,
+                n_keys,
+            ),
+        );
+        // Empty PAK list.
+        assert_eq!(
+            Err(Error::InvalidPakList),
+            WhitelistSignature::new(
+                SECP256K1,
+                &[],
+                &[],
+                &original_keyset.whitelist_pk,
+                &original_keyset.keys_online[0],
+                &summed_key,
+                0,
+            ),
+        );
+        // Too many keys.
+        let too_many_keys = test_util::KeySet::new(n_keys + 1);
+        assert_eq!(
+            Err(Error::InvalidPakList),
+            test_util::whitelist_prove(SECP256K1, &too_many_keys, our_idx),
         );
 
         let correct_signature =
