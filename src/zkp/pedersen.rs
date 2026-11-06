@@ -78,7 +78,12 @@ impl PedersenCommitment {
     /// a certain blinding factor and generator.
     /// Use the [`PedersenCommitment::new_unblinded`] for creating a commitment
     /// using zero blinding factor.
-    pub fn new(value: u64, blinding_factor: Tweak, generator: Generator) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Errors if the commitment would be the point at infinity, e.g. if both `value` and
+    /// `blinding_factor` are zero.
+    pub fn new(value: u64, blinding_factor: Tweak, generator: Generator) -> Result<Self, Error> {
         let mut commitment = ffi::PedersenCommitment::default();
 
         let ret = crate::context::with_raw_global_context(
@@ -93,17 +98,20 @@ impl PedersenCommitment {
             },
             Some(blinding_factor.as_byte_array()),
         );
-        assert_eq!(
-            ret, 1,
-            "failed to create pedersen commitment, likely a bad blinding factor"
-        );
+        if ret != 1 {
+            return Err(Error::InvalidCommitment);
+        }
 
-        PedersenCommitment(commitment)
+        Ok(PedersenCommitment(commitment))
     }
 
     /// Create a new [`PedersenCommitment`] that commits to the given value
     /// with a zero blinding factor and the [`Generator`].
-    pub fn new_unblinded(value: u64, generator: Generator) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Errors if `value` is zero, since the commitment would be the point at infinity.
+    pub fn new_unblinded(value: u64, generator: Generator) -> Result<Self, Error> {
         PedersenCommitment::new(value, ZERO_TWEAK, generator)
     }
 
@@ -281,7 +289,7 @@ mod tests {
         pub fn commit(&self, tag: Tag) -> PedersenCommitment {
             let generator = Generator::new_blinded(tag, self.generator_blinding_factor);
 
-            PedersenCommitment::new(self.value, self.value_blinding_factor, generator)
+            PedersenCommitment::new(self.value, self.value_blinding_factor, generator).unwrap()
         }
     }
 
@@ -290,15 +298,36 @@ mod tests {
     fn test_unblinded_pedersen_commitments() {
         let tag = Tag::random();
         let unblinded_gen = Generator::new_unblinded(tag);
-        let one_comm = PedersenCommitment::new_unblinded(1, unblinded_gen); // 1*G
-        let two_comm = PedersenCommitment::new_unblinded(2, unblinded_gen); // 2*G
-        let three_comm = PedersenCommitment::new_unblinded(3, unblinded_gen); // 3*G
-        let six_comm = PedersenCommitment::new_unblinded(6, unblinded_gen); // 6*G
+        let one_comm = PedersenCommitment::new_unblinded(1, unblinded_gen).unwrap(); // 1*G
+        let two_comm = PedersenCommitment::new_unblinded(2, unblinded_gen).unwrap(); // 2*G
+        let three_comm = PedersenCommitment::new_unblinded(3, unblinded_gen).unwrap(); // 3*G
+        let six_comm = PedersenCommitment::new_unblinded(6, unblinded_gen).unwrap(); // 6*G
 
         let commitment_sums_are_equal =
             verify_commitments_sum_to_equal(&[one_comm, two_comm, three_comm], &[six_comm]);
 
         assert!(commitment_sums_are_equal);
+    }
+
+    #[test]
+    #[cfg(all(feature = "rand", feature = "std"))]
+    fn test_zero_pedersen_commitment() {
+        let tag = Tag::random();
+        let unblinded_gen = Generator::new_unblinded(tag);
+        let blinded_gen = Generator::new_blinded(tag, Tweak::new(&mut rng()));
+
+        // zero value with zero blinding factor is the point at infinity
+        assert_eq!(
+            PedersenCommitment::new_unblinded(0, unblinded_gen),
+            Err(Error::InvalidCommitment)
+        );
+        assert_eq!(
+            PedersenCommitment::new(0, ZERO_TWEAK, blinded_gen),
+            Err(Error::InvalidCommitment)
+        );
+
+        // zero value with a nonzero blinding factor is fine
+        PedersenCommitment::new(0, Tweak::new(&mut rng()), blinded_gen).unwrap();
     }
 
     #[test]
@@ -330,7 +359,7 @@ mod tests {
         let blinded_tag_4 = Generator::new_blinded(tag_2, tbf_4);
         let vbf_4 =
             compute_adaptive_blinding_factor(1000, tbf_4, &[secrets_1, secrets_2], &[secrets_3]);
-        let commitment_4 = PedersenCommitment::new(1000, vbf_4, blinded_tag_4);
+        let commitment_4 = PedersenCommitment::new(1000, vbf_4, blinded_tag_4).unwrap();
 
         let commitment_sums_are_equal = verify_commitments_sum_to_equal(
             &[commitment_1, commitment_2],
