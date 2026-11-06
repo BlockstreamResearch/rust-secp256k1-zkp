@@ -121,6 +121,9 @@ impl WhitelistSignature {
             return Err(Error::InvalidPakList);
         }
         let n_keys = online_keys.len();
+        if n_keys == 0 {
+            return Err(Error::InvalidPakList);
+        }
 
         let ret = unsafe {
             ffi::secp256k1_whitelist_verify(
@@ -433,6 +436,12 @@ mod tests {
         assert_eq!(
             Err(Error::InvalidPakList),
             test_util::whitelist_verify(SECP256K1, &keyset, &correct_signature),
+        );
+
+        // empty pak
+        assert_eq!(
+            Err(Error::InvalidPakList),
+            correct_signature.verify(SECP256K1, &[], &[], &original_keyset.whitelist_pk),
         );
 
         // wrong pubkey
