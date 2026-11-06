@@ -13,6 +13,9 @@ pub const ECDSA_ADAPTOR_SIGNATURE_LENGTH: size_t = 162;
 /// The maximum number of whitelist keys.
 pub const WHITELIST_MAX_N_KEYS: size_t = 255;
 
+/// The maximum number of inputs to a surjection proof.
+pub const SURJECTIONPROOF_MAX_N_INPUTS: size_t = 256;
+
 extern "C" {
     #[cfg_attr(
         not(rust_secp_zkp_no_symbol_renaming),

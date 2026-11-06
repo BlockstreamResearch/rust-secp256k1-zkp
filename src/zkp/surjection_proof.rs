@@ -30,6 +30,10 @@ mod with_rand {
             codomain_blinding_factor: Tweak,
             domain: &[(Generator, Tag, Tweak)],
         ) -> Result<SurjectionProof, Error> {
+            if domain.len() > ffi::SURJECTIONPROOF_MAX_N_INPUTS {
+                return Err(Error::CannotProveSurjection);
+            }
+
             let mut proof = ffi::SurjectionProof::new();
 
             let mut seed = [0u8; 32];
@@ -307,6 +311,32 @@ mod tests {
             let proof_str = proof.to_string();
             assert_eq!(proof, SurjectionProof::from_str(&proof_str).unwrap());
         }
+    }
+
+    #[test]
+    fn test_surjection_proof_max_inputs() {
+        // create 257 inputs with the same tag, so that proving can't fail by chance
+        let codomain_tag = Tag::random();
+        let domain: Vec<_> = (0..257)
+            .map(|_| {
+                let (blinded_tag, bf) = blind_tag(codomain_tag);
+                (blinded_tag, codomain_tag, bf)
+            })
+            .collect();
+        let (codomain_blinded_tag, codomain_bf) = blind_tag(codomain_tag);
+
+        // too many inputs
+        assert_eq!(
+            Err(Error::CannotProveSurjection),
+            SurjectionProof::new(SECP256K1, &mut rng(), codomain_tag, codomain_bf, &domain),
+        );
+
+        // maximum number of inputs
+        let domain = &domain[..256];
+        let proof =
+            SurjectionProof::new(SECP256K1, &mut rng(), codomain_tag, codomain_bf, domain).unwrap();
+        let domain_blinded_tags: Vec<_> = domain.iter().map(|d| d.0).collect();
+        assert!(proof.verify(SECP256K1, codomain_blinded_tag, &domain_blinded_tags));
     }
 
     fn random_blinded_tag() -> (Tag, Generator, Tweak) {
