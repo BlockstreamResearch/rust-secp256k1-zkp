@@ -179,6 +179,7 @@ impl std::error::Error for Error {
 ///
 /// A generator is a public key internally but has a slightly different serialization with the first byte being tweaked.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[repr(transparent)]
 pub struct Generator(ffi::PublicKey);
 
 impl Generator {
