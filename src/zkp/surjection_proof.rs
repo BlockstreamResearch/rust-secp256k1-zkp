@@ -169,7 +169,7 @@ impl SurjectionProof {
         codomain: Generator,
         domain: &[Generator],
     ) -> bool {
-        // Safety: Generator and ffi::PublicKey are the same size and layout.
+        // Safety: Generator is #[repr(transparent)] around ffi::PublicKey, so they have the same size and layout.
         let domain_blinded_tags = unsafe {
             debug_assert_eq!(size_of::<Generator>(), size_of::<ffi::PublicKey>());
 
