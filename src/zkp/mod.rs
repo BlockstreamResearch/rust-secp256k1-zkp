@@ -12,7 +12,7 @@ pub use self::generator::{Generator, Tweak, TweakError, TweakOutOfBoundsError, Z
 pub use self::pedersen::{compute_adaptive_blinding_factor, verify_commitments_sum_to_equal};
 pub use self::pedersen::{CommitmentSecrets, PedersenCommitment};
 #[cfg(feature = "alloc")]
-pub use self::rangeproof::{Opening, RangeProof};
+pub use self::rangeproof::{InvalidRangeProofError, Opening, RangeProof, RangeProofInfo, RangeProofInfoError};
 pub use self::surjection_proof::SurjectionProof;
 pub use self::tag::Tag;
 pub use self::whitelist::WhitelistSignature;

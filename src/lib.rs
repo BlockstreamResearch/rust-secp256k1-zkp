@@ -309,13 +309,6 @@ pub enum Error {
     InvalidWhitelistProof,
 }
 
-// FIXME will be removed in next commit; for now we just need a stub
-impl From<crate::zkp::TweakOutOfBoundsError> for Error {
-    fn from(_: crate::zkp::TweakOutOfBoundsError) -> Self {
-        Self::InvalidMessage
-    }
-}
-
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
